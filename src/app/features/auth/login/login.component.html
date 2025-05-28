@@ -1,0 +1,41 @@
+<div class="login-container">
+  <app-card class="login-card">
+    <div class="login-header">
+      <h1>MediSmart</h1>
+      <p>Sistema de Medição de Consumíveis</p>
+    </div>
+    
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      <div class="form-group">
+        <app-input
+          label="Email"
+          type="email"
+          formControlName="email"
+          [error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+          [errorMessage]="loginForm.get('email')?.errors?.['required'] ? 'Email é obrigatório' : 
+                         loginForm.get('email')?.errors?.['email'] ? 'Email inválido' : ''"
+        ></app-input>
+      </div>
+      
+      <div class="form-group">
+        <app-input
+          label="Senha"
+          type="password"
+          formControlName="password"
+          [error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+          [errorMessage]="loginForm.get('password')?.errors?.['required'] ? 'Senha é obrigatória' : ''"
+        ></app-input>
+      </div>
+      
+      <app-button 
+        type="submit" 
+        variant="primary"
+        [disabled]="loginForm.invalid || isSubmitting"
+        [isLoading]="isSubmitting"
+        class="login-button"
+      >
+        Entrar
+      </app-button>
+    </form>
+  </app-card>
+</div>
