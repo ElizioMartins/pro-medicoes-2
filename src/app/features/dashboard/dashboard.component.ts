@@ -18,28 +18,28 @@ import { Router } from '@angular/router';
       <h1 class="dashboard-title">Dashboard</h1>
       
       <div class="dashboard-stats">
-        <app-card class="stat-card" elevated="true">
+        <app-card class="stat-card" [elevated]="true">
           <div class="stat-content">
             <h3 class="stat-value">{{ condominiumsCount }}</h3>
             <p class="stat-label">Condomínios</p>
           </div>
         </app-card>
         
-        <app-card class="stat-card" elevated="true">
+        <app-card class="stat-card" [elevated]="true">
           <div class="stat-content">
             <h3 class="stat-value">{{ unitsCount }}</h3>
             <p class="stat-label">Unidades</p>
           </div>
         </app-card>
         
-        <app-card class="stat-card" elevated="true">
+        <app-card class="stat-card" [elevated]="true">
           <div class="stat-content">
             <h3 class="stat-value">{{ readingsCount }}</h3>
             <p class="stat-label">Leituras</p>
           </div>
         </app-card>
         
-        <app-card class="stat-card" elevated="true">
+        <app-card class="stat-card" [elevated]="true">
           <div class="stat-content">
             <h3 class="stat-value">{{ usersCount }}</h3>
             <p class="stat-label">Usuários</p>
@@ -48,7 +48,7 @@ import { Router } from '@angular/router';
       </div>
       
       <div class="dashboard-actions">
-        <app-card title="Ações Rápidas" elevated="true">
+        <app-card title="Ações Rápidas" [elevated]="true">
           <div class="quick-actions">
             <app-button (click)="navigateTo('/readings/new')">Nova Leitura</app-button>
             <app-button (click)="navigateTo('/reports')" variant="secondary">Gerar Relatório</app-button>
@@ -58,7 +58,7 @@ import { Router } from '@angular/router';
       </div>
       
       <div class="dashboard-recent">
-        <app-card title="Leituras Recentes" elevated="true">
+        <app-card title="Leituras Recentes" [elevated]="true">
           <div *ngIf="recentReadings.length > 0; else noReadings">
             <table class="readings-table">
               <thead>

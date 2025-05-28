@@ -11,7 +11,7 @@
           label="Email"
           type="email"
           formControlName="email"
-          [error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+          [error]="!!(loginForm.get('email')?.invalid && loginForm.get('email')?.touched)"
           [errorMessage]="loginForm.get('email')?.errors?.['required'] ? 'Email é obrigatório' : 
                          loginForm.get('email')?.errors?.['email'] ? 'Email inválido' : ''"
         ></app-input>
@@ -22,7 +22,7 @@
           label="Senha"
           type="password"
           formControlName="password"
-          [error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+          [error]="!!(loginForm.get('email')?.invalid && loginForm.get('email')?.touched)"
           [errorMessage]="loginForm.get('password')?.errors?.['required'] ? 'Senha é obrigatória' : ''"
         ></app-input>
       </div>
