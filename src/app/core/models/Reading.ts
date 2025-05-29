@@ -18,12 +18,3 @@ export interface Reading {
   measurementTypeName?: string;
 }
 import { ReadingPhoto } from './ReadingPhoto';
-
-export interface ReadingPhoto {
-  id: string;
-  readingId: string;
-  filePath: string; 
-  croppedFilePath?: string;
-  isCropped?: boolean;
-  // Add any other relevant metadata, e.g., timestamp
-}
