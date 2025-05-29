@@ -21,6 +21,7 @@ import { InputComponent } from '@shared/components/ui/input/input.component';
 
 @Component({
   selector: 'app-reading-form',
+  templateUrl: './reading-form.component.html',
   standalone: true,
   imports: [
     CommonModule,
@@ -33,7 +34,6 @@ import { InputComponent } from '@shared/components/ui/input/input.component';
     InputComponent
     // LabelComponent, TextareaComponent, CheckboxComponent removed
   ],
-  templateUrl: './reading-form.component.html'
 })
 export class ReadingFormComponent implements OnInit {
   readingForm: FormGroup;
