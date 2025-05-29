@@ -52,7 +52,18 @@ export const routes: Routes = [
   {
     path: 'readings',
     canActivate: [authGuard],
-    loadComponent: () => import('./features/readings/readings.component').then(m => m.ReadingsComponent)
+      children: [
+        {
+          path: '',
+          loadComponent: () => import('./features/readings/readings.component').then(m => m.ReadingsComponent),
+          pathMatch: 'full' // Important for default child route
+        },
+        {
+          path: 'new',
+          loadComponent: () => import('./features/readings/reading-new/reading-new.component').then(m => m.ReadingNewComponent)
+        }
+        // Potentially add a route for '/readings/:id' for details view later
+      ]
   },
   {
     path: 'reports',
