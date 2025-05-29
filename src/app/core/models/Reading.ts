@@ -1,12 +1,29 @@
 export interface Reading {
   id: string;
   condominiumId: string;
-  unit: string; // Assuming unit is a string identifier for now, could be a separate model later
+  unit: string; 
   measurementTypeId: string;
-  value: string; // Value can be string to accommodate units like '12.5 m³'
-  date: Date;
-  registeredBy: string;
+  currentReading: string; // Value read from the meter, can be string for '12.5 m³' or if inaccessible
+  date: Date; // Could be due date for PENDING, or registration date for COMPLETED
+  registeredBy?: string; // Who registered/completed it
+  
+  status: 'PENDING' | 'COMPLETED' | 'INACCESSIBLE';
+  inaccessibleReason?: string; // e.g., 'Unidade fechada', 'Morador negou acesso'
+  observations?: string;
+  
+  photos?: ReadingPhoto[];
+
   // Optional: Add properties for related objects if needed for display
   condominiumName?: string;
   measurementTypeName?: string;
+}
+import { ReadingPhoto } from './ReadingPhoto';
+
+export interface ReadingPhoto {
+  id: string;
+  readingId: string;
+  filePath: string; 
+  croppedFilePath?: string;
+  isCropped?: boolean;
+  // Add any other relevant metadata, e.g., timestamp
 }

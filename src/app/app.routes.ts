@@ -59,10 +59,13 @@ export const routes: Routes = [
           pathMatch: 'full' // Important for default child route
         },
         {
-          path: 'new',
-          loadComponent: () => import('./features/readings/reading-new/reading-new.component').then(m => m.ReadingNewComponent)
+          path: 'new', // For creating a new reading
+          loadComponent: () => import('./features/readings/reading-form/reading-form.component').then(m => m.ReadingFormComponent)
+        },
+        {
+          path: ':id/form', // For editing an existing reading
+          loadComponent: () => import('./features/readings/reading-form/reading-form.component').then(m => m.ReadingFormComponent)
         }
-        // Potentially add a route for '/readings/:id' for details view later
       ]
   },
   {
@@ -76,7 +79,17 @@ export const routes: Routes = [
     loadComponent: () => import('./features/users/users.component').then(m => m.UsersComponent)
   },
   {
+    path: 'profile',
+    canActivate: [authGuard], // Assuming protected
+    loadComponent: () => import('./features/user-profile/profile.component').then(m => m.ProfileComponent)
+  },
+  {
+    path: 'settings',
+    canActivate: [authGuard], // Assuming protected
+    loadComponent: () => import('./features/settings/settings.component').then(m => m.SettingsComponent)
+  },
+  {
     path: '**',
-    loadComponent: () => import('./shared/components/not-found/not-found.component').then(m => m.UnitsComponent)
+    loadComponent: () => import('./shared/components/not-found/not-found.component').then(m => m.NotFoundComponent)
   }
 ];
