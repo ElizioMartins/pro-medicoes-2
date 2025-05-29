@@ -95,11 +95,13 @@ import { Condominium } from '@core/models/Condominium';
                 <td>{{ reading.condominiumName }}</td>
                 <td>{{ reading.unit }}</td>
                 <td>{{ reading.measurementTypeName }}</td>
-                <td>{{ reading.value }}</td>
+                <td>{{ reading.status === 'INACCESSIBLE' ? reading.inaccessibleReason : reading.currentReading }}</td>
                 <td>{{ reading.date | date:'dd/MM/yyyy' }}</td>
                 <td>{{ reading.registeredBy }}</td>
                 <td class="actions-cell">
-                  <app-button [routerLink]="['/readings', reading.id]" size="sm" variant="outline">Detalhes</app-button>
+                  <app-button [routerLink]="['/readings', reading.id, 'form']" size="sm" variant="outline">
+                    {{ reading.status === 'PENDING' ? 'Registrar' : 'Ver/Editar' }}
+                  </app-button>
                 </td>
               </tr>
             </tbody>
