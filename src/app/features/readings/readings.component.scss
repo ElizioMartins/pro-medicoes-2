@@ -1,0 +1,122 @@
+.readings-container {
+      padding: 1.5rem;
+    }
+    
+    .readings-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    
+    .readings-title {
+      font-size: 1.875rem;
+      font-weight: 600;
+      color: #111827;
+      margin: 0;
+    }
+    
+    .filters-card {
+      margin-bottom: 1.5rem;
+    }
+    
+    .filters-title {
+      margin-top: 0;
+      margin-bottom: 1rem;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #111827;
+    }
+    
+    .filters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      align-items: end;
+    }
+    
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .filter-group label {
+      font-size: 0.875rem;
+      color: #4b5563;
+      margin-bottom: 0.25rem;
+    }
+    
+    .filter-select {
+      padding: 0.5rem;
+      border-radius: 0.375rem;
+      border: 1px solid #d1d5db;
+      background-color: white;
+      color: #1f2937;
+      font-size: 0.875rem;
+    }
+    
+    .filter-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    .readings-card {
+      margin-bottom: 1.5rem;
+    }
+    
+    .readings-table-container {
+      overflow-x: auto;
+    }
+    
+    .readings-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    .readings-table th, .readings-table td {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .readings-table th {
+      font-weight: 600;
+      color: #374151;
+    }
+    
+    .actions-cell {
+      text-align: right;
+    }
+    
+    .pagination {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 1rem;
+    }
+    
+    .pagination-button {
+      padding: 0.5rem 1rem;
+      border-radius: 0.375rem;
+      border: 1px solid #d1d5db;
+      background-color: white;
+      color: #374151;
+      cursor: pointer;
+    }
+    
+    .pagination-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .pagination-info {
+      color: #6b7280;
+    }
+    .loading-indicator, .error-message, .no-data-message {
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.125rem;
+    }
+    .error-message {
+      color: #ef4444; /* Red color for errors */
+    }
