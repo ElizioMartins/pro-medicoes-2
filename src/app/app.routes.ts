@@ -90,6 +90,7 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    loadComponent: () => import('./shared/components/not-found/not-found.component').then(m => m.NotFoundComponent)
+    loadComponent: () => import('./features/settings/settings.component').then(m => m.SettingsComponent)
+   // loadComponent: () => import('./shared/components/not-found/not-found.component').then(m => m.NotFoundComponent)
   }
 ];

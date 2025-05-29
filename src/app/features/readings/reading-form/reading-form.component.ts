@@ -37,7 +37,7 @@ import { InputComponent } from '@shared/components/ui/input/input.component';
     <div class="container mx-auto p-4">
       <app-card>
         <div class="p-6">
-          <h1 class="text-2xl font-bold mb-6">{{ currentReadingId ? 'Editar Leitura' : 'Registrar Nova Leitura' }}</h1>
+          <h1 class="text-2xl font-bold mb-6">{{ currentReading ? 'Editar Leitura' : 'Registrar Nova Leitura' }}</h1>
           
           <div *ngIf="isLoading" class="text-center p-4">
             <p>Carregando dados da leitura...</p>
@@ -51,7 +51,7 @@ import { InputComponent } from '@shared/components/ui/input/input.component';
             </div>
           </div>
 
-          <form [formGroup]="readingForm" (ngSubmit)="onSubmit()" *ngIf="!isLoading && (currentReadingIdFromRoute || !currentReadingId )">
+          <form [formGroup]="readingForm" (ngSubmit)="onSubmit()" *ngIf="!isLoading && (currentReadingIdFromRoute || !currentReading )">
             <div class="space-y-6">
               
               <div class="flex items-center space-x-2">
