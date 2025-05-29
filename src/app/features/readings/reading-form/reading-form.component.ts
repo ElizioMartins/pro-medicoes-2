@@ -7,7 +7,8 @@ import { forkJoin, of, throwError, switchMap, Observable } from 'rxjs'; // Impor
 
 // Import Services and Models
 import { ReadingService } from '@core/services/Reading.service';
-import { Reading, ReadingPhoto } from '@core/models'; // Assuming ReadingPhoto is also exported from core/models index
+import { Reading } from '@core/models/Reading';
+import { ReadingPhoto } from '@core/models/ReadingPhoto';
 
 // Import the photo capture component and its event interface
 import { MeterPhotoCaptureAngularComponent, PhotoCaptureEvent } from '@shared/components/meter-photo-capture/meter-photo-capture.component';
@@ -16,9 +17,7 @@ import { MeterPhotoCaptureAngularComponent, PhotoCaptureEvent } from '@shared/co
 import { CardComponent } from '@shared/components/ui/card/card.component';
 import { ButtonComponent } from '@shared/components/ui/button/button.component';
 import { InputComponent } from '@shared/components/ui/input/input.component';
-import { LabelComponent } from '@shared/components/ui/label/label.component';
-import { TextareaComponent } from '@shared/components/ui/textarea/textarea.component';
-import { CheckboxComponent } from '@shared/components/ui/checkbox/checkbox.component';
+// LabelComponent, TextareaComponent, CheckboxComponent removed
 
 @Component({
   selector: 'app-reading-form',
@@ -31,10 +30,8 @@ import { CheckboxComponent } from '@shared/components/ui/checkbox/checkbox.compo
     MeterPhotoCaptureAngularComponent,
     CardComponent,
     ButtonComponent,
-    InputComponent,
-    LabelComponent,
-    TextareaComponent,
-    CheckboxComponent
+    InputComponent
+    // LabelComponent, TextareaComponent, CheckboxComponent removed
   ],
   template: `
     <div class="container mx-auto p-4">
@@ -58,12 +55,12 @@ import { CheckboxComponent } from '@shared/components/ui/checkbox/checkbox.compo
             <div class="space-y-6">
               
               <div class="flex items-center space-x-2">
-                <app-checkbox id="inaccessible" formControlName="inaccessible"></app-checkbox>
-                <app-label htmlFor="inaccessible" class="text-sm font-medium text-gray-700">Unidade Inacessível</app-label>
+                <input type="checkbox" id="inaccessible" formControlName="inaccessible" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 align-middle mr-2">
+                <label for="inaccessible" class="text-sm font-medium text-gray-700">Unidade Inacessível</label>
               </div>
 
               <div *ngIf="readingForm.get('inaccessible')?.value" class="pl-2">
-                <app-label htmlFor="inaccessibleReason" class="block text-sm font-medium text-gray-700 mb-1">Motivo da Inacessibilidade</app-label>
+                <label for="inaccessibleReason" class="block text-sm font-medium text-gray-700 mb-1">Motivo da Inacessibilidade</label>
                 <select formControlName="inaccessibleReason" id="inaccessibleReason" 
                         class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                   <option value="" disabled>Selecione um motivo</option>
@@ -77,7 +74,7 @@ import { CheckboxComponent } from '@shared/components/ui/checkbox/checkbox.compo
               </div>
 
               <div *ngIf="!readingForm.get('inaccessible')?.value">
-                <app-label htmlFor="currentReading" class="block text-sm font-medium text-gray-700 mb-1">Leitura Atual</app-label>
+                <label for="currentReading" class="block text-sm font-medium text-gray-700 mb-1">Leitura Atual</label>
                 <app-input type="number" formControlName="currentReading" id="currentReading"></app-input>
                 <div *ngIf="isDetecting" class="text-sm text-blue-600 my-1">
                   Detectando valor da leitura na imagem... (aguarde)
@@ -89,7 +86,7 @@ import { CheckboxComponent } from '@shared/components/ui/checkbox/checkbox.compo
               </div>
 
               <div class="space-y-2">
-                <app-label class="block text-sm font-medium text-gray-700">Foto do Medidor</app-label>
+                <label class="block text-sm font-medium text-gray-700">Foto do Medidor</label>
                 <app-button type="button" variant="outline" (click)="triggerPhotoCaptureModal()" [disabled]="readingForm.get('inaccessible')?.value">
                   {{ (capturedFullImage || (currentReading && currentReading.photos && currentReading.photos.length > 0)) ? 'Ver/Alterar Foto' : 'Capturar Foto' }}
                 </app-button>
@@ -104,8 +101,8 @@ import { CheckboxComponent } from '@shared/components/ui/checkbox/checkbox.compo
               </div>
 
               <div>
-                <app-label htmlFor="notes" class="block text-sm font-medium text-gray-700 mb-1">Observações</app-label>
-                <app-textarea formControlName="notes" id="notes" rows="3"></app-textarea>
+                <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Observações</label>
+                <textarea formControlName="notes" id="notes" rows="3" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
               </div>
 
               <div class="flex justify-end space-x-3 pt-4">
@@ -366,23 +363,32 @@ export class ReadingFormComponent implements OnInit {
     savePhotoObs.pipe(
       switchMap((savedPhoto: ReadingPhoto | null) => {
         const formValues = this.readingForm.getRawValue();
-        const status = formValues.inaccessible ? 'INACCESSIBLE' : 'COMPLETED';
-        
+        // Corrected Logic to be applied:
+        const newStatus = formValues.inaccessible ? 'INACCESSIBLE' : 'COMPLETED';
+
         const readingDataToUpdate: Partial<Reading> = {
-          currentReading: status === 'INACCESSIBLE' ? '' : formValues.currentReading,
+          currentReading: newStatus === 'INACCESSIBLE' ? '' : formValues.currentReading,
           observations: formValues.notes,
           inaccessibleReason: formValues.inaccessible ? formValues.inaccessibleReason : undefined,
-          status: status,
-          // If backend expects photo IDs/references, and savePhotoObs returns it:
-          // photos: savedPhoto ? [savedPhoto] : (this.currentReading?.photos || []) 
-          // For now, ReadingService mock handles associating photo internally.
+          status: newStatus,
+          // Preserve existing registeredBy and date unless explicitly changed below
+          registeredBy: this.currentReading?.registeredBy,
+          date: this.currentReading?.date
         };
-        
-        // If status changed to COMPLETED or INACCESSIBLE, set registeredBy and update date
-        if (status !== 'PENDING' && (!this.currentReading || this.currentReading.status === 'PENDING')) {
-            readingDataToUpdate.registeredBy = 'Operador App (Angular)'; // Example user
-            readingDataToUpdate.date = new Date(); // Set to current date on completion
+
+        // If the original status of the reading was 'PENDING' and the new status is a final one
+        if (this.currentReading && this.currentReading.status === 'PENDING' && (newStatus === 'COMPLETED' || newStatus === 'INACCESSIBLE')) {
+            readingDataToUpdate.registeredBy = 'Operador App (Angular)'; // Example: Set the user who completed it
+            readingDataToUpdate.date = new Date(); // Set the date of completion/finalization
         }
+        // End of Corrected Logic
+
+        // photos handling (conceptual, if ReadingService needs it explicitly)
+        // if (savedPhoto) {
+        //   readingDataToUpdate.photos = [savedPhoto]; // Or logic to append/replace
+        // } else if (this.currentReading?.photos) {
+        //   readingDataToUpdate.photos = this.currentReading.photos;
+        // }
 
 
         return this.readingService.updateReading(this.currentReadingIdFromRoute!, readingDataToUpdate);
