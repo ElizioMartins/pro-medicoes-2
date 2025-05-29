@@ -56,15 +56,15 @@ import { InputComponent } from '@shared/components/ui/input/input.component';
               
               <!-- Section: Inaccessible Checkbox -->
               <div class="flex items-center space-x-2">
-                <input type="checkbox" id="inaccessible" formControlName="inaccessible" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"> {/* Removed align-middle mr-2 */}
+                <input type="checkbox" id="inaccessible" formControlName="inaccessible" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"> <!-- Removed align-middle mr-2 -->
                 <label for="inaccessible" class="text-sm font-medium text-gray-700">Unidade Inacessível</label>
               </div>
 
               <!-- Section: Inaccessible Reason -->
-              <div *ngIf="readingForm.get('inaccessible')?.value"> {/* Removed pl-2 */}
+              <div *ngIf="readingForm.get('inaccessible')?.value"> <!-- Removed pl-2 -->
                 <label for="inaccessibleReason" class="block text-sm font-medium text-gray-700 mb-1">Motivo da Inacessibilidade</label>
                 <select formControlName="inaccessibleReason" id="inaccessibleReason" 
-                        class="block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"> {/* Removed mt-1 */}
+                        class="block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"> <!-- Removed mt-1 -->
                   <option value="" disabled>Selecione um motivo</option>
                   <option value="Unidade fechada">Unidade fechada</option>
                   <option value="Morador negou acesso">Morador negou acesso</option>
@@ -72,27 +72,27 @@ import { InputComponent } from '@shared/components/ui/input/input.component';
                   <option value="outro">Outro (especifique nas observações)</option>
                 </select>
                 <div *ngIf="readingForm.get('inaccessibleReason')?.touched && readingForm.get('inaccessibleReason')?.errors?.['required']" 
-                     class="text-xs text-red-600 mt-1">Motivo é obrigatório.</div>
+                    class="text-xs text-red-600 mt-1">Motivo é obrigatório.</div>
               </div>
 
               <!-- Section: Current Reading -->
               <div *ngIf="!readingForm.get('inaccessible')?.value">
                 <label for="currentReading" class="block text-sm font-medium text-gray-700 mb-1">Leitura Atual</label>
-                <app-input type="number" formControlName="currentReading" id="currentReading" class="w-full"></app-input> {/* Added w-full */}
-                <div *ngIf="isDetecting" class="text-sm text-blue-600 mt-1"> {/* Added mt-1 for spacing */}
+                <app-input type="number" formControlName="currentReading" id="currentReading" class="w-full"></app-input> <!-- Added w-full -->
+                <div *ngIf="isDetecting" class="text-sm text-blue-600 mt-1"> <!-- Added mt-1 for spacing -->
                   Detectando valor da leitura na imagem... (aguarde)
                 </div>
-                <div *ngIf="detectionError" class="text-sm text-red-600 mt-1 p-2 border border-red-200 bg-red-50 rounded"> {/* Added mt-1 */}
+                <div *ngIf="detectionError" class="text-sm text-red-600 mt-1 p-2 border border-red-200 bg-red-50 rounded"> <!-- Added mt-1 -->
                   <strong>Erro na Detecção:</strong> {{ detectionError }} <br>
                   Por favor, insira o valor manualmente ou tente capturar outra foto.
                 </div>
               </div>
 
               <!-- Section: Meter Photo -->
-              <div> {/* Wrapped in a div for consistent spacing from space-y-6 */}
+              <div> <!-- Wrapped in a div for consistent spacing from space-y-6 -->
                 <label class="block text-sm font-medium text-gray-700 mb-1">Foto do Medidor</label>
                 <app-button type="button" variant="outline" (click)="triggerPhotoCaptureModal()" [disabled]="readingForm.get('inaccessible')?.value"
-                            class="w-full sm:w-auto"> {/* Added width classes */}
+                            class="w-full sm:w-auto"> <!-- Added width classes -->
                   {{ (capturedFullImage || (currentReading && currentReading.photos && currentReading.photos.length > 0)) ? 'Ver/Alterar Foto' : 'Capturar Foto' }}
                 </app-button>
 
@@ -108,7 +108,7 @@ import { InputComponent } from '@shared/components/ui/input/input.component';
               <!-- Section: Notes -->
               <div>
                 <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Observações</label>
-                <textarea formControlName="notes" id="notes" rows="3" class="block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea> {/* Removed mt-1 */}
+                <textarea formControlName="notes" id="notes" rows="3" class="block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea> <!-- Removed mt-1 -->
               </div>
 
               <!-- Section: Action Buttons (already seems good) -->
@@ -123,9 +123,8 @@ import { InputComponent } from '@shared/components/ui/input/input.component';
           </form>
         </div>
       </app-card>
-
       <div *ngIf="showPhotoCaptureModal" 
-           class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
         <div class="bg-white p-0 rounded-lg shadow-xl max-w-lg w-full">
           <app-meter-photo-capture 
             (photoCaptured)="onPhotoSuccessfullyCaptured($event)"
