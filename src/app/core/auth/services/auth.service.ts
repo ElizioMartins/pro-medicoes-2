@@ -3,9 +3,9 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { User, Tenant, AuthResponse, LoginRequest } from '../models/auth.model';
-import { environment } from '@environments/environment';
 import { Router } from '@angular/router';
 import { ToastService } from '@core/services/toast.service';
+import { environment } from '@environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -75,28 +75,89 @@ export class AuthService {
     });
   }
 
+  // login original comentado para referência
+  /*
   login(credentials: LoginRequest): Observable<AuthResponse> {
     this.isLoading.set(true);
-    
-    return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/login`, credentials)
-      .pipe(
+
+    // Simulação de login sem backend
+    if (credentials.password === '123456') {
+      const fakeResponse: AuthResponse = {
+        user: {
+          id: '1',
+          name: 'Usuário Demo',
+          email: credentials.email,
+          role: 'admin'
+        },
+        tenant: {
+          id: '1',
+          name: 'Empresa Demo',
+          logo: ''
+        },
+        token: 'fake-jwt-token'
+      };
+
+      // Simula um pequeno delay e retorna o usuário fake
+      return of(fakeResponse).pipe(
         tap(response => {
           this.setSession(response);
           this.currentUser.set(response.user);
           this.currentTenant.set(response.tenant);
         }),
-        catchError(error => {
-          this.toastService.show({
-            title: 'Erro ao fazer login',
-            description: error.error?.message || 'Credenciais inválidas',
-            variant: 'destructive'
-          });
-          return throwError(() => new Error(error.error?.message || 'Credenciais inválidas'));
+        tap({
+          finalize: () => this.isLoading.set(false)
+        })
+      );
+    } else {
+      this.toastService.show({
+        title: 'Erro ao fazer login',
+        description: 'Credenciais inválidas',
+        variant: 'destructive'
+      });
+      this.isLoading.set(false);
+      return throwError(() => new Error('Credenciais inválidas'));
+    }
+  }
+  */
+
+  // Novo método de login fake
+  login(credentials: LoginRequest): Observable<AuthResponse> {
+    this.isLoading.set(true);
+
+    if (credentials.password === '123456') {
+      const fakeResponse: AuthResponse = {
+        user: {
+          id: '1',
+          name: 'Usuário Demo',
+          email: credentials.email,
+          role: 'admin'
+        },
+        tenant: {
+          id: '1',
+          name: 'Empresa Demo',
+          logo: ''
+        },
+        token: 'fake-jwt-token'
+      };
+      return of(fakeResponse).pipe(
+        tap(response => {
+          this.setSession(response);
+          this.currentUser.set(response.user);
+          this.currentTenant.set(response.tenant);
         }),
         tap({
           finalize: () => this.isLoading.set(false)
         })
       );
+    } else {
+      this.toastService.show({
+        title: 'Erro ao fazer login',
+        description: 'Credenciais inválidas',
+        variant: 'destructive'
+      });
+      this.isLoading.set(false);
+      return throwError(() => new Error('Credenciais inválidas'));
+    }
   }
 
   logout(): Observable<void> {
