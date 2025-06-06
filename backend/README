@@ -1,0 +1,12 @@
+criar ambiente virtual
+py -m venv venv
+
+ativar
+.\venv\Scripts\Activate
+
+local
+uvicorn main:app --reload
+
+
+para servidor
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
