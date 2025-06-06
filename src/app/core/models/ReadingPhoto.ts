@@ -4,5 +4,5 @@ export interface ReadingPhoto {
   filePath: string; // Path to the full image
   croppedFilePath?: string; // Path to the cropped image
   isCropped?: boolean; // From React code, seems useful
-  // Add any other relevant metadata, e.g., timestamp
+  timestamp?: Date; // Timestamp of when the photo was taken
 }

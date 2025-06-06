@@ -26,12 +26,11 @@
           [errorMessage]="loginForm.get('password')?.errors?.['required'] ? 'Senha é obrigatória' : ''"
         ></app-input>
       </div>
-      
-      <app-button 
+        <app-button 
         type="submit" 
         variant="primary"
         [disabled]="loginForm.invalid || isSubmitting"
-        [isLoading]="isSubmitting"
+        [loading]="isSubmitting"
         class="login-button"
       >
         Entrar

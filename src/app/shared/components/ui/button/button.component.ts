@@ -8,10 +8,10 @@ import { CommonModule } from '@angular/common';
   template: `
     <button 
       [type]="type" 
-      [disabled]="disabled" 
+      [disabled]="disabled || loading" 
       [class]="buttonClasses"
       (click)="onClick($event)">
-      <span *ngIf="isLoading" class="spinner"></span>
+      <span *ngIf="loading" class="animate-spin inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full mr-2"></span>
       <ng-content></ng-content>
     </button>
   `,
@@ -104,17 +104,16 @@ import { CommonModule } from '@angular/common';
 export class ButtonComponent {
   @Input() type: 'button' | 'submit' | 'reset' = 'button';
   @Input() variant: 'primary' | 'secondary' | 'danger' | 'outline' = 'primary';
-  @Input() size: 'sm' | 'md' | 'lg' = 'md';
   @Input() disabled = false;
-  @Input() isLoading = false;
+  @Input() loading = false;
   @Input() block = false;
 
   get buttonClasses(): string {
-    return `btn-${this.variant} btn-${this.size} ${this.block ? 'btn-block' : ''}`;
+    return `btn-${this.variant} ${this.block ? 'btn-block' : ''}`;
   }
 
   onClick(event: Event): void {
-    if (this.disabled || this.isLoading) {
+    if (this.disabled || this.loading) {
       event.preventDefault();
       event.stopPropagation();
     }

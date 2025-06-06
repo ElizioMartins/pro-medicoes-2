@@ -301,7 +301,11 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
       };
       // Decide whether to create a new photo or update an existing one
       // For simplicity, let's assume we always create/replace the first photo
-      updatePhoto$ = this.readingService.saveReadingPhoto(this.currentReadingIdFromRoute, photoPayload);
+      updatePhoto$ = this.readingService.saveReadingPhoto(
+        this.currentReadingIdFromRoute,
+        this.capturedFullImage,
+        this.capturedCroppedImage
+      );
     }
 
     forkJoin({ reading: updateReading$, photo: updatePhoto$ })
