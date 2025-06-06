@@ -1,0 +1,98 @@
+<div class="users-container">
+  <div class="users-header">
+    <h1 class="users-title">Usuários</h1>
+    <app-button routerLink="/users/new">Novo Usuário</app-button>
+  </div>
+  
+  <app-card [elevated]="true" class="users-card">
+    <div class="users-filters">
+      <div class="search-box">
+        <input 
+          type="text" 
+          placeholder="Buscar usuários..." 
+          class="search-input"
+          [(ngModel)]="searchTerm"
+          (keyup.enter)="onSearch()">
+        <button class="search-button" (click)="onSearch()">Buscar</button>
+      </div>
+      <div class="filter-dropdown">
+        <select class="filter-select" [(ngModel)]="selectedRole" (change)="onSearch()">
+          <option value="all">Todos os perfis</option>
+          <option value="Admin">Administrador</option>
+          <option value="Manager">Gerente</option>
+          <option value="Reader">Leiturista</option>
+          <option value="User">Usuário</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="users-table-container">
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Email</th>
+            <th>Perfil</th>
+            <th>Status</th>
+            <th>Último Acesso</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="loading">
+            <td colspan="6" class="loading-cell">
+              Carregando usuários...
+            </td>
+          </tr>
+          <tr *ngIf="!loading && users.length === 0">
+            <td colspan="6" class="empty-cell">
+              Nenhum usuário encontrado.
+            </td>
+          </tr>
+          <tr *ngFor="let user of users">
+            <td>
+              <div class="user-info">
+                <div class="user-avatar" [style.backgroundColor]="user.avatarColor">
+                  {{ user.initials }}
+                </div>
+                <span>{{ user.name }}</span>
+              </div>
+            </td>
+            <td>{{ user.email }}</td>
+            <td>
+              <span class="user-role" [class]="'role-' + user.role.toLowerCase()">
+                {{ user.role }}
+              </span>
+            </td>
+            <td>
+              <span class="user-status" [class]="'status-' + user.status.toLowerCase()">
+                {{ user.status }}
+              </span>
+            </td>
+            <td>{{ user.lastAccess | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td class="actions-cell">
+              <app-button [routerLink]="['/users', user.id]" size="sm" variant="outline">Detalhes</app-button>
+              <app-button [routerLink]="['/users', user.id, 'edit']" size="sm" variant="secondary">Editar</app-button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <div class="pagination">
+      <button 
+        class="pagination-button" 
+        [disabled]="currentPage === 1 || loading"
+        (click)="onPageChange(false)">
+        Anterior
+      </button>
+      <span class="pagination-info">Página {{ currentPage }} de {{ totalPages }}</span>
+      <button 
+        class="pagination-button" 
+        [disabled]="currentPage === totalPages || loading"
+        (click)="onPageChange(true)">
+        Próxima
+      </button>
+    </div>
+  </app-card>
+</div>

@@ -1,9 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HeaderComponent } from './shared/components/layout/header/header.component';
 import { FooterComponent } from './shared/components/layout/footer/footer.component';
 import { ToastContainerComponent } from './shared/components/ui/toast-container/toast-container.component';
+import { UserService } from './core/services/user.service';
+import { initializeDatabase } from './database-init';
 
 @Component({
   selector: 'app-root',
@@ -18,7 +20,13 @@ import { ToastContainerComponent } from './shared/components/ui/toast-container/
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
+  constructor(private readonly userService: UserService) {}
+
+  async ngOnInit() {
+    await initializeDatabase(this.userService);
+  }
+
   shouldShowHeader(): boolean {
     // Lógica para determinar quando mostrar o header
     // Pode ser expandida para verificar rotas específicas
