@@ -132,6 +132,10 @@ export class UserFormComponent implements OnInit {
     }
   }
 
+  onCancel(): void {
+    this.router.navigate(['/users']);
+  }
+
   private generateInitials(name: string): string {
     return name
       .split(' ')
