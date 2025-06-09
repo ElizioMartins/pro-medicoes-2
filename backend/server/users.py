@@ -1,0 +1,148 @@
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.orm import Session
+from typing import List, Optional
+from database import get_db, User
+from pydantic import BaseModel
+from datetime import datetime
+
+router = APIRouter()
+
+class UserBase(BaseModel):
+    username: str
+    email: str
+    name: str
+    role: str = 'User'
+    status: str = 'Active'
+    is_active: Optional[int] = 1
+    initials: Optional[str] = None
+    avatar_color: Optional[str] = None
+
+class UserCreate(UserBase):
+    password: str
+
+class UserUpdate(UserBase):
+    password: Optional[str] = None
+    username: Optional[str] = None
+    email: Optional[str] = None
+    name: Optional[str] = None
+    role: Optional[str] = None
+    status: Optional[str] = None
+
+class UserResponse(UserBase):
+    id: int
+    last_access: Optional[datetime] = None
+
+    class Config:
+        orm_mode = True
+
+@router.get("", response_model=dict)
+def get_users(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(10, ge=1, le=100),
+    db: Session = Depends(get_db)
+):
+    skip = (page - 1) * page_size
+    users = db.query(User).offset(skip).limit(page_size).all()
+    total = db.query(User).count()
+    return {
+        "users": [
+            {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "name": user.name,
+                "role": user.role,
+                "status": user.status,
+                "is_active": user.is_active,
+                "lastAccess": user.last_access,
+                "initials": user.initials,
+                "avatarColor": user.avatar_color
+            }
+            for user in users
+        ],
+        "total": total
+    }
+
+@router.get("/search")
+def search_users(
+    search_term: str = "",
+    role: str = "all",
+    db: Session = Depends(get_db)
+):
+    query = db.query(User)
+    
+    if search_term:
+        query = query.filter(
+            (User.username.ilike(f"%{search_term}%")) |
+            (User.email.ilike(f"%{search_term}%"))
+        )
+    
+    users = query.all()    
+    return [
+        {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "name": user.name,
+            "role": user.role,
+            "status": user.status,
+            "is_active": user.is_active,
+            "lastAccess": user.last_access,
+            "initials": user.initials,
+            "avatarColor": user.avatar_color
+        }
+        for user in users
+    ]
+
+@router.post("", response_model=UserResponse)
+def create_user(user: UserCreate, db: Session = Depends(get_db)):
+    # Aqui você deve adicionar a lógica para criptografar a senha
+    db_user = User(
+        username=user.username,
+        email=user.email,
+        hashed_password=user.password,  # Você deve criptografar isso!
+        is_active=user.is_active,
+        name=user.name,
+        role=user.role,
+        status=user.status,
+        initials=user.initials,
+        avatar_color=user.avatar_color
+    )
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+@router.get("/{user_id}", response_model=UserResponse)
+def get_user(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if user is None:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    return user
+
+@router.put("/{user_id}", response_model=UserResponse)
+def update_user(user_id: int, user_update: UserUpdate, db: Session = Depends(get_db)):
+    db_user = db.query(User).filter(User.id == user_id).first()
+    if db_user is None:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    for key, value in user_update.dict(exclude_unset=True).items():
+        if key == "password" and value:
+            # Aqui você deve adicionar a lógica para criptografar a senha
+            setattr(db_user, "hashed_password", value)
+        else:
+            setattr(db_user, key, value)
+    
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+@router.delete("/{user_id}")
+def delete_user(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if user is None:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    db.delete(user)
+    db.commit()
+    return {"message": "Usuário excluído com sucesso"}

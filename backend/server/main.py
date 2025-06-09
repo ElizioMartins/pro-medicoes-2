@@ -1,8 +1,15 @@
 import io
+import os
 import numpy as np
 from PIL import Image
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
+from datetime import datetime
+
+from database import get_db, Reading
+import readings
+import users
 
 # FastAPI app
 app = FastAPI(
@@ -13,7 +20,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4000"],  # ou ["*"] em dev
+    allow_origins=["http://localhost:4000", "http://localhost:4200"],  # Adicionando origem do Angular
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -22,6 +29,14 @@ app.add_middleware(
 # Importa funções do utils.py
 from utilits import run_yolov5, run_yolov8_obb
 
+# Adiciona os endpoints de leituras e usuários
+app.include_router(readings.router, prefix="/readings", tags=["readings"])
+app.include_router(users.router, prefix="/users", tags=["users"])
+
+# Criar pasta para salvar imagens se não existir
+UPLOAD_DIR = "uploads"
+if not os.path.exists(UPLOAD_DIR):
+    os.makedirs(UPLOAD_DIR)
 
 @app.get("/health")
 async def health_check():
@@ -56,8 +71,10 @@ def extract_number_from_results(results):
 
 
 @app.post("/detect/")
-async def detect_image(file: UploadFile = File(...)):
-   
+async def detect_image(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
     try:
         if not file.content_type.startswith('image/'):
             raise HTTPException(status_code=400, detail="Arquivo deve ser uma imagem")
@@ -73,13 +90,31 @@ async def detect_image(file: UploadFile = File(...)):
         yolov8_results = run_yolov8_obb(image_np)
 
         best_result = yolov8_results if yolov8_results["confidence"] > yolov5_results["confidence"] else yolov5_results
+        
+        # Salvar imagem
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        image_filename = f"reading_{timestamp}.jpg"
+        image_path = os.path.join(UPLOAD_DIR, image_filename)
+        image.save(image_path)
+        
+        # Salvar leitura no banco
+        reading = Reading(
+            number_detected=best_result["number_detected"],
+            confidence=best_result["confidence"],
+            image_path=image_path,
+            # user_id será adicionado quando implementarmos autenticação
+        )
+        db.add(reading)
+        db.commit()
+        db.refresh(reading)
+
         return {
-            "number_detected": best_result["number_detected"],
+            "id": reading.id,
+            "number_detected": reading.number_detected,
+            "confidence": reading.confidence,
+            "timestamp": reading.timestamp,
         }
-        # return {
-        #     "yolov5": yolov5_results,
-        #     "yolov8_obb": yolov8_results
-        # }
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

@@ -4,9 +4,9 @@ import { CardComponent } from '@shared/components/ui/card/card.component';
 import { ButtonComponent } from '@shared/components/ui/button/button.component';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { UserService } from '@core/services/user.service';
 import { User } from '@core/models/User';
 import { finalize } from 'rxjs';
+import { UserService } from '@app/core/services/user.service';
 
 @Component({
   selector: 'app-users',

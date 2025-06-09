@@ -4,4 +4,8 @@ torch
 numpy
 Pillow
 python-multipart
+sqlalchemy
+pydantic-sqlalchemy
+python-jose[cryptography]
+passlib[bcrypt]
 
