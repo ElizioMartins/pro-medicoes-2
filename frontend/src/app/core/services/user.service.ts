@@ -8,18 +8,26 @@ import { environment } from '../../../environments/environment';
   providedIn: 'root'
 })
 export class UserService {
-  private apiUrl = `${environment.apiUrl}/users`;
+  private readonly apiUrl = `${environment.apiUrl}/users`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private readonly http: HttpClient) {}
 
   getUsers(page: number = 1, pageSize: number = 10): Observable<{ users: User[], total: number }> {
     const params = { page: page.toString(), pageSize: pageSize.toString() };
     return this.http.get<{ users: User[], total: number }>(`${this.apiUrl}`, { params });
-  }
-
-  searchUsers(searchTerm: string, role: string = 'all'): Observable<User[]> {
-    const params = { searchTerm, role };
-    return this.http.get<User[]>(`${this.apiUrl}/search`, { params });
+  }  searchUsers(
+    searchTerm: string, 
+    role: string = 'all', 
+    page: number = 1, 
+    pageSize: number = 10
+  ): Observable<{ users: User[], total: number }> {
+    const params = { 
+      searchTerm, 
+      role,
+      page: page.toString(),
+      pageSize: pageSize.toString()
+    };
+    return this.http.get<{ users: User[], total: number }>(`${this.apiUrl}/search`, { params });
   }
 
   createUser(user: Partial<User>): Observable<User> {

@@ -1,12 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CardComponent } from '@shared/components/ui/card/card.component';
 import { ButtonComponent } from '@shared/components/ui/button/button.component';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { User } from '@core/models/User';
-import { finalize } from 'rxjs';
+import { finalize, Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { UserService } from '@app/core/services/user.service';
+
+interface UserRole {
+  value: string;
+  label: string;
+}
 
 @Component({
   selector: 'app-users',
@@ -21,7 +26,7 @@ import { UserService } from '@app/core/services/user.service';
   templateUrl: './users.component.html',
   styleUrls: ['./users.component.scss']
 })
-export class UsersComponent implements OnInit {
+export class UsersComponent implements OnInit, OnDestroy {
   users: User[] = [];
   currentPage = 1;
   totalPages = 1;
@@ -30,13 +35,67 @@ export class UsersComponent implements OnInit {
   searchTerm = '';
   selectedRole = 'all';
 
-  constructor(private userService: UserService) {}
+  private readonly searchSubject = new Subject<string>();
+  private readonly destroy$ = new Subject<void>();
 
-  ngOnInit() {
+  readonly roles: UserRole[] = [
+    { value: 'all', label: 'Todos os perfis' },
+    { value: 'Admin', label: 'Administrador' },
+    { value: 'Manager', label: 'Gerente' },
+    { value: 'Reader', label: 'Leiturista' },
+    { value: 'User', label: 'Usuário' }
+  ];
+
+  constructor(private readonly userService: UserService) {}
+
+  ngOnInit(): void {
     this.loadUsers();
+    
+    // Configura o debounce para a busca
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      this.onSearch();
+    });
   }
 
-  loadUsers() {
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+  onSearchInput(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.searchTerm = value; // Atualiza o valor do input
+    this.searchSubject.next(this.searchTerm); // Dispara a busca com o termo atualizado
+  }
+
+  // Busca apenas por perfil
+  onRoleChange(): void {
+    this.currentPage = 1; // Reseta a página ao mudar o filtro
+    this.searchWithFilters('', this.selectedRole);
+  }
+
+  // Busca completa (botão)
+  onSearchClick(): void {
+    this.searchWithFilters(this.searchTerm, this.selectedRole);
+  }
+  onSearch(): void {
+    this.searchWithFilters(this.searchTerm, this.selectedRole);
+  }
+
+  onPageChange(next: boolean): void {
+    if (next && this.currentPage < this.totalPages) {
+      this.currentPage++;
+      this.loadUsers();
+    } else if (!next && this.currentPage > 1) {
+      this.currentPage--;
+      this.loadUsers();
+    }
+  }
+
+  private loadUsers(): void {
     this.loading = true;
     this.userService.getUsers(this.currentPage, this.pageSize)
       .pipe(finalize(() => this.loading = false))
@@ -52,30 +111,19 @@ export class UsersComponent implements OnInit {
       });
   }
 
-  onSearch() {
+  private searchWithFilters(searchTerm: string, role: string): void {
     this.loading = true;
-    this.userService.searchUsers(this.searchTerm, this.selectedRole)
+    this.userService.searchUsers(searchTerm, role, this.currentPage, this.pageSize)
       .pipe(finalize(() => this.loading = false))
       .subscribe({
-        next: (users) => {
+        next: ({ users, total }) => {
           this.users = users;
-          this.currentPage = 1;
-          this.totalPages = Math.ceil(users.length / this.pageSize);
+          this.totalPages = Math.ceil(total / this.pageSize);
         },
         error: (error) => {
           console.error('Erro ao pesquisar usuários:', error);
           // Aqui você pode adicionar uma notificação de erro para o usuário
         }
       });
-  }
-
-  onPageChange(next: boolean) {
-    if (next && this.currentPage < this.totalPages) {
-      this.currentPage++;
-      this.loadUsers();
-    } else if (!next && this.currentPage > 1) {
-      this.currentPage--;
-      this.loadUsers();
-    }
   }
 }

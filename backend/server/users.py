@@ -38,7 +38,7 @@ class UserResponse(UserBase):
 @router.get("", response_model=dict)
 def get_users(
     page: int = Query(1, ge=1),
-    page_size: int = Query(10, ge=1, le=100),
+    page_size: int = Query(10, ge=1, le=100, alias="pageSize"),
     db: Session = Depends(get_db)
 ):
     skip = (page - 1) * page_size
@@ -65,34 +65,45 @@ def get_users(
 
 @router.get("/search")
 def search_users(
-    search_term: str = "",
-    role: str = "all",
+    search_term: str = Query("", alias="searchTerm"),
+    role: str = Query("all"),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(10, ge=1, le=100, alias="pageSize"),
     db: Session = Depends(get_db)
 ):
     query = db.query(User)
-    
     if search_term:
         query = query.filter(
             (User.username.ilike(f"%{search_term}%")) |
-            (User.email.ilike(f"%{search_term}%"))
+            (User.email.ilike(f"%{search_term}%")) |
+            (User.name.ilike(f"%{search_term}%"))
         )
     
-    users = query.all()    
-    return [
-        {
-            "id": user.id,
-            "username": user.username,
-            "email": user.email,
-            "name": user.name,
-            "role": user.role,
-            "status": user.status,
-            "is_active": user.is_active,
-            "lastAccess": user.last_access,
-            "initials": user.initials,
-            "avatarColor": user.avatar_color
-        }
-        for user in users
-    ]
+    if role != "all":
+        query = query.filter(User.role == role)
+    
+    total = query.count()
+    skip = (page - 1) * page_size
+    users = query.offset(skip).limit(page_size).all()
+    
+    return {
+        "users": [
+            {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "name": user.name,
+                "role": user.role,
+                "status": user.status,
+                "is_active": user.is_active,
+                "lastAccess": user.last_access,
+                "initials": user.initials,
+                "avatarColor": user.avatar_color
+            }
+            for user in users
+        ],
+        "total": total
+    }
 
 @router.post("", response_model=UserResponse)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):

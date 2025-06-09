@@ -10,18 +10,14 @@
         <input 
           type="text" 
           placeholder="Buscar usuários..." 
-          class="search-input"
-          [(ngModel)]="searchTerm"
-          (keyup.enter)="onSearch()">
-        <button class="search-button" (click)="onSearch()">Buscar</button>
+          class="search-input"          [(ngModel)]="searchTerm"          (input)="onSearchInput($event)"
+          (keyup.enter)="onSearchClick()">
+        <button class="search-button" (click)="onSearchClick()">Buscar</button>
       </div>
-      <div class="filter-dropdown">
-        <select class="filter-select" [(ngModel)]="selectedRole" (change)="onSearch()">
-          <option value="all">Todos os perfis</option>
-          <option value="Admin">Administrador</option>
-          <option value="Manager">Gerente</option>
-          <option value="Reader">Leiturista</option>
-          <option value="User">Usuário</option>
+      <div class="filter-dropdown">        <select class="filter-select" [(ngModel)]="selectedRole" (change)="onRoleChange()">
+          <option *ngFor="let role of roles" [value]="role.value">
+            {{ role.label }}
+          </option>
         </select>
       </div>
     </div>
