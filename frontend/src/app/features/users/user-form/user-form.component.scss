@@ -1,0 +1,64 @@
+.user-form-container {
+  padding: 1rem;
+
+  .user-form-header {
+    margin-bottom: 1rem;
+    
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+  }
+
+  .user-form-card {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+
+      label {
+        font-weight: 500;
+        color: var(--text-primary);
+      }
+
+      input, select {
+        padding: 0.5rem;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        font-size: 1rem;
+
+        &.error {
+          border-color: var(--error-color);
+        }
+
+        &:focus {
+          outline: none;
+          border-color: var(--primary-color);
+          box-shadow: 0 0 0 2px var(--primary-color-light);
+        }
+      }
+
+      .error-message {
+        color: var(--error-color);
+        font-size: 0.875rem;
+      }
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+  }
+}

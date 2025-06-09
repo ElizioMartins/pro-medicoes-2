@@ -1,0 +1,92 @@
+.user-delete-container {
+  padding: 1rem;
+
+  .user-delete-header {
+    margin-bottom: 1rem;
+    
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+  }
+
+  .user-delete-card {
+    max-width: 500px;
+    margin: 0 auto;
+
+    .loading-state {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-secondary);
+    }
+
+    .delete-content {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      padding: 1rem;
+
+      .warning-message {
+        text-align: center;
+        color: var(--error-color);
+
+        h2 {
+          font-size: 1.25rem;
+          font-weight: 600;
+          margin-bottom: 0.5rem;
+        }
+
+        p {
+          color: var(--text-secondary);
+        }
+      }
+
+      .user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background-color: var(--surface-hover);
+        border-radius: 8px;
+
+        .user-avatar {
+          width: 48px;
+          height: 48px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 600;
+          color: white;
+        }
+
+        .user-details {
+          h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin: 0;
+          }
+
+          p {
+            margin: 0.25rem 0;
+            color: var(--text-secondary);
+          }
+
+          .user-role {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--primary-color);
+          }
+        }
+      }
+
+      .action-buttons {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+    }
+  }
+}

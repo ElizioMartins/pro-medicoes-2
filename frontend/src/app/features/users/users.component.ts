@@ -7,6 +7,7 @@ import { FormsModule } from '@angular/forms';
 import { User } from '@core/models/User';
 import { finalize, Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { UserService } from '@app/core/services/user.service';
+import { ToastService } from '@app/core/services/toast.service';
 
 interface UserRole {
   value: string;
@@ -46,7 +47,10 @@ export class UsersComponent implements OnInit, OnDestroy {
     { value: 'User', label: 'Usuário' }
   ];
 
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly toastService: ToastService
+  ) {}
 
   ngOnInit(): void {
     this.loadUsers();
@@ -106,7 +110,11 @@ export class UsersComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Erro ao carregar usuários:', error);
-          // Aqui você pode adicionar uma notificação de erro para o usuário
+          this.toastService.show({
+            title: 'Erro ao carregar usuários',
+            description: error.message || 'Ocorreu um erro ao carregar os usuários. Tente novamente.',
+            variant: 'destructive'
+          });
         }
       });
   }
@@ -122,7 +130,11 @@ export class UsersComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Erro ao pesquisar usuários:', error);
-          // Aqui você pode adicionar uma notificação de erro para o usuário
+          this.toastService.show({
+            title: 'Erro ao pesquisar usuários',
+            description: error.message || 'Ocorreu um erro ao pesquisar os usuários. Tente novamente.',
+            variant: 'destructive'
+          });
         }
       });
   }

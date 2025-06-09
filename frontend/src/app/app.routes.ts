@@ -73,10 +73,26 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./features/reports/reports.component').then(m => m.ReportsComponent)
   },
-  {
-    path: 'users',
+  {    path: 'users',
     canActivate: [authGuard],
-    loadComponent: () => import('./features/users/users.component').then(m => m.UsersComponent)
+    children: [
+      {
+        path: '',
+        loadComponent: () => import('./features/users/users.component').then(m => m.UsersComponent)
+      },
+      {
+        path: 'new',
+        loadComponent: () => import('./features/users/user-form/user-form.component').then(m => m.UserFormComponent)
+      },
+      {
+        path: ':id/edit',
+        loadComponent: () => import('./features/users/user-form/user-form.component').then(m => m.UserFormComponent)
+      },
+      {
+        path: ':id/delete',
+        loadComponent: () => import('./features/users/user-delete/user-delete.component').then(m => m.UserDeleteComponent)
+      }
+    ]
   },
   {
     path: 'profile',
