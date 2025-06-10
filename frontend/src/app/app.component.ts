@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { HeaderComponent } from './shared/components/layout/header/header.component';
-import { FooterComponent } from './shared/components/layout/footer/footer.component';
-import { ToastContainerComponent } from './shared/components/ui/toast-container/toast-container.component';
-import { UserService } from './core/services/user.service';
+import { HeaderComponent } from '@shared/components/layout/header/header.component';
+import { FooterComponent } from '@shared/components/layout/footer/footer.component';
+import { ToastContainerComponent } from '@shared/components/ui/toast-container/toast-container.component';
+import { UserService } from '@core/services/user.service';
+import { CondominiumService } from '@core/services/Condominium.service';
 import { initializeDatabase } from './database-init';
 
 @Component({
@@ -21,10 +22,13 @@ import { initializeDatabase } from './database-init';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly condominiumService: CondominiumService
+  ) {}
 
   async ngOnInit() {
-    await initializeDatabase(this.userService);
+    await initializeDatabase(this.userService, this.condominiumService);
   }
 
   shouldShowHeader(): boolean {

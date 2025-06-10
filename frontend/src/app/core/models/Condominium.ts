@@ -1,7 +1,15 @@
 export interface Condominium {
-  id: string;
+  id: number;
   name: string;
   address: string;
-  unitsCount?: number;
-  metersCount?: number;
+  cnpj: string;
+  manager: string;
+  phone: string;
+  email: string;
+  unitsCount: number;
+  metersCount: number;
+  readingsCount: number;
+  reportsCount: number;
+  createdAt?: Date;
+  updatedAt?: Date;
 }

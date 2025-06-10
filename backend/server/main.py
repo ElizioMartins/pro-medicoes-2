@@ -10,6 +10,7 @@ from datetime import datetime
 from database import get_db, Reading
 import readings
 import users
+import condominiums
 
 # FastAPI app
 app = FastAPI(
@@ -29,14 +30,17 @@ app.add_middleware(
 # Importa funções do utils.py
 from utilits import run_yolov5, run_yolov8_obb
 
-# Adiciona os endpoints de leituras e usuários
+# Adiciona os endpoints de leituras, usuários e condomínios
 app.include_router(readings.router, prefix="/readings", tags=["readings"])
 app.include_router(users.router, prefix="/users", tags=["users"])
+app.include_router(condominiums.router, prefix="/condominiums", tags=["condominiums"])
 
 # Criar pasta para salvar imagens se não existir
 UPLOAD_DIR = "uploads"
 if not os.path.exists(UPLOAD_DIR):
     os.makedirs(UPLOAD_DIR)
+
+
 
 @app.get("/health")
 async def health_check():

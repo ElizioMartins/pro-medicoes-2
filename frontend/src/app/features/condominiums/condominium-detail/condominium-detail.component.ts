@@ -4,6 +4,9 @@ import { ActivatedRoute } from '@angular/router';
 import { CardComponent } from '@shared/components/ui/card/card.component';
 import { ButtonComponent } from '@shared/components/ui/button/button.component';
 import { RouterLink } from '@angular/router';
+import { Condominium } from '@core/models/Condominium';
+import { CondominiumService } from '@core/services/Condominium.service';
+import { ToastService } from '@core/services/toast.service';
 
 @Component({
   selector: 'app-condominium-detail',
@@ -228,67 +231,46 @@ import { RouterLink } from '@angular/router';
   `]
 })
 export class CondominiumDetailComponent implements OnInit {
-  condominiumId: string = '';
+  condominiumId: number = 0;
+  condominium: Condominium | null = null;
+  isLoading = false;
+  error: string | null = null;
   
-  // Dados simulados para demonstração
-  condominium = {
-    id: '1',
-    name: 'Residencial Parque das Flores',
-    address: 'Av. Principal, 1000 - Centro',
-    cnpj: '12.345.678/0001-90',
-    manager: 'João Silva',
-    phone: '(11) 3456-7890',
-    email: 'contato@parquedasflores.com.br',
-    unitsCount: 120,
-    metersCount: 360,
-    readingsCount: 1240,
-    reportsCount: 24,
-    units: [
-      {
-        id: '101',
-        identifier: 'Apto 101',
-        owner: 'Maria Santos',
-        metersCount: 3,
-        lastReading: new Date(2025, 4, 15)
-      },
-      {
-        id: '102',
-        identifier: 'Apto 102',
-        owner: 'Carlos Oliveira',
-        metersCount: 3,
-        lastReading: new Date(2025, 4, 15)
-      },
-      {
-        id: '103',
-        identifier: 'Apto 103',
-        owner: 'Ana Pereira',
-        metersCount: 3,
-        lastReading: new Date(2025, 4, 14)
-      },
-      {
-        id: '104',
-        identifier: 'Apto 104',
-        owner: 'Roberto Costa',
-        metersCount: 3,
-        lastReading: new Date(2025, 4, 14)
-      },
-      {
-        id: '201',
-        identifier: 'Apto 201',
-        owner: 'Fernanda Lima',
-        metersCount: 3,
-        lastReading: new Date(2025, 4, 13)
-      }
-    ]
-  };
-  
-  constructor(private route: ActivatedRoute) {}
+  constructor(
+    private route: ActivatedRoute,
+    private condominiumService: CondominiumService,
+    private toastService: ToastService
+  ) {}
   
   ngOnInit(): void {
     this.route.params.subscribe(params => {
-      this.condominiumId = params['id'];
-      // Em uma implementação real, aqui carregaríamos os dados do backend
+      const id = Number(params['id']);
+      if (!isNaN(id)) {
+        this.condominiumId = id;
+        this.loadCondominium();
+      }
     });
+  }
+  
+  loadCondominium(): void {
+    this.isLoading = true;
+    this.error = null;
+    
+    this.condominiumService.getCondominiumById(this.condominiumId)
+      .subscribe({
+        next: (data) => {
+          this.condominium = data;
+          this.isLoading = false;
+        },
+        error: (error) => {
+          this.error = 'Não foi possível carregar os dados do condomínio.';
+          this.toastService.show({
+            title: 'Erro ao carregar condomínio',
+            variant: 'destructive'
+          });
+          this.isLoading = false;
+        }
+      });
   }
   
   goBack(): void {
