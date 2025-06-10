@@ -1,0 +1,142 @@
+.condominiums-container {
+  padding: 1.5rem;
+}
+
+.condominiums-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.condominiums-title {
+  font-size: 1.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.condominiums-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.condominium-card {
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+}
+
+.condominium-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 0.5rem;
+}
+
+.condominium-address {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 0 0 1rem;
+}
+
+.condominium-stats {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.loading-state, 
+.error-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 2rem;
+}
+
+.loading-state {
+  color: var(--text-secondary);
+}
+
+.error-state {
+  color: var(--danger-color);
+
+  p {
+    margin-bottom: 1rem;
+  }
+}
+
+// Estilos do botão de tentar novamente
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+  transition: all 0.2s;
+  cursor: pointer;
+  border: 1px solid transparent;
+
+  &.btn-secondary {
+    color: var(--text-primary);
+    background-color: var(--card-background);
+    border-color: var(--border-color);
+
+    &:hover {
+      background-color: var(--background-color);
+      border-color: var(--text-secondary);
+    }
+
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px var(--background-color), 0 0 0 4px var(--border-color);
+    }
+  }
+}
+
+// Responsividade
+@media (max-width: 768px) {
+  .condominiums-container {
+    padding: 1rem;
+  }
+
+  .condominiums-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .condominiums-title {
+    font-size: 1.5rem;
+  }
+
+  .condominiums-grid {
+    grid-template-columns: 1fr;
+  }
+}
