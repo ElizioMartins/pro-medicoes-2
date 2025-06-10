@@ -10,7 +10,18 @@ import { MaskDirective } from '@shared/directives/mask.directive';
   template: `
     <div class="input-container">
       <label *ngIf="label" [for]="id" class="input-label">{{ label }}</label>
-      <div class="input-wrapper">
+      <div class="input-wrapper">        <input
+          [type]="type"
+          [id]="id"
+          [value]="value"
+          [placeholder]="placeholder"
+          [disabled]="disabled"
+          [class.error]="error"
+          [appMask]="mask"
+          *ngIf="mask"
+          (input)="onInput($event)"
+          (blur)="onBlur()"
+        />
         <input
           [type]="type"
           [id]="id"
@@ -18,7 +29,7 @@ import { MaskDirective } from '@shared/directives/mask.directive';
           [placeholder]="placeholder"
           [disabled]="disabled"
           [class.error]="error"
-          [appMask]="mask || ''"
+          *ngIf="!mask"
           (input)="onInput($event)"
           (blur)="onBlur()"
         />
@@ -120,11 +131,10 @@ export class InputComponent implements ControlValueAccessor {
   setDisabledState(isDisabled: boolean): void {
     this.disabled = isDisabled;
   }
-  
-  onInput(event: Event): void {
+    onInput(event: Event): void {
     const value = (event.target as HTMLInputElement).value;
     this.value = value;
-    this.onChange(value);
+    this.onChange(this.mask ? value.replace(/\D/g, '') : value);
   }
   
   onBlur(): void {
