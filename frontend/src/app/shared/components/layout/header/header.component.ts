@@ -20,14 +20,16 @@ import { ResponsiveService } from '@core/services/responsive.service';
           <button *ngIf="responsiveService.isMobile" class="mobile-menu-button" (click)="toggleMobileMenu()">
             <span class="menu-icon"></span>
           </button>
-          
-          <nav class="main-nav" [class.mobile-open]="mobileMenuOpen">
+            <nav class="main-nav" [class.mobile-open]="mobileMenuOpen">
             <ul class="nav-list">
               <li class="nav-item">
                 <a routerLink="/dashboard" routerLinkActive="active" class="nav-link">Dashboard</a>
               </li>
               <li class="nav-item">
                 <a routerLink="/condominiums" routerLinkActive="active" class="nav-link">Condomínios</a>
+              </li>
+              <li class="nav-item">
+                <a routerLink="/units" routerLinkActive="active" class="nav-link">Unidades</a>
               </li>
               <li class="nav-item">
                 <a routerLink="/readings" routerLinkActive="active" class="nav-link">Leituras</a>

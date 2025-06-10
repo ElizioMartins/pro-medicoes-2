@@ -26,7 +26,7 @@ class Condominium(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationship with units
-    units = relationship("Unit", backref="condominium", cascade="all, delete-orphan")
+    units = relationship("Unit", back_populates="condominium", cascade="all, delete-orphan")
 
 # Pydantic Model
 class CondominiumBase(BaseModel):

@@ -36,8 +36,14 @@ class Reading(Base):
     confidence = Column(Float)
     timestamp = Column(DateTime, default=datetime.utcnow)
     user_id = Column(Integer, ForeignKey("users.id"))
-    user = relationship("User", back_populates="readings")
     image_path = Column(String)
+    
+    # Novo campo para relacionar com o Medidor
+    meter_id = Column(Integer, ForeignKey("meters.id"))
+
+    # Relacionamentos
+    user = relationship("User", back_populates="readings")
+    meter = relationship("Meter", back_populates="readings")
 
 def get_db():
     db = SessionLocal()
@@ -45,6 +51,10 @@ def get_db():
         yield db
     finally:
         db.close()
+
+# Importações para resolver o problema de dependência circular
+import meters  # Importação absoluta para Meter
+import measurement_types  # Importação absoluta para MeasurementType
 
 # Criar todas as tabelas depois que todos os modelos forem definidos
 if __name__ == "__main__":

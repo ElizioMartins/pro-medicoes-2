@@ -1,3 +1,5 @@
+import { Meter } from './Meter';
+
 export interface Unit {
   id: number;
   identifier: string;
@@ -7,4 +9,5 @@ export interface Unit {
   lastReading: Date | null;
   createdAt?: Date;
   updatedAt?: Date;
+  meters?: Meter[]; // Novo relacionamento com Meters
 }

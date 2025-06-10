@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, relationship
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from database import Base, get_db
 from datetime import datetime
@@ -19,6 +19,12 @@ class Unit(Base):
     last_reading = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relacionamento com Condominium (já existente)
+    condominium = relationship("Condominium", back_populates="units")
+
+    # Novo relacionamento com Meters
+    meters = relationship("Meter", back_populates="unit")
 
 # Pydantic Models
 class UnitBase(BaseModel):
