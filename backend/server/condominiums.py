@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, relationship
 from database import get_db, Base, engine
 from sqlalchemy import Column, Integer, String, DateTime
+from units import Unit
 from datetime import datetime
 from typing import List
 from pydantic import BaseModel
@@ -23,6 +24,9 @@ class Condominium(Base):
     reports_count = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationship with units
+    units = relationship("Unit", backref="condominium", cascade="all, delete-orphan")
 
 # Pydantic Model
 class CondominiumBase(BaseModel):

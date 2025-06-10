@@ -34,8 +34,23 @@ export const routes: Routes = [
         loadComponent: () => import('./features/condominiums/condominiums-list/condominiums-list.component').then(m => m.CondominiumsListComponent)
       },
       {
+        path: 'new',
+        loadComponent: () => import('./features/condominiums/condominium-form/condominium-form.component').then(m => m.CondominiumFormComponent)
+      },
+      {
         path: ':id',
         loadComponent: () => import('./features/condominiums/condominium-detail/condominium-detail.component').then(m => m.CondominiumDetailComponent)
+      },      {
+        path: ':id/edit',
+        loadComponent: () => import('./features/condominiums/condominium-form/condominium-form.component').then(m => m.CondominiumFormComponent)
+      },
+      {
+        path: ':condominiumId/units/new',
+        loadComponent: () => import('./features/condominiums/unit-form/unit-form.component').then(m => m.UnitFormComponent)
+      },
+      {
+        path: ':condominiumId/units/:id/edit',
+        loadComponent: () => import('./features/condominiums/unit-form/unit-form.component').then(m => m.UnitFormComponent)
       }
     ]
   },

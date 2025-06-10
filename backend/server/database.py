@@ -46,5 +46,6 @@ def get_db():
     finally:
         db.close()
 
-# Criar todas as tabelas
-Base.metadata.create_all(bind=engine)
+# Criar todas as tabelas depois que todos os modelos forem definidos
+if __name__ == "__main__":
+    Base.metadata.create_all(bind=engine)

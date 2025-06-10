@@ -1,0 +1,146 @@
+.condominium-detail-container {
+  padding: 1.5rem;
+}
+
+.condominium-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.condominium-title {
+  font-size: 1.875rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.condominium-address {
+  color: #6b7280;
+  margin: 0.25rem 0 0;
+}
+
+.condominium-header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.condominium-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.info-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+}
+
+.info-value {
+  font-weight: 500;
+  color: #111827;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2563eb;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.units-card {
+  margin-bottom: 1.5rem;
+}
+
+.units-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.units-header p {
+  margin: 0;
+  color: #6b7280;
+}
+
+.units-table-container {
+  overflow-x: auto;
+}
+
+.units-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.units-table th, .units-table td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.units-table th {
+  font-weight: 600;
+  color: #374151;
+}
+
+.actions-cell {
+  text-align: right;
+}
+
+.loading-state,
+.error-state,
+.no-data-message {
+  text-align: center;
+  padding: 2rem;
+}
+
+.loading-state p {
+  color: var(--text-secondary);
+  margin-bottom: 0;
+}
+
+.error-state {
+  p {
+    color: var(--destructive);
+    margin-bottom: 1rem;
+  }
+}
+
+.no-data-message {
+  p {
+    color: var(--text-secondary);
+    margin: 0;
+  }
+}

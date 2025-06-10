@@ -7,10 +7,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from datetime import datetime
 
-from database import get_db, Reading
+from database import get_db, Reading, Base, engine
 import readings
 import users
 import condominiums
+import units
+
+# Criar todas as tabelas
+Base.metadata.create_all(bind=engine)
 
 # FastAPI app
 app = FastAPI(
@@ -34,6 +38,7 @@ from utilits import run_yolov5, run_yolov8_obb
 app.include_router(readings.router, prefix="/readings", tags=["readings"])
 app.include_router(users.router, prefix="/users", tags=["users"])
 app.include_router(condominiums.router, prefix="/condominiums", tags=["condominiums"])
+app.include_router(units.router, prefix="/condominiums", tags=["units"])
 
 # Criar pasta para salvar imagens se não existir
 UPLOAD_DIR = "uploads"

@@ -1,11 +1,12 @@
 import { Component, Input, forwardRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
+import { MaskDirective } from '@shared/directives/mask.directive';
 
 @Component({
   selector: 'app-input',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, MaskDirective],
   template: `
     <div class="input-container">
       <label *ngIf="label" [for]="id" class="input-label">{{ label }}</label>
@@ -17,6 +18,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@a
           [placeholder]="placeholder"
           [disabled]="disabled"
           [class.error]="error"
+          [appMask]="mask || ''"
           (input)="onInput($event)"
           (blur)="onBlur()"
         />
@@ -93,6 +95,7 @@ export class InputComponent implements ControlValueAccessor {
   @Input() id = `input-${Math.random().toString(36).substring(2, 9)}`;
   @Input() error = false;
   @Input() errorMessage = '';
+  @Input() mask = '';
   
   value = '';
   disabled = false;

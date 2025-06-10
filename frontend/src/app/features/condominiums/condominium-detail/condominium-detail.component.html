@@ -1,0 +1,116 @@
+<div class="condominium-detail-container">
+  <div *ngIf="isLoading" class="loading-state">
+    <p>Carregando dados do condomínio...</p>
+  </div>
+
+  <div *ngIf="error" class="error-state">
+    <p>{{ error }}</p>
+    <app-button variant="secondary" (click)="loadCondominium()">Tentar Novamente</app-button>
+  </div>
+
+  <ng-container *ngIf="!isLoading && !error && condominium">
+    <div class="condominium-header">
+      <div>
+        <h1 class="condominium-title">{{ condominium.name }}</h1>
+        <p class="condominium-address">{{ condominium.address }}</p>
+      </div>
+      <div class="condominium-header-actions">
+        <app-button [routerLink]="['/condominiums', condominium.id, 'edit']" variant="secondary">Editar</app-button>
+        <app-button variant="outline" (click)="goBack()">Voltar</app-button>
+      </div>
+    </div>
+    
+    <div class="condominium-info-grid">
+      <app-card title="Informações Gerais" [elevated]="true">
+        <div class="info-group">
+          <div class="info-item">
+            <span class="info-label">CNPJ</span>
+            <span class="info-value">{{ condominium.cnpj }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Responsável</span>
+            <span class="info-value">{{ condominium.manager }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Telefone</span>
+            <span class="info-value">{{ condominium.phone }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Email</span>
+            <span class="info-value">{{ condominium.email }}</span>
+          </div>
+        </div>
+      </app-card>
+      
+      <app-card title="Estatísticas" [elevated]="true">
+        <div class="stats-grid">
+          <div class="stat-item">
+            <span class="stat-value">{{ condominium.unitsCount }}</span>
+            <span class="stat-label">Unidades</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value">{{ condominium.metersCount }}</span>
+            <span class="stat-label">Medidores</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value">{{ condominium.readingsCount }}</span>
+            <span class="stat-label">Leituras</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value">{{ condominium.reportsCount }}</span>
+            <span class="stat-label">Relatórios</span>
+          </div>
+        </div>
+      </app-card>
+    </div>
+    
+    <app-card title="Unidades" [elevated]="true" class="units-card">
+      <div class="units-header">
+        <p>Total de {{ units.length }} unidades</p>
+        <app-button [routerLink]="['/condominiums', condominiumId, 'units', 'new']" size="sm">Nova Unidade</app-button>
+      </div>
+
+      <div *ngIf="isLoadingUnits" class="loading-state">
+        <p>Carregando unidades...</p>
+      </div>
+
+      <div *ngIf="unitsError" class="error-state">
+        <p>{{ unitsError }}</p>
+        <app-button variant="secondary" (click)="loadUnits()" (keyup.enter)="loadUnits()">Tentar Novamente</app-button>
+      </div>
+      
+      <div class="units-table-container" *ngIf="!isLoadingUnits && !unitsError">
+        <ng-container *ngIf="units.length; else noUnits">
+          <table class="units-table">
+            <thead>
+              <tr>
+                <th>Identificação</th>
+                <th>Proprietário</th>
+                <th>Medidores</th>
+                <th>Última Leitura</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let unit of units">
+                <td>{{ unit.identifier }}</td>
+                <td>{{ unit.owner }}</td>
+                <td>{{ unit.metersCount }}</td>
+                <td>{{ unit.lastReading | date:'dd/MM/yyyy' }}</td>
+                <td class="actions-cell">
+                  <app-button [routerLink]="['/condominiums', condominiumId, 'units', unit.id, 'edit']" variant="outline" size="sm">Editar</app-button>
+                  <app-button (click)="deleteUnit(unit.id)" (keyup.enter)="deleteUnit(unit.id)" variant="danger" size="sm">Excluir</app-button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </ng-container>
+        <ng-template #noUnits>
+          <div class="no-data-message">
+            <p>Nenhuma unidade cadastrada.</p>
+          </div>
+        </ng-template>
+      </div>
+    </app-card>
+  </ng-container>
+</div>
