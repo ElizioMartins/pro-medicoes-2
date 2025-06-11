@@ -1,17 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms'; // Import FormsModule
+import { FormsModule } from '@angular/forms';
 import { MeasurementTypeService } from '@core/services/MeasurementType.service';
 import { MeasurementType } from '@core/models/MeasurementType';
-import { CardComponent } from '@shared/components/ui/card/card.component'; // Assuming CardComponent is available
-import { ButtonComponent } from '@shared/components/ui/button/button.component'; // Assuming ButtonComponent is available
+import { CardComponent } from '@shared/components/ui/card/card.component';
+import { ButtonComponent } from '@shared/components/ui/button/button.component';
+import { ToastService } from '@core/services/toast.service';
 
 @Component({
   selector: 'app-measurement-types',
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule, // Add FormsModule here
+    FormsModule,
     CardComponent,
     ButtonComponent
   ],
@@ -20,12 +21,12 @@ import { ButtonComponent } from '@shared/components/ui/button/button.component';
       <h1 class="page-title">Tipos de Medição</h1>
 
       <app-card [elevated]="true" class="form-card">
-        <h2 class="card-title">Adicionar Novo Tipo de Medição</h2>
-        <form (ngSubmit)="onAddType()" #addTypeForm="ngForm" class="type-form">
+        <h2 class="card-title">{{ editingType ? 'Editar' : 'Adicionar Novo' }} Tipo de Medição</h2>
+        <form (ngSubmit)="onSubmit()" #addTypeForm="ngForm" class="type-form">
           <div class="form-group">
             <label for="typeName">Nome:</label>
             <input type="text" id="typeName" name="typeName" class="form-control" 
-                   [(ngModel)]="newMeasurementType.name" required #name="ngModel">
+                   [(ngModel)]="currentType.name" required #name="ngModel">
             <div *ngIf="name.invalid && (name.dirty || name.touched)" class="error-text">
               Nome é obrigatório.
             </div>
@@ -33,7 +34,7 @@ import { ButtonComponent } from '@shared/components/ui/button/button.component';
           <div class="form-group">
             <label for="typeUnit">Unidade:</label>
             <input type="text" id="typeUnit" name="typeUnit" class="form-control"
-                   [(ngModel)]="newMeasurementType.unit" required #unit="ngModel">
+                   [(ngModel)]="currentType.unit" required #unit="ngModel">
             <div *ngIf="unit.invalid && (unit.dirty || unit.touched)" class="error-text">
               Unidade é obrigatória.
             </div>
@@ -41,12 +42,16 @@ import { ButtonComponent } from '@shared/components/ui/button/button.component';
           <div class="form-group">
             <label for="typeDescription">Descrição (Opcional):</label>
             <textarea id="typeDescription" name="typeDescription" class="form-control"
-                      [(ngModel)]="newMeasurementType.description"></textarea>
+                      [(ngModel)]="currentType.description"></textarea>
           </div>
-          <app-button type="submit" [disabled]="addTypeForm.invalid || isSubmitting">
-            {{ isSubmitting ? 'Adicionando...' : 'Adicionar Tipo' }}
-          </app-button>
-          <div *ngIf="addError" class="error-text feedback-error">{{ addError }}</div>
+          <div class="flex gap-2">            <app-button type="submit" [variant]="editingType ? 'secondary' : 'primary'" [disabled]="addTypeForm.invalid || isSubmitting">
+              {{ isSubmitting ? (editingType ? 'Salvando...' : 'Adicionando...') : (editingType ? 'Salvar' : 'Adicionar') }}
+            </app-button>
+            <app-button *ngIf="editingType" type="button" variant="outline" (click)="cancelEdit()">
+              Cancelar
+            </app-button>
+          </div>
+          <div *ngIf="formError" class="error-text feedback-error">{{ formError }}</div>
         </form>
       </app-card>
 
@@ -56,8 +61,16 @@ import { ButtonComponent } from '@shared/components/ui/button/button.component';
         <div *ngIf="!isLoading && loadError" class="error-text">{{ loadError }}</div>
         <ul *ngIf="!isLoading && !loadError && measurementTypes.length > 0" class="types-list">
           <li *ngFor="let type of measurementTypes" class="type-item">
-            <strong>{{ type.name }}</strong> ({{ type.unit }})
-            <span *ngIf="type.description"> - {{ type.description }}</span>
+            <div class="type-content">
+              <div>
+                <strong>{{ type.name }}</strong> ({{ type.unit }})
+                <span *ngIf="type.description"> - {{ type.description }}</span>
+              </div>
+              <div class="type-actions">
+                <button class="action-btn edit-btn" (click)="startEdit(type)">Editar</button>
+                <button class="action-btn delete-btn" (click)="confirmDelete(type)">Excluir</button>
+              </div>
+            </div>
           </li>
         </ul>
         <div *ngIf="!isLoading && !loadError && measurementTypes.length === 0" class="no-data-message">
@@ -105,7 +118,7 @@ import { ButtonComponent } from '@shared/components/ui/button/button.component';
       font-size: 0.875rem;
     }
     .error-text {
-      color: #ef4444; /* Red for errors */
+      color: #ef4444;
       font-size: 0.75rem;
       margin-top: 0.25rem;
     }
@@ -117,7 +130,7 @@ import { ButtonComponent } from '@shared/components/ui/button/button.component';
       padding: 0;
     }
     .type-item {
-      padding: 0.5rem 0;
+      padding: 0.75rem 0;
       border-bottom: 1px solid #e5e7eb;
     }
     .type-item:last-child {
@@ -128,18 +141,52 @@ import { ButtonComponent } from '@shared/components/ui/button/button.component';
       text-align: center;
       font-size: 1.125rem;
     }
+    .type-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .type-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .action-btn {
+      padding: 0.25rem 0.75rem;
+      border-radius: 0.25rem;
+      font-size: 0.875rem;
+      cursor: pointer;
+      border: 1px solid transparent;
+    }
+    .edit-btn {
+      background-color: #d1d5db;
+      color: #1f2937;
+    }
+    .edit-btn:hover {
+      background-color: #9ca3af;
+    }
+    .delete-btn {
+      background-color: #fee2e2;
+      color: #dc2626;
+    }
+    .delete-btn:hover {
+      background-color: #fecaca;
+    }
   `]
 })
 export class MeasurementTypesComponent implements OnInit {
   measurementTypes: MeasurementType[] = [];
-  newMeasurementType: Omit<MeasurementType, 'id'> = { name: '', unit: '', description: '' };
+  currentType: Omit<MeasurementType, 'id'> = { name: '', unit: '', description: '' };
+  editingType: MeasurementType | null = null;
   
   isLoading = true;
   loadError: string | null = null;
   isSubmitting = false;
-  addError: string | null = null;
+  formError: string | null = null;
 
-  constructor(private measurementTypeService: MeasurementTypeService) {}
+  constructor(
+    private measurementTypeService: MeasurementTypeService,
+    private toastService: ToastService
+  ) {}
 
   ngOnInit(): void {
     this.loadMeasurementTypes();
@@ -154,34 +201,94 @@ export class MeasurementTypesComponent implements OnInit {
         this.isLoading = false;
       },
       error: (err) => {
-        console.error('Error fetching measurement types:', err);
+        console.error('Erro ao carregar tipos de medição:', err);
         this.loadError = 'Falha ao carregar os tipos de medição.';
         this.isLoading = false;
       }
     });
   }
 
-  onAddType(): void {
-    if (!this.newMeasurementType.name || !this.newMeasurementType.unit) {
-      this.addError = "Nome e Unidade são obrigatórios.";
+  startEdit(type: MeasurementType): void {
+    this.editingType = type;
+    this.currentType = {
+      name: type.name,
+      unit: type.unit,
+      description: type.description
+    };
+  }
+
+  cancelEdit(): void {
+    this.editingType = null;
+    this.currentType = { name: '', unit: '', description: '' };
+    this.formError = null;
+  }
+
+  onSubmit(): void {
+    if (!this.currentType.name || !this.currentType.unit) {
+      this.formError = "Nome e Unidade são obrigatórios.";
       return;
     }
     this.isSubmitting = true;
-    this.addError = null;
-    
-    this.measurementTypeService.addMeasurementType(this.newMeasurementType).subscribe({
-      next: (addedType) => {
-        // this.measurementTypes.push(addedType); // Add to list locally OR reload
-        this.loadMeasurementTypes(); // Reload the list to ensure it's up-to-date
-        this.newMeasurementType = { name: '', unit: '', description: '' }; // Reset form
+    this.formError = null;
+
+    if (this.editingType) {
+      // Atualizando tipo existente
+      this.measurementTypeService.updateMeasurementType(this.editingType.id, this.currentType).subscribe({
+        next: () => {
+          this.loadMeasurementTypes();
+          this.cancelEdit();
+          this.toastService.show({
+            title: 'Tipo de medição atualizado com sucesso',
+            variant: 'default'
+          });
+        },
+        error: (err) => {
+          console.error('Erro ao atualizar tipo de medição:', err);
+          this.formError = err.error?.detail ?? 'Falha ao atualizar o tipo de medição.';
+        }
+      }).add(() => {
         this.isSubmitting = false;
-        // Optionally, show a success message via a toast service or similar
-      },
-      error: (err) => {
-        console.error('Error adding measurement type:', err);
-        this.addError = err.message || 'Falha ao adicionar o tipo de medição.';
+      });
+    } else {
+      // Adicionando novo tipo
+      this.measurementTypeService.addMeasurementType(this.currentType).subscribe({
+        next: () => {
+          this.loadMeasurementTypes();
+          this.currentType = { name: '', unit: '', description: '' };
+          this.toastService.show({
+            title: 'Tipo de medição criado com sucesso',
+            variant: 'default'
+          });
+        },
+        error: (err) => {
+          console.error('Erro ao adicionar tipo de medição:', err);
+          this.formError = err.error?.detail ?? 'Falha ao adicionar o tipo de medição.';
+        }
+      }).add(() => {
         this.isSubmitting = false;
-      }
-    });
+      });
+    }
+  }
+
+  confirmDelete(type: MeasurementType): void {
+    if (confirm(`Tem certeza que deseja excluir o tipo de medição "${type.name}"?`)) {
+      this.measurementTypeService.deleteMeasurementType(type.id).subscribe({
+        next: () => {
+          this.loadMeasurementTypes();
+          this.toastService.show({
+            title: 'Tipo de medição excluído com sucesso',
+            variant: 'default'
+          });
+        },
+        error: (err) => {
+          console.error('Erro ao excluir tipo de medição:', err);
+          this.toastService.show({
+            title: 'Erro ao excluir tipo de medição',
+            description: err.error?.detail ?? 'Falha ao excluir o tipo de medição.',
+            variant: 'destructive'
+          });
+        }
+      });
+    }
   }
 }

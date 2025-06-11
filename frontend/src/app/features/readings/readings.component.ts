@@ -4,7 +4,7 @@ import { CardComponent } from '@shared/components/ui/card/card.component';
 import { ButtonComponent } from '@shared/components/ui/button/button.component';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms'; // Import FormsModule
-import { Observable, tap } from 'rxjs'; // Import Observable and tap
+import { Observable, tap, catchError, throwError } from 'rxjs';
 
 // Import Services
 import { ReadingService } from '@core/services/Reading.service';
@@ -56,36 +56,97 @@ export class ReadingsComponent implements OnInit {
     private condominiumService: CondominiumService,
     private meterService: MeterService
   ) {}
-  
-  ngOnInit(): void {
+    ngOnInit(): void {
     this.isLoading = true;
     this.error = null;
-    // Fetch all necessary data
+    // Fetch all necessary data    // Get condominiums
     this.condominiumService.getCondominiums().subscribe({
-      next: data => this.condominiums = data,
-      error: err => console.error('Error fetching condominiums', err) // Basic error handling
+      next: data => {
+        this.condominiums = data;
+        // Preencher o mapa de nomes dos condomínios
+        data.forEach(condo => {
+          this.condominiumNames.set(condo.id, condo.name);
+        });
+      },
+      error: err => console.error('Error fetching condominiums', err)
     });
 
+    // Get measurement types
     this.measurementTypeService.getMeasurementTypes().subscribe({
       next: data => this.measurementTypes = data,
-      error: err => console.error('Error fetching measurement types', err) // Basic error handling
+      error: err => console.error('Error fetching measurement types', err)
     });
 
-    this.readingService.getReadings().subscribe({
-      next: data => {
-        this.allReadings = data;
-        this.applyFilters(); // Apply initial filters (which might be none)
-        this.isLoading = false;
-      },
-      error: err => {
-        console.error('Error fetching readings', err);
+    // Get readings and meters
+    this.readingService.getReadings().pipe(
+      tap(readings => {
+        // Get unique meter IDs
+        const meterIds = new Set(readings.map(r => r.meter_id));
+        
+        // Load all meters
+        return this.meterService.getMeters().subscribe({
+          next: meters => {
+            // Build meter cache
+            meters.forEach(meter => this.metersCache.set(meter.id, meter));
+            
+            // Attach meters to readings
+            this.allReadings = readings.map(reading => ({
+              ...reading,
+              meter: this.metersCache.get(reading.meter_id)
+            }));
+            
+            this.applyFilters();
+            this.isLoading = false;
+          },
+          error: err => {
+            console.error('Error fetching meters:', err);
+            this.error = 'Falha ao carregar os medidores. Tente novamente mais tarde.';
+            this.isLoading = false;
+          }
+        });      }),
+      catchError(err => {
+        console.error('Error fetching readings:', err);
         this.error = 'Falha ao carregar as leituras. Tente novamente mais tarde.';
         this.isLoading = false;
-      }
-    });
+        return throwError(() => err);
+      })
+    ).subscribe();
   }
   // Cache de medidores para evitar múltiplas requisições
   private metersCache: Map<number, Meter> = new Map();
+
+  // Dados carregados
+  meters: Map<number, Meter> = new Map();
+  condominiumNames: Map<number, string> = new Map();
+
+  // Métodos auxiliares para acessar dados relacionados
+  getCondominiumName(reading: Reading): string {
+    const meter = this.metersCache.get(reading.meter_id);
+    if (!meter?.unit?.condominiumId) return 'N/A';
+    return this.condominiumNames.get(meter.unit.condominiumId) || 'N/A';
+  }
+
+  getUnitIdentifier(reading: Reading): string {
+    const meter = this.metersCache.get(reading.meter_id);
+    return meter?.unit?.identifier || 'N/A';
+  }
+
+  getMeasurementTypeName(reading: Reading): string {
+    const meter = this.metersCache.get(reading.meter_id);
+    return meter?.measurementType?.name || 'N/A';
+  }
+
+  getMeasurementTypeUnit(reading: Reading): string {
+    const meter = this.metersCache.get(reading.meter_id);
+    return meter?.measurementType?.unit || '';
+  }
+
+  getReadingValue(reading: Reading): string {
+    if (reading.status === 'INACCESSIBLE') {
+      return reading.inaccessibleReason || 'Inacessível';
+    }
+    return `${reading.currentReading} ${this.getMeasurementTypeUnit(reading)}`;
+  }
 
   applyFilters(): void {
     let readings = [...this.allReadings];
@@ -112,9 +173,7 @@ export class ReadingsComponent implements OnInit {
     } else {
       this.applyFiltersInternal();
     }
-  }
-
-  private applyFiltersInternal(): void {
+  }  private applyFiltersInternal(): void {
     let readings = [...this.allReadings];
 
     if (this.selectedCondominiumId) {
