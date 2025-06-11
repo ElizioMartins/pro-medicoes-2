@@ -10,10 +10,8 @@ export interface Reading {
   observations?: string;
   
   photos?: ReadingPhoto[];
-
-  // Relacionamentos
-  meter: Meter; // Inclui acesso a unit e measurementType através do meter
+  
 }
 
 import { ReadingPhoto } from './ReadingPhoto';
-import { Meter } from './Meter';
+

@@ -10,11 +10,13 @@ import { Observable, tap } from 'rxjs'; // Import Observable and tap
 import { ReadingService } from '@core/services/Reading.service';
 import { MeasurementTypeService } from '@core/services/MeasurementType.service';
 import { CondominiumService } from '@core/services/Condominium.service';
+import { MeterService } from '@core/services/Meter.service';
 
 // Import Models
 import { Reading } from '@core/models/Reading';
 import { MeasurementType } from '@core/models/MeasurementType';
 import { Condominium } from '@core/models/Condominium';
+import { Meter } from '@core/models/Meter';
 
 @Component({
   selector: 'app-readings',
@@ -48,11 +50,11 @@ export class ReadingsComponent implements OnInit {
   currentPage = 1;
   itemsPerPage = 5; // Or any other number you prefer
   totalPages = 1;
-
   constructor(
     private readingService: ReadingService,
     private measurementTypeService: MeasurementTypeService,
-    private condominiumService: CondominiumService
+    private condominiumService: CondominiumService,
+    private meterService: MeterService
   ) {}
   
   ngOnInit(): void {
@@ -82,16 +84,51 @@ export class ReadingsComponent implements OnInit {
       }
     });
   }
+  // Cache de medidores para evitar múltiplas requisições
+  private metersCache: Map<number, Meter> = new Map();
 
   applyFilters(): void {
     let readings = [...this.allReadings];
 
+    // Primeiro, vamos carregar os medidores necessários para os filtros
+    const uniqueMeterIds = new Set(readings.map(r => r.meter_id));
+    const missingMeterIds = Array.from(uniqueMeterIds).filter(id => !this.metersCache.has(id));
+
+    // Se houver medidores não carregados, carregá-los primeiro
+    if (missingMeterIds.length > 0) {
+      this.isLoading = true;
+      // Assumindo que você tem um método para buscar múltiplos medidores
+      this.meterService.getMeters().subscribe({
+        next: (meters) => {
+          meters.forEach(meter => this.metersCache.set(meter.id, meter));
+          this.applyFiltersInternal();
+        },
+        error: (err) => {
+          console.error('Error fetching meters', err);
+          this.error = 'Falha ao carregar os medidores. Tente novamente mais tarde.';
+          this.isLoading = false;
+        }
+      });
+    } else {
+      this.applyFiltersInternal();
+    }
+  }
+
+  private applyFiltersInternal(): void {
+    let readings = [...this.allReadings];
+
     if (this.selectedCondominiumId) {
-      readings = readings.filter(r => r.meter?.unit?.condominiumId === Number(this.selectedCondominiumId));
+      readings = readings.filter(r => {
+        const meter = this.metersCache.get(r.meter_id);
+        return meter?.unit?.condominiumId === Number(this.selectedCondominiumId);
+      });
     }
 
     if (this.selectedMeasurementTypeId) {
-      readings = readings.filter(r => r.meter?.measurementTypeId === Number(this.selectedMeasurementTypeId));
+      readings = readings.filter(r => {
+        const meter = this.metersCache.get(r.meter_id);
+        return meter?.measurementTypeId === Number(this.selectedMeasurementTypeId);
+      });
     }
     
     if (this.selectedPeriod !== "all") {

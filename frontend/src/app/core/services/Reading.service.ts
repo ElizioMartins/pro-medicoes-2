@@ -20,22 +20,22 @@ export class ReadingService {
       status: 'PENDING',
       observations: 'Medidor de difícil acesso, requer chave especial.',
       photos: [],
-      meter: {
-        id: 1,
-        unitId: 101,
-        measurementTypeId: 1,
-        serialNumber: 'W12345678',
-        active: true,
-        measurementType: { id: 1, name: 'Água', unit: 'm³'},
-        unit: { 
-          id: 101,
-          identifier: 'Apto 101', 
-          owner: 'João Silva', 
-          condominiumId: 1,
-          metersCount: 1,
-          lastReading: new Date(2025, 4, 25)
-        }
-      }
+      // meter: {
+      //   id: 1,
+      //   unitId: 101,
+      //   measurementTypeId: 1,
+      //   serialNumber: 'W12345678',
+      //   active: true,
+      //   measurementType: { id: 1, name: 'Água', unit: 'm³'},
+      //   unit: { 
+      //     id: 101,
+      //     identifier: 'Apto 101', 
+      //     owner: 'João Silva', 
+      //     condominiumId: 1,
+      //     metersCount: 1,
+      //     lastReading: new Date(2025, 4, 25)
+      //   }
+      // }
     },
     {
       id: 2, 
@@ -55,22 +55,22 @@ export class ReadingService {
           timestamp: new Date()
         }
       ],
-      meter: {
-        id: 2,
-        unitId: 102,
-        measurementTypeId: 2,
-        serialNumber: 'E87654321',
-        active: true,
-        measurementType: { id: 2, name: 'Energia', unit: 'kWh'},
-        unit: { 
-          id: 102,
-          identifier: 'Apto 102', 
-          owner: 'Maria Oliveira', 
-          condominiumId: 1,
-          metersCount: 2,
-          lastReading: new Date(2025, 4, 24)
-        }
-      }
+      // meter: {
+      //   id: 2,
+      //   unitId: 102,
+      //   measurementTypeId: 2,
+      //   serialNumber: 'E87654321',
+      //   active: true,
+      //   measurementType: { id: 2, name: 'Energia', unit: 'kWh'},
+      //   unit: { 
+      //     id: 102,
+      //     identifier: 'Apto 102', 
+      //     owner: 'Maria Oliveira', 
+      //     condominiumId: 1,
+      //     metersCount: 2,
+      //     lastReading: new Date(2025, 4, 24)
+      //   }
+      // }
     },
     {
       id: 3,
@@ -81,22 +81,22 @@ export class ReadingService {
       inaccessibleReason: 'Unidade fechada',
       observations: 'Tentativas em 3 dias diferentes, sem sucesso.',
       photos: [],
-      meter: {
-        id: 3,
-        unitId: 102,
-        measurementTypeId: 3,
-        serialNumber: 'G34567890',
-        active: true,
-        measurementType: { id: 3, name: 'Gás', unit: 'm³' },
-        unit: { 
-          id: 102,
-          identifier: 'Apto 102', 
-          owner: 'Maria Oliveira', 
-          condominiumId: 1,
-          metersCount: 2,
-          lastReading: new Date(2025, 4, 28)
-        }
-      }
+      // meter: {
+      //   id: 3,
+      //   unitId: 102,
+      //   measurementTypeId: 3,
+      //   serialNumber: 'G34567890',
+      //   active: true,
+      //   measurementType: { id: 3, name: 'Gás', unit: 'm³' },
+      //   unit: { 
+      //     id: 102,
+      //     identifier: 'Apto 102', 
+      //     owner: 'Maria Oliveira', 
+      //     condominiumId: 1,
+      //     metersCount: 2,
+      //     lastReading: new Date(2025, 4, 28)
+      //   }
+      // }
     }
   ];
 
@@ -143,7 +143,6 @@ export class ReadingService {
           status: 'PENDING',
           observations: readingData.observations || '',
           photos: [],
-          meter: meter
         };
 
         this.mockReadings.push(newReading);
