@@ -1,59 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session, relationship
-from database import get_db, Base, engine
-from sqlalchemy import Column, Integer, String, DateTime
-from units import Unit
-from datetime import datetime
+from sqlalchemy.orm import Session
 from typing import List
 from pydantic import BaseModel
+from datetime import datetime
 
-# SQLAlchemy Model
-class Condominium(Base):
-    __tablename__ = "condominiums"
-
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True)
-    address = Column(String)
-    cnpj = Column(String, unique=True, index=True)
-    manager = Column(String)
-    phone = Column(String)
-    email = Column(String)
-    units_count = Column(Integer, default=0)
-    meters_count = Column(Integer, default=0)
-    readings_count = Column(Integer, default=0)
-    reports_count = Column(Integer, default=0)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
-    # Relationship with units
-    units = relationship("Unit", back_populates="condominium", cascade="all, delete-orphan")
-
-# Pydantic Model
-class CondominiumBase(BaseModel):
-    name: str
-    address: str
-    cnpj: str
-    manager: str
-    phone: str
-    email: str
-    units_count: int = 0
-    meters_count: int = 0
-    readings_count: int = 0
-    reports_count: int = 0
-
-class CondominiumCreate(CondominiumBase):
-    pass
-
-class CondominiumUpdate(CondominiumBase):
-    pass
-
-class CondominiumResponse(CondominiumBase):
-    id: int
-    created_at: datetime
-    updated_at: datetime
-
-    class Config:
-        orm_mode = True
+from ..models import get_db, Condominium, Unit
+from ..models.condominiums import CondominiumBase, CondominiumCreate, CondominiumUpdate, CondominiumResponse
 
 router = APIRouter()
 
@@ -71,9 +23,15 @@ def get_condominium(condominium_id: int, db: Session = Depends(get_db)):
 
 @router.post("/", response_model=CondominiumResponse)
 def create_condominium(condominium: CondominiumCreate, db: Session = Depends(get_db)):
+    # Verifica se já existe um condomínio com o mesmo CNPJ
+    existing_condominium = db.query(Condominium).filter(Condominium.cnpj == condominium.cnpj).first()
+    if existing_condominium:
+        raise HTTPException(status_code=400, detail="CNPJ já cadastrado")
+    
+    db_condominium = Condominium(**condominium.dict())
+    db.add(db_condominium)
+    
     try:
-        db_condominium = Condominium(**condominium.dict())
-        db.add(db_condominium)
         db.commit()
         db.refresh(db_condominium)
         return db_condominium
@@ -86,6 +44,12 @@ def update_condominium(condominium_id: int, condominium: CondominiumUpdate, db: 
     db_condominium = db.query(Condominium).filter(Condominium.id == condominium_id).first()
     if db_condominium is None:
         raise HTTPException(status_code=404, detail="Condomínio não encontrado")
+    
+    # Verifica se o novo CNPJ já está em uso por outro condomínio
+    if condominium.cnpj != db_condominium.cnpj:
+        existing_condominium = db.query(Condominium).filter(Condominium.cnpj == condominium.cnpj).first()
+        if existing_condominium:
+            raise HTTPException(status_code=400, detail="CNPJ já cadastrado")
     
     for key, value in condominium.dict().items():
         setattr(db_condominium, key, value)
@@ -100,18 +64,14 @@ def update_condominium(condominium_id: int, condominium: CondominiumUpdate, db: 
 
 @router.delete("/{condominium_id}")
 def delete_condominium(condominium_id: int, db: Session = Depends(get_db)):
-    condominium = db.query(Condominium).filter(Condominium.id == condominium_id).first()
-    if condominium is None:
+    db_condominium = db.query(Condominium).filter(Condominium.id == condominium_id).first()
+    if db_condominium is None:
         raise HTTPException(status_code=404, detail="Condomínio não encontrado")
     
     try:
-        db.delete(condominium)
+        db.delete(db_condominium)
         db.commit()
         return {"message": "Condomínio excluído com sucesso"}
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=400, detail=f"Erro ao excluir condomínio: {str(e)}")
-
-
-
-

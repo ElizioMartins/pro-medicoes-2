@@ -1,3 +1,5 @@
+import { Unit } from "./Unit";
+
 export interface Condominium {
   id: number;
   name: string;
@@ -12,4 +14,5 @@ export interface Condominium {
   reportsCount: number;
   createdAt?: Date;
   updatedAt?: Date;
+  units?:Unit[]; // Novo relacionamento com unidades associadas ao condomínio
 }

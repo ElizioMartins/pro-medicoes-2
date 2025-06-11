@@ -1,39 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from typing import List, Optional
-from database import get_db, User
-from pydantic import BaseModel
+from typing import List
 from datetime import datetime
 
+from ..models.database import get_db
+from ..models.users import User, UserCreate, UserUpdate, UserResponse, UserRole
+
 router = APIRouter()
-
-class UserBase(BaseModel):
-    username: str
-    email: str
-    name: str
-    role: str = 'User'
-    status: str = 'Active'
-    is_active: Optional[int] = 1
-    initials: Optional[str] = None
-    avatar_color: Optional[str] = None
-
-class UserCreate(UserBase):
-    password: str
-
-class UserUpdate(UserBase):
-    password: Optional[str] = None
-    username: Optional[str] = None
-    email: Optional[str] = None
-    name: Optional[str] = None
-    role: Optional[str] = None
-    status: Optional[str] = None
-
-class UserResponse(UserBase):
-    id: int
-    last_access: Optional[datetime] = None
-
-    class Config:
-        orm_mode = True
 
 @router.get("", response_model=dict)
 def get_users(
@@ -53,10 +26,10 @@ def get_users(
                 "name": user.name,
                 "role": user.role,
                 "status": user.status,
-                "is_active": user.is_active,
+                "active": user.active,
                 "lastAccess": user.last_access,
-                "initials": user.initials,
-                "avatarColor": user.avatar_color
+                "created_at": user.created_at,
+                "updated_at": user.updated_at
             }
             for user in users
         ],
@@ -95,10 +68,10 @@ def search_users(
                 "name": user.name,
                 "role": user.role,
                 "status": user.status,
-                "is_active": user.is_active,
+                "active": user.active,
                 "lastAccess": user.last_access,
-                "initials": user.initials,
-                "avatarColor": user.avatar_color
+                "created_at": user.created_at,
+                "updated_at": user.updated_at
             }
             for user in users
         ],
@@ -107,17 +80,15 @@ def search_users(
 
 @router.post("", response_model=UserResponse)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
-    # Aqui você deve adicionar a lógica para criptografar a senha
+    # TODO: Adicionar lógica para criptografar a senha
     db_user = User(
         username=user.username,
         email=user.email,
-        hashed_password=user.password,  # Você deve criptografar isso!
-        is_active=user.is_active,
+        password_hash=user.password,  # TODO: Criptografar a senha
+        active=user.active,
         name=user.name,
         role=user.role,
-        status=user.status,
-        initials=user.initials,
-        avatar_color=user.avatar_color
+        status=user.status
     )
     db.add(db_user)
     db.commit()
@@ -139,8 +110,8 @@ def update_user(user_id: int, user_update: UserUpdate, db: Session = Depends(get
     
     for key, value in user_update.dict(exclude_unset=True).items():
         if key == "password" and value:
-            # Aqui você deve adicionar a lógica para criptografar a senha
-            setattr(db_user, "hashed_password", value)
+            # TODO: Adicionar lógica para criptografar a senha
+            setattr(db_user, "password_hash", value)
         else:
             setattr(db_user, key, value)
     

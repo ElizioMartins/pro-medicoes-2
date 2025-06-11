@@ -1,21 +1,16 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink, ActivatedRoute, ParamMap } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { HttpClient, HttpErrorResponse, HttpClientModule } from '@angular/common/http';
-import { forkJoin, of, throwError, switchMap, Observable, Subject, takeUntil } from 'rxjs';
-import { delay, tap, catchError } from 'rxjs/operators';
-import { trigger, state, style, animate, transition } from '@angular/animations'; // Import animations
+import { forkJoin, of, throwError, switchMap, Observable, Subject } from 'rxjs';
+import { delay, tap, catchError, takeUntil } from 'rxjs/operators';
+import { trigger, state, style, animate, transition } from '@angular/animations';
 
-// Import Services and Models
 import { ReadingService } from '@core/services/Reading.service';
 import { Reading } from '@core/models/Reading';
 import { ReadingPhoto } from '@core/models/ReadingPhoto';
-
-// Import the photo capture component and its event interface
 import { MeterPhotoCaptureAngularComponent, PhotoCaptureEvent } from '@shared/components/meter-photo-capture/meter-photo-capture.component';
-
-// Import shared UI components
 import { CardComponent } from '@shared/components/ui/card/card.component';
 import { ButtonComponent } from '@shared/components/ui/button/button.component';
 import { InputComponent } from '@shared/components/ui/input/input.component';
@@ -34,7 +29,7 @@ import { InputComponent } from '@shared/components/ui/input/input.component';
     InputComponent
   ],
   templateUrl: './reading-form.component.html',
-  styleUrls: ['./reading-form.component.scss'], // Add SCSS file reference
+  styleUrls: ['./reading-form.component.scss'],
   animations: [
     trigger('fade', [
       transition(':enter', [
@@ -54,13 +49,13 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
   capturedCroppedImage: string | null = null;
   isDetecting = false;
   detectionError: string | null = null;
-  currentReadingIdFromRoute: string | null = null;
+  currentReadingIdFromRoute: number | null = null;
   currentReading: Reading | null = null;
   isSaving = false;
   isLoading = false;
   loadError: string | null = null;
   private newPhotoTaken = false;
-  private destroy$ = new Subject<void>(); // For unsubscribing
+  private destroy$ = new Subject<void>();
 
   constructor(
     private fb: FormBuilder,
@@ -70,107 +65,73 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
     private readingService: ReadingService
   ) {
     this.readingForm = this.fb.group({
-      currentReading: [{ value: '', disabled: false }, [Validators.pattern('^[0-9]*[.]?[0-9]+$')]], // Allow numbers and decimals
+      currentReading: ['', [Validators.pattern('^[0-9]*[.]?[0-9]+$')]],
       inaccessible: [false],
       inaccessibleReason: [{ value: '', disabled: true }],
       notes: ['']
     });
+
+    // Monitora mudanças no campo inaccessible
+    this.readingForm.get('inaccessible')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(isInaccessible => {
+        this.toggleInaccessibleFields(isInaccessible);
+      });
   }
 
   ngOnInit(): void {
     this.route.paramMap
       .pipe(
         takeUntil(this.destroy$),
-        switchMap((params: ParamMap) => {
+        switchMap(params => {
           const id = params.get('id');
-          if (id) {
-            this.currentReadingIdFromRoute = id;
-            return this.loadReadingData(id);
-          } else {
-            // Handle new reading creation
-            return this.createNewReading();
+          if (!id) {
+            this.loadError = 'ID da leitura não fornecido';
+            return of(undefined);
           }
+          this.currentReadingIdFromRoute = parseInt(id);
+          this.isLoading = true;
+          return this.readingService.getReadingById(this.currentReadingIdFromRoute);
         })
       )
-      .subscribe();
-
-    // Handle inaccessible state changes
-    this.readingForm.get('inaccessible')?.valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(isInaccessible => {
-        this.toggleInaccessibleFields(isInaccessible);
+      .subscribe({
+        next: reading => {
+          if (reading) {
+            this.currentReading = reading;
+            this.readingForm.patchValue({
+              currentReading: reading.currentReading || '',
+              inaccessible: reading.status === 'INACCESSIBLE',
+              inaccessibleReason: reading.inaccessibleReason || '',
+              notes: reading.observations || ''
+            });
+            
+            if (reading.status === 'INACCESSIBLE') {
+              this.toggleInaccessibleFields(true);
+            }
+            
+            if (reading.photos && reading.photos.length > 0) {
+              // Carregaria a foto do servidor em produção
+              this.capturedFullImage = reading.photos[0].filePath;
+              this.capturedCroppedImage = reading.photos[0].croppedFilePath || null;
+            }
+            
+            this.isLoading = false;
+          } else {
+            this.loadError = `Leitura com ID ${this.currentReadingIdFromRoute} não encontrada.`;
+            this.isLoading = false;
+          }
+        },
+        error: err => {
+          console.error('Erro ao carregar dados da leitura:', err);
+          this.loadError = 'Erro ao carregar dados da leitura.';
+          this.isLoading = false;
+        }
       });
-
-    // Initial state check for inaccessible reason
-    this.toggleInaccessibleFields(this.readingForm.get('inaccessible')?.value);
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-  }
-
-  private createNewReading(): Observable<void> {
-    this.isLoading = true;
-    this.loadError = null;
-    return this.readingService.createReading({}).pipe(
-      takeUntil(this.destroy$),
-      tap(newReading => {
-        this.currentReading = newReading;
-        this.currentReadingIdFromRoute = newReading.id;
-        this.readingForm.patchValue({
-          notes: newReading.observations,
-        });
-        this.newPhotoTaken = false;
-        this.capturedFullImage = null;
-        this.capturedCroppedImage = null;
-        this.isLoading = false;
-        this.router.navigate(['/readings', newReading.id, 'form'], { replaceUrl: true });
-      }),
-      catchError(err => {
-        console.error('Error creating new reading:', err);
-        this.loadError = 'Erro ao criar uma nova leitura para registro.';
-        this.isLoading = false;
-        return of(undefined); // Return empty observable to complete the stream
-      }),
-      switchMap(() => of(undefined)) // Ensure the outer observable completes
-    );
-  }
-
-  private loadReadingData(id: string): Observable<void> {
-    this.isLoading = true;
-    this.loadError = null;
-    return this.readingService.getReadingById(id).pipe(
-      takeUntil(this.destroy$),
-      tap(readingData => {
-        if (readingData) {
-          this.currentReading = readingData;
-          this.readingForm.patchValue({
-            currentReading: readingData.currentReading,
-            notes: readingData.observations,
-            inaccessible: readingData.status === 'INACCESSIBLE',
-            inaccessibleReason: readingData.inaccessibleReason
-          });
-          this.toggleInaccessibleFields(readingData.status === 'INACCESSIBLE');
-
-          if (readingData.photos && readingData.photos.length > 0) {
-            this.capturedFullImage = readingData.photos[0].filePath;
-            this.capturedCroppedImage = readingData.photos[0].croppedFilePath || null;
-          }
-          this.isLoading = false;
-        } else {
-          this.loadError = `Leitura com ID ${id} não encontrada.`;
-          this.isLoading = false;
-        }
-      }),
-      catchError(err => {
-        console.error('Error loading reading data:', err);
-        this.loadError = 'Erro ao carregar dados da leitura.';
-        this.isLoading = false;
-        return of(undefined);
-      }),
-      switchMap(() => of(undefined))
-    );
   }
 
   private toggleInaccessibleFields(isInaccessible: boolean): void {
@@ -182,12 +143,11 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
       currentReadingControl?.disable();
       inaccessibleReasonControl?.enable();
       inaccessibleReasonControl?.setValidators(Validators.required);
-      // Clear photo and detection state if unit becomes inaccessible
-      this.detectionError = null;
-      this.isDetecting = false;
+      // Limpa foto e estado de detecção se a unidade ficar inacessível
       this.capturedFullImage = null;
       this.capturedCroppedImage = null;
       this.newPhotoTaken = false;
+      this.detectionError = null;
     } else {
       currentReadingControl?.enable();
       inaccessibleReasonControl?.setValue('');
@@ -227,8 +187,8 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
       const byteArray = new Uint8Array(byteNumbers);
       return new Blob([byteArray], { type: contentType });
     } catch (e) {
-      console.error('Error converting base64 to Blob:', e);
-      throw new Error('Invalid base64 string for image conversion.');
+      console.error('Erro ao converter base64 para Blob:', e);
+      throw new Error('String base64 inválida para conversão de imagem.');
     }
   }
 
@@ -240,8 +200,7 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
       const formData = new FormData();
       formData.append('file', imageBlob, 'cropped.jpg');
 
-      // Replace with your actual OCR API endpoint
-      const ocrApiUrl = 'http://localhost:8000/detect/'; // Example URL
+      const ocrApiUrl = 'http://localhost:8000/detect/';
 
       this.http.post<any>(ocrApiUrl, formData)
         .pipe(takeUntil(this.destroy$))
@@ -249,20 +208,20 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
           next: (response) => {
             if (response && response.number_detected !== undefined && response.number_detected !== null) {
               this.readingForm.get('currentReading')?.setValue(response.number_detected);
-              this.detectionError = null; // Clear previous errors if detection is successful
+              this.detectionError = null;
             } else {
               this.detectionError = 'Valor não detectado claramente. Insira manualmente.';
             }
             this.isDetecting = false;
           },
           error: (err: HttpErrorResponse) => {
-            console.error('OCR Detection Error:', err);
+            console.error('Erro na detecção OCR:', err);
             this.detectionError = `Erro na detecção OCR (${err.status}): ${err.message}. Tente novamente ou insira manualmente.`;
             this.isDetecting = false;
           }
         });
     } catch (error: any) {
-      console.error('Error preparing image for detection:', error);
+      console.error('Erro ao preparar imagem para detecção:', error);
       this.detectionError = `Erro ao processar imagem: ${error.message}`;
       this.isDetecting = false;
     }
@@ -270,37 +229,35 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
 
   onSubmit(): void {
     if (this.readingForm.invalid || !this.currentReadingIdFromRoute) {
-      this.readingForm.markAllAsTouched(); // Mark fields to show validation errors
-      console.error('Form is invalid or Reading ID is missing.');
+      this.readingForm.markAllAsTouched();
+      console.error('Formulário inválido ou ID da Leitura faltando.');
       return;
     }
 
     this.isSaving = true;
-    const formValue = this.readingForm.getRawValue(); // Use getRawValue to include disabled fields like currentReading when inaccessible
+    const formValue = this.readingForm.getRawValue();
+
+    let status: Reading['status'];
+    if (formValue.inaccessible) {
+      status = 'INACCESSIBLE';
+    } else if (formValue.currentReading && this.capturedCroppedImage) {
+      status = 'COMPLETED';
+    } else {
+      status = 'PENDING';
+    }
 
     const readingUpdatePayload: Partial<Reading> = {
-      id: this.currentReadingIdFromRoute,
       currentReading: formValue.inaccessible ? null : formValue.currentReading,
       observations: formValue.notes,
-      status: formValue.inaccessible ? 'INACCESSIBLE' : 'PENDING', // Or determine based on logic
+      status,
       inaccessibleReason: formValue.inaccessible ? formValue.inaccessibleReason : null,
-      // We handle photos separately
+      date: new Date()
     };
 
     const updateReading$ = this.readingService.updateReading(this.currentReadingIdFromRoute, readingUpdatePayload);
 
-    let updatePhoto$: Observable<ReadingPhoto | null> = of(null); // Default to no photo update
-
+    let updatePhoto$: Observable<ReadingPhoto | null> = of(null);
     if (this.newPhotoTaken && this.capturedFullImage && this.capturedCroppedImage) {
-      // If a new photo was taken, prepare the payload to update/create it
-      const photoPayload: Partial<ReadingPhoto> = {
-        readingId: this.currentReadingIdFromRoute,
-        filePath: this.capturedFullImage, // Assuming base64 is stored directly for now
-        croppedFilePath: this.capturedCroppedImage,
-        timestamp: new Date()
-      };
-      // Decide whether to create a new photo or update an existing one
-      // For simplicity, let's assume we always create/replace the first photo
       updatePhoto$ = this.readingService.saveReadingPhoto(
         this.currentReadingIdFromRoute,
         this.capturedFullImage,
@@ -312,19 +269,18 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: ({ reading, photo }) => {
-          console.log('Reading updated:', reading);
+          console.log('Leitura atualizada:', reading);
           if (photo) {
-            console.log('Photo saved/updated:', photo);
+            console.log('Foto salva/atualizada:', photo);
           }
           this.isSaving = false;
-          this.newPhotoTaken = false; // Reset flag after successful save
-          // Optionally show a success message (e.g., using a ToastService)
-          this.router.navigate(['/readings']); // Navigate back to the list
+          this.newPhotoTaken = false;
+          this.router.navigate(['/readings']);
         },
         error: (err) => {
-          console.error('Error saving reading:', err);
+          console.error('Erro ao salvar leitura:', err);
           this.isSaving = false;
-          // Optionally show an error message
+          // Mostrar mensagem de erro para o usuário
         }
       });
   }

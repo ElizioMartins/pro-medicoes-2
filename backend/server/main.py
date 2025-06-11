@@ -7,19 +7,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from datetime import datetime
 
-from database import get_db, Base, engine, Reading
-# Primeiro importamos o essencial da database
-
-# Depois importamos os módulos e modelos na ordem correta
-# Módulos independentes primeiro
-import users
-import measurement_types  
-
-# Depois módulos com dependências em ordem
-import condominiums
-import units
-import meters_router as meters
-import readings
+from models import Base, engine
+from models.database import get_db
+from routers import users, measurement_types, condominiums, units, meters, readings
 
 # Criar todas as tabelas
 Base.metadata.create_all(bind=engine)
@@ -42,13 +32,13 @@ app.add_middleware(
 # Importa funções do utils.py
 from utilits import run_yolov5, run_yolov8_obb
 
-# Adiciona os endpoints de leituras, usuários, condomínios, unidades, medidores e tipos de medição
-app.include_router(readings.router, prefix="/readings", tags=["readings"])
-app.include_router(users.router, prefix="/users", tags=["users"])
-app.include_router(condominiums.router, prefix="/condominiums", tags=["condominiums"])
-app.include_router(units.router, prefix="/condominiums", tags=["units"])
-app.include_router(meters.router, prefix="/meters", tags=["meters"])
-app.include_router(measurement_types.router, prefix="/measurement-types", tags=["measurement-types"])
+# Adiciona os endpoints
+app.include_router(readings.router, prefix="/api/readings", tags=["readings"])
+app.include_router(users.router, prefix="/api/users", tags=["users"])
+app.include_router(condominiums.router, prefix="/api/condominiums", tags=["condominiums"])
+app.include_router(units.router, prefix="/api/units", tags=["units"])
+app.include_router(meters.router, prefix="/api/meters", tags=["meters"])
+app.include_router(measurement_types.router, prefix="/api/measurement-types", tags=["measurement-types"])
 
 # Criar pasta para salvar imagens se não existir
 UPLOAD_DIR = "uploads"

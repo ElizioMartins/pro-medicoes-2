@@ -67,7 +67,7 @@ import { catchError, finalize } from 'rxjs/operators';
               <app-input
                 label="Número de Série"
                 formControlName="serialNumber"
-                [error]="meterForm.get('serialNumber')?.invalid && meterForm.get('serialNumber')?.touched"
+                [error]="true"
                 [errorMessage]="meterForm.get('serialNumber')?.hasError('required') ? 'Número de série é obrigatório' : ''"
               ></app-input>
             </div>
@@ -97,8 +97,8 @@ export class MeterFormComponent implements OnInit {
   isLoading = false;
   isSaving = false;
   error: string | null = null;
-  meterId: string | null = null;
-  unitId: string | null = null;
+  meterId: number | null = null;
+  unitId: number | null = null;
   measurementTypes: MeasurementType[] = [];
 
   constructor(
@@ -182,7 +182,7 @@ export class MeterFormComponent implements OnInit {
     }
 
     const formData = this.meterForm.value;
-    const meterData: Partial<Meter> = {
+    const meterData: Meter = {
       ...formData,
       unitId: this.unitId // Associa o medidor à unidade atual
     };

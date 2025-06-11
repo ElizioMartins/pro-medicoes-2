@@ -24,7 +24,7 @@ import { Condominium } from '@core/models/Condominium';
     CardComponent,
     ButtonComponent,
     RouterLink,
-    FormsModule // <--- Add this
+    FormsModule 
   ],
   templateUrl: './readings.component.html',
   styleUrls: ['./readings.component.scss']
@@ -39,10 +39,9 @@ export class ReadingsComponent implements OnInit {
 
   isLoading = true;
   error: string | null = null;
-  
-  // Filter selections
-  selectedCondominiumId: string = "";
-  selectedMeasurementTypeId: string = "";
+    // Filter selections
+  selectedCondominiumId: number | null = null;
+  selectedMeasurementTypeId: number | null = null;
   selectedPeriod: string = "all";
 
   // Pagination
@@ -88,11 +87,11 @@ export class ReadingsComponent implements OnInit {
     let readings = [...this.allReadings];
 
     if (this.selectedCondominiumId) {
-      readings = readings.filter(r => r.condominiumId === this.selectedCondominiumId);
+      readings = readings.filter(r => r.meter?.unit?.condominiumId === Number(this.selectedCondominiumId));
     }
 
     if (this.selectedMeasurementTypeId) {
-      readings = readings.filter(r => r.measurementTypeId === this.selectedMeasurementTypeId);
+      readings = readings.filter(r => r.meter?.measurementTypeId === Number(this.selectedMeasurementTypeId));
     }
     
     if (this.selectedPeriod !== "all") {
@@ -112,10 +111,9 @@ export class ReadingsComponent implements OnInit {
     this.currentPage = 1; // Reset to first page after filtering
     this.updatePaginatedReadings();
   }
-
   clearFilters(): void {
-    this.selectedCondominiumId = "";
-    this.selectedMeasurementTypeId = "";
+    this.selectedCondominiumId = null;
+    this.selectedMeasurementTypeId = null;
     this.selectedPeriod = "all";
     this.applyFilters();
   }

@@ -1,0 +1,64 @@
+<div class="unit-form-container">
+  <app-card [elevated]="true">
+    <div class="card-header">
+      <h2 class="form-title">{{ isEditing ? 'Editar' : 'Nova' }} Unidade</h2>
+    </div>
+    
+    <form [formGroup]="unitForm" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="identifier">Identificador*</label>
+        <input type="text" id="identifier" formControlName="identifier" class="form-control" placeholder="Ex: Apto 101">
+        <div *ngIf="unitForm.get('identifier')?.invalid && unitForm.get('identifier')?.touched" class="error-message">
+          Identificador é obrigatório
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="owner">Proprietário*</label>
+        <input type="text" id="owner" formControlName="owner" class="form-control" placeholder="Nome do proprietário">
+        <div *ngIf="unitForm.get('owner')?.invalid && unitForm.get('owner')?.touched" class="error-message">
+          Proprietário é obrigatório
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="metersCount">Número de Medidores*</label>
+        <input type="number" id="metersCount" formControlName="metersCount" class="form-control" min="0">
+        <div *ngIf="unitForm.get('metersCount')?.invalid && unitForm.get('metersCount')?.touched" class="error-message">
+          Número de medidores deve ser maior ou igual a 0
+        </div>
+      </div>
+
+      <!-- Seção de Medidores -->
+      <div class="form-group">
+        <label>Medidores</label>
+        <div *ngFor="let meter of meters.controls; let i = index" [formGroupName]="i" class="meter-item border p-3 mb-2 rounded bg-gray-50">
+          <div class="flex gap-2 items-end">
+            <div class="flex-1">
+              <label class="block text-gray-700 text-sm font-bold mb-1">Tipo de Medição*</label>
+              <select formControlName="measurementTypeId" class="form-control">
+                <option value="">Selecione um tipo de medição</option>
+                <option *ngFor="let type of measurementTypes" [value]="type.id">{{ type.name }} ({{ type.unit }})</option>
+              </select>
+              <div *ngIf="meter.get('measurementTypeId')?.invalid && meter.get('measurementTypeId')?.touched" class="error-message">Tipo de medição é obrigatório</div>
+            </div>
+            <div class="flex-1">
+              <label class="block text-gray-700 text-sm font-bold mb-1">Número de Série*</label>
+              <input type="text" formControlName="serialNumber" class="form-control" placeholder="Número de série">
+              <div *ngIf="meter.get('serialNumber')?.invalid && meter.get('serialNumber')?.touched" class="error-message">Número de série é obrigatório</div>
+            </div>
+            <app-button type="button" variant="danger" (click)="removeMeter(i)" *ngIf="meters.length > 1">Remover</app-button>
+          </div>
+        </div>
+        <app-button type="button" variant="outline" (click)="addMeter()" class="mt-2">Adicionar Medidor</app-button>
+      </div>
+
+      <div class="buttons-container">
+        <app-button type="button" [variant]="'secondary'" (click)="goBack()">Voltar</app-button>
+        <app-button type="submit" [disabled]="!unitForm.valid || isSubmitting">
+          {{ isSubmitting ? 'Salvando...' : 'Salvar' }}
+        </app-button>
+      </div>
+    </form>
+  </app-card>
+</div>

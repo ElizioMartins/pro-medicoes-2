@@ -10,11 +10,12 @@ export class MeterService {
   // Dados de exemplo (mock) para testes
   private mockMeters: Meter[] = [
     {
-      id: '1',
-      unitId: '101',
-      measurementTypeId: '1',
+      id: 1,
+      unitId: 101,
+      measurementTypeId: 1,
       serialNumber: 'W12345678',
-      measurementType: { id: 1, name: 'Água', unit: 'm³', active: true },
+      active: true,
+      measurementType: { id: 1, name: 'Água', unit: 'm³'},
       unit: { 
         id: 101,
         identifier: 'Apto 101', 
@@ -25,11 +26,12 @@ export class MeterService {
       }
     },
     {
-      id: '2',
-      unitId: '102',
-      measurementTypeId: '2',
+      id: 2,
+      unitId: 102,
+      measurementTypeId: 2,
       serialNumber: 'E87654321',
-      measurementType: { id: 2, name: 'Energia', unit: 'kWh', active: true },
+      active: true,
+      measurementType: { id: 2, name: 'Energia', unit: 'kWh'},
       unit: { 
         id: 102,
         identifier: 'Apto 102', 
@@ -40,11 +42,12 @@ export class MeterService {
       }
     },
     {
-      id: '3',
-      unitId: '102',
-      measurementTypeId: '3',
+      id: 3,
+      unitId: 102,
+      measurementTypeId: 3,
       serialNumber: 'G34567890',
-      measurementType: { id: 3, name: 'Gás', unit: 'm³', active: true },
+      active: true,
+      measurementType: { id: 3, name: 'Gás', unit: 'm³' },
       unit: { 
         id: 102,
         identifier: 'Apto 102', 
@@ -62,31 +65,32 @@ export class MeterService {
     return of(this.mockMeters).pipe(delay(300));
   }
 
-  getMeterById(id: string): Observable<Meter | undefined> {
+  getMeterById(id: number): Observable<Meter | undefined> {
     const meter = this.mockMeters.find(m => m.id === id);
     return of(meter).pipe(delay(200));
   }
 
-  getMetersByUnitId(unitId: string): Observable<Meter[]> {
+  getMetersByUnitId(unitId: number): Observable<Meter[]> {
     const meters = this.mockMeters.filter(m => m.unitId === unitId);
     return of(meters).pipe(delay(300));
   }
 
-  createMeter(meterData: Partial<Meter>): Observable<Meter> {
-    const newId = `meter_${Math.random().toString(36).substring(2, 9)}`;
+  createMeter(meterData: Meter): Observable<Meter> {
+    const newId = Math.max(...this.mockMeters.map(m => m.id)) + 1;
     const newMeter: Meter = {
       id: newId,
-      unitId: meterData.unitId || '',
-      measurementTypeId: meterData.measurementTypeId || '',
-      serialNumber: meterData.serialNumber || '',
-      // Outros campos conforme necessário
+      unitId: meterData.unitId ,
+      unit: meterData.unit, // Assumindo que o objeto Unit já está completo
+      measurementTypeId: meterData.measurementTypeId ,
+      serialNumber: meterData.serialNumber ,
+      active: true
     };
     
     this.mockMeters.push(newMeter);
     return of(newMeter).pipe(delay(300));
   }
 
-  updateMeter(id: string, meterData: Partial<Meter>): Observable<Meter> {
+  updateMeter(id: number, meterData: Partial<Meter>): Observable<Meter> {
     const index = this.mockMeters.findIndex(m => m.id === id);
     if (index > -1) {
       this.mockMeters[index] = {
@@ -98,7 +102,7 @@ export class MeterService {
     throw new Error(`Medidor com ID ${id} não encontrado.`);
   }
 
-  deleteMeter(id: string): Observable<boolean> {
+  deleteMeter(id: number): Observable<boolean> {
     const index = this.mockMeters.findIndex(m => m.id === id);
     if (index > -1) {
       this.mockMeters.splice(index, 1);

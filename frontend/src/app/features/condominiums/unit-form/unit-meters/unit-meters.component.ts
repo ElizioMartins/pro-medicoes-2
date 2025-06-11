@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink, Params } from '@angular/router';
 import { CardComponent } from '@shared/components/ui/card/card.component';
 import { ButtonComponent } from '@shared/components/ui/button/button.component';
 
@@ -24,7 +24,7 @@ import { Unit } from '@core/models/Unit';
         <div class="p-6">
           <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold text-gray-800">Medidores da Unidade: {{ unit?.identifier || 'Carregando...' }}</h1>
-            <app-button routerLink="./new" variant="primary">Novo Medidor</app-button>
+            <app-button [routerLink]="['/condominiums', unit?.condominiumId, 'units', unit?.id, 'meters', 'new']" variant="primary">Novo Medidor</app-button>
           </div>
 
           <!-- Loading State -->
@@ -36,7 +36,7 @@ import { Unit } from '@core/models/Unit';
           <!-- Error State -->
           <div *ngIf="error" class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg mb-6">
             <p><strong>Erro:</strong> {{ error }}</p>
-            <app-button (click)="loadMeters()" variant="outline" class="mt-2">Tentar Novamente</app-button>
+            <app-button (click)="loadUnitAndMeters()" variant="outline" class="mt-2">Tentar Novamente</app-button>
           </div>
 
           <!-- Empty State -->
@@ -47,7 +47,7 @@ import { Unit } from '@core/models/Unit';
             <h3 class="mt-2 text-lg font-medium text-gray-900">Nenhum medidor cadastrado</h3>
             <p class="mt-1 text-gray-500">Esta unidade ainda não possui medidores cadastrados.</p>
             <div class="mt-6">
-              <app-button routerLink="./new" variant="primary">Cadastrar Medidor</app-button>
+              <app-button [routerLink]="['/condominiums', unit?.condominiumId, 'units', unit?.id, 'meters', 'new']" variant="primary">Cadastrar Medidor</app-button>
             </div>
           </div>
 
@@ -71,16 +71,15 @@ import { Unit } from '@core/models/Unit';
                   <td class="py-3 px-6">Em desenvolvimento</td>
                   <td class="py-3 px-6 text-center">
                     <div class="flex justify-center space-x-2">
-                      <app-button [routerLink]="['./', meter.id, 'edit']" size="sm" variant="outline">Editar</app-button>
-                      <app-button [routerLink]="['./', meter.id, 'readings']" size="sm" variant="outline">Leituras</app-button>
-                      <app-button (click)="confirmDeleteMeter(meter)" size="sm" variant="destructive">Excluir</app-button>
+                      <app-button [routerLink]="['/condominiums', unit?.condominiumId, 'units', unit?.id, 'meters', meter.id, 'edit']" size="sm" variant="outline">Editar</app-button>
+                      <app-button [routerLink]="['/condominiums', unit?.condominiumId, 'units', unit?.id, 'meters', meter.id, 'readings']" size="sm" variant="outline">Leituras</app-button>
+                      <app-button (click)="confirmDeleteMeter(meter)" size="sm" variant="danger">Excluir</app-button>
                     </div>
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
-
         </div>
       </app-card>
     </div>
@@ -94,7 +93,7 @@ export class UnitMetersComponent implements OnInit {
   meters: Meter[] = [];
   isLoading = false;
   error: string | null = null;
-  unitId: string | null = null;
+  unitId: number | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -104,48 +103,53 @@ export class UnitMetersComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.route.params.subscribe(params => {
-      if (params['unitId']) {
-        this.unitId = params['unitId'];
-        this.loadUnit();
-        this.loadMeters();
-      } else {
+    this.route.params.subscribe((params: Params) => {
+      const unitId = params['unitId'];
+      if (!unitId) {
         this.error = 'ID da unidade não fornecido.';
+        return;
       }
+      this.unitId = Number(unitId);
+      this.loadUnitAndMeters();
     });
   }
 
-  loadUnit(): void {
-    if (!this.unitId) return;
-    
-    this.isLoading = true;
-    this.unitService.getUnitById(parseInt(this.unitId)).subscribe({
-      next: unit => {
-        this.unit = unit;
-        this.isLoading = false;
-      },
-      error: err => {
-        console.error('Erro ao carregar unidade:', err);
-        this.error = 'Erro ao carregar dados da unidade.';
-        this.isLoading = false;
-      }
-    });
-  }
+  loadUnitAndMeters(): void {
+    if (!this.unitId) {
+      this.error = 'ID da unidade não fornecido';
+      return;
+    }
 
-  loadMeters(): void {
-    if (!this.unitId) return;
-    
     this.isLoading = true;
     this.error = null;
-    
+
+    // Primeiro carrega os medidores para obter o condominiumId
     this.meterService.getMetersByUnitId(this.unitId).subscribe({
-      next: meters => {
-        this.meters = meters;
-        this.isLoading = false;
+      next: (meters: Meter[]) => {
+        if (meters.length > 0 && meters[0].unit?.condominiumId) {
+          const condominiumId = meters[0].unit.condominiumId;
+          
+          // Com o condominiumId, carrega os detalhes da unidade
+          this.unitService.getUnitById(condominiumId, this.unitId!).subscribe({
+            next: (unit: Unit) => {
+              this.unit = unit;
+              this.meters = meters;
+              this.isLoading = false;
+            },
+            error: (error: Error) => {
+              console.error('Erro ao carregar unidade:', error);
+              this.error = 'Erro ao carregar dados da unidade.';
+              this.isLoading = false;
+            }
+          });
+        } else {
+          this.error = 'Unidade não encontrada ou sem medidores associados.';
+          this.isLoading = false;
+        }
       },
-      error: err => {
-        console.error('Erro ao carregar medidores:', err);
-        this.error = 'Erro ao carregar medidores. Tente novamente mais tarde.';
+      error: (error: Error) => {
+        console.error('Erro ao carregar medidores:', error);
+        this.error = 'Erro ao carregar dados da unidade.';
         this.isLoading = false;
       }
     });
@@ -157,16 +161,18 @@ export class UnitMetersComponent implements OnInit {
     }
   }
 
-  deleteMeter(id: string): void {
+  deleteMeter(id: number): void {
     this.meterService.deleteMeter(id).subscribe({
       next: () => {
-        // Remove o medidor da lista local após a exclusão bem-sucedida
         this.meters = this.meters.filter(m => m.id !== id);
-        // Exibir mensagem de sucesso (pode ser implementado posteriormente com um serviço de toast)
+        // Atualiza o contador de medidores na unidade
+        if (this.unit) {
+          this.unit.metersCount = (this.unit.metersCount || 0) - 1;
+        }
       },
-      error: err => {
-        console.error('Erro ao excluir medidor:', err);
-        // Exibir mensagem de erro (pode ser implementado posteriormente com um serviço de toast)
+      error: (error: Error) => {
+        console.error('Erro ao excluir medidor:', error);
+        this.error = 'Erro ao excluir medidor. Tente novamente mais tarde.';
       }
     });
   }

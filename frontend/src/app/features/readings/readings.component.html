@@ -61,14 +61,17 @@
                 <th>Ações</th>
               </tr>
             </thead>
-            <tbody>
-              <tr *ngFor="let reading of paginatedReadings">
-                <td>{{ reading.condominiumName }}</td>
-                <td>{{ reading.unit }}</td>
-                <td>{{ reading.measurementTypeName }}</td>
-                <td>{{ reading.status === 'INACCESSIBLE' ? reading.inaccessibleReason : reading.currentReading }}</td>
+            <tbody>              <tr *ngFor="let reading of paginatedReadings">
+                <td>{{ reading.meter.unit.condominiumId}}</td>
+                <td>{{ reading.meter.unit.identifier }}</td>
+                <td>{{ reading.meter.measurementType?.name }}</td>
+                <td>
+                  <span [ngClass]="{'text-yellow-600': reading.status === 'INACCESSIBLE'}">
+                    {{ reading.status === 'INACCESSIBLE' ? reading.inaccessibleReason : reading.currentReading + ' ' + (reading.meter.measurementType?.unit || '') }}
+                  </span>
+                </td>
                 <td>{{ reading.date | date:'dd/MM/yyyy' }}</td>
-                <td>{{ reading.registeredBy }}</td>
+                <td>{{ reading.registeredBy || 'Não registrado' }}</td>
                 <td class="actions-cell">
                   <app-button [routerLink]="['/readings', reading.id, 'form']" size="sm" variant="outline">
                     {{ reading.status === 'PENDING' ? 'Registrar' : 'Ver/Editar' }}
