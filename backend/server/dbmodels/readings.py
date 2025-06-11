@@ -11,6 +11,19 @@ class ReadingStatus(str, enum.Enum):
     COMPLETED = "COMPLETED"
     INACCESSIBLE = "INACCESSIBLE"
 
+class ReadingPhoto(Base):
+    __tablename__ = "reading_photos"
+
+    id = Column(Integer, primary_key=True, index=True)
+    reading_id = Column(Integer, ForeignKey("readings.id", ondelete="CASCADE"))
+    full_photo_url = Column(String)
+    cropped_photo_url = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relacionamento
+    reading = relationship("Reading", back_populates="photos")
+
 class Reading(Base):
     __tablename__ = "readings"
 

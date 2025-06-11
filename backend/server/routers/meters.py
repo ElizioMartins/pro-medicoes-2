@@ -3,9 +3,10 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from pydantic import BaseModel
 from datetime import datetime
-from database import get_db
-from meters import Meter
-from units import Unit
+
+from dbmodels.database import get_db
+from dbmodels.meters import Meter
+from dbmodels.units import Unit
 
 router = APIRouter()
 

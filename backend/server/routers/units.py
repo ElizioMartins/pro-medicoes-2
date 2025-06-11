@@ -3,8 +3,9 @@ from sqlalchemy.orm import Session
 from typing import List
 from datetime import datetime
 
-from ..models import get_db, Unit, Condominium
-from ..models.units import UnitBase, UnitCreate, UnitUpdate, UnitResponse
+from dbmodels.database import get_db
+from dbmodels.units import Unit, UnitBase, UnitCreate, UnitUpdate, UnitResponse
+from dbmodels.condominiums import Condominium
 
 router = APIRouter()
 

@@ -3,8 +3,10 @@ from sqlalchemy.orm import Session
 from typing import List
 from datetime import datetime
 
-from ..models import get_db, Reading, Meter, ReadingPhoto
-from ..models.readings import ReadingResponse, ReadingCreate, ReadingUpdate
+from dbmodels.database import get_db
+from dbmodels.readings import Reading, ReadingResponse, ReadingCreate, ReadingUpdate
+from dbmodels.meters import Meter
+from dbmodels.readings import ReadingPhoto
 
 router = APIRouter()
 

@@ -4,8 +4,9 @@ from typing import List
 from pydantic import BaseModel
 from datetime import datetime
 
-from ..models import get_db, Condominium, Unit
-from ..models.condominiums import CondominiumBase, CondominiumCreate, CondominiumUpdate, CondominiumResponse
+from dbmodels.database import get_db
+from dbmodels.condominiums import Condominium, CondominiumBase, CondominiumCreate, CondominiumUpdate, CondominiumResponse
+from dbmodels.units import Unit
 
 router = APIRouter()
 

@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 from typing import List
 from datetime import datetime
 
-from ..models import get_db, MeasurementType
-from ..models.measurement_types import MeasurementTypeBase, MeasurementTypeCreate, MeasurementTypeUpdate, MeasurementTypeResponse
+from dbmodels.database import get_db
+from dbmodels.measurement_types import MeasurementType, MeasurementTypeBase, MeasurementTypeCreate, MeasurementTypeUpdate, MeasurementTypeResponse
 
 router = APIRouter()
 
