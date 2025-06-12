@@ -36,15 +36,16 @@ import { ToastService } from '@core/services/toast.service';
             <input type="text" id="typeUnit" name="typeUnit" class="form-control"
                    [(ngModel)]="currentType.unit" required #unit="ngModel">
             <div *ngIf="unit.invalid && (unit.dirty || unit.touched)" class="error-text">
-              Unidade é obrigatória.
-            </div>
+              Unidade é obrigatória.            </div>
           </div>
           <div class="form-group">
-            <label for="typeDescription">Descrição (Opcional):</label>
-            <textarea id="typeDescription" name="typeDescription" class="form-control"
-                      [(ngModel)]="currentType.description"></textarea>
+            <label class="flex items-center gap-2">
+              <input type="checkbox" id="typeActive" name="typeActive" class="form-checkbox"
+                    [(ngModel)]="currentType.active">
+              <span>Ativo</span>
+            </label>
           </div>
-          <div class="flex gap-2">            <app-button type="submit" [variant]="editingType ? 'secondary' : 'primary'" [disabled]="addTypeForm.invalid || isSubmitting">
+          <div class="flex gap-2"><app-button type="submit" [variant]="editingType ? 'secondary' : 'primary'" [disabled]="addTypeForm.invalid || isSubmitting">
               {{ isSubmitting ? (editingType ? 'Salvando...' : 'Adicionando...') : (editingType ? 'Salvar' : 'Adicionar') }}
             </app-button>
             <app-button *ngIf="editingType" type="button" variant="outline" (click)="cancelEdit()">
@@ -61,10 +62,11 @@ import { ToastService } from '@core/services/toast.service';
         <div *ngIf="!isLoading && loadError" class="error-text">{{ loadError }}</div>
         <ul *ngIf="!isLoading && !loadError && measurementTypes.length > 0" class="types-list">
           <li *ngFor="let type of measurementTypes" class="type-item">
-            <div class="type-content">
-              <div>
+            <div class="type-content">              <div>
                 <strong>{{ type.name }}</strong> ({{ type.unit }})
-                <span *ngIf="type.description"> - {{ type.description }}</span>
+                <span class="status-badge" [class.active]="type.active" [class.inactive]="!type.active">
+                  {{ type.active ? 'Ativo' : 'Inativo' }}
+                </span>
               </div>
               <div class="type-actions">
                 <button class="action-btn edit-btn" (click)="startEdit(type)">Editar</button>
@@ -167,15 +169,30 @@ import { ToastService } from '@core/services/toast.service';
     .delete-btn {
       background-color: #fee2e2;
       color: #dc2626;
-    }
-    .delete-btn:hover {
+    }    .delete-btn:hover {
       background-color: #fecaca;
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      margin-left: 0.5rem;
+    }
+    .status-badge.active {
+      background-color: #bbf7d0;
+      color: #166534;
+    }
+    .status-badge.inactive {
+      background-color: #fecaca;
+      color: #991b1b;
     }
   `]
 })
 export class MeasurementTypesComponent implements OnInit {
   measurementTypes: MeasurementType[] = [];
-  currentType: Omit<MeasurementType, 'id'> = { name: '', unit: '', description: '' };
+  currentType: Omit<MeasurementType, 'id'> = { name: '', unit: '', active: true };
   editingType: MeasurementType | null = null;
   
   isLoading = true;
@@ -209,17 +226,15 @@ export class MeasurementTypesComponent implements OnInit {
   }
 
   startEdit(type: MeasurementType): void {
-    this.editingType = type;
-    this.currentType = {
+    this.editingType = type;    this.currentType = {
       name: type.name,
       unit: type.unit,
-      description: type.description
+      active: type.active ?? true
     };
   }
-
   cancelEdit(): void {
     this.editingType = null;
-    this.currentType = { name: '', unit: '', description: '' };
+    this.currentType = { name: '', unit: '', active: true };
     this.formError = null;
   }
 
@@ -252,9 +267,8 @@ export class MeasurementTypesComponent implements OnInit {
     } else {
       // Adicionando novo tipo
       this.measurementTypeService.addMeasurementType(this.currentType).subscribe({
-        next: () => {
-          this.loadMeasurementTypes();
-          this.currentType = { name: '', unit: '', description: '' };
+        next: () => {          this.loadMeasurementTypes();
+          this.currentType = { name: '', unit: '', active: true };
           this.toastService.show({
             title: 'Tipo de medição criado com sucesso',
             variant: 'default'

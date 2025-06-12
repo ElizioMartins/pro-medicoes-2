@@ -1,7 +1,7 @@
 import { firstValueFrom } from 'rxjs';
 import { UserService } from './core/services/user.service';
 import { CondominiumService } from './core/services/Condominium.service';
-import { User, UserCreate } from './core/models/User';
+import { User } from './core/models/User';
 import { Condominium } from './core/models/Condominium';
 
 export async function initializeDatabase(

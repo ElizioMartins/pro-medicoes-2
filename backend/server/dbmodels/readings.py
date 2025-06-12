@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import List, Optional
 from pydantic import BaseModel
 from .database import Base
-from .reading_photos import ReadingPhoto  # Certifique-se de que o caminho está correto
+from .reading_photos import ReadingPhoto, ReadingPhotoResponse  # Certifique-se de que o caminho está correto
 import enum
 
 class ReadingStatus(str, enum.Enum):
@@ -43,7 +43,10 @@ class ReadingBase(BaseModel):
     observations: Optional[str] = None
 
 class ReadingCreate(ReadingBase):
-    photos: Optional[List[ReadingPhoto]] = None
+    class Config:
+        arbitrary_types_allowed = True  # Permite tipos arbitrários
+    
+    photos: Optional[List[ReadingPhotoResponse]] = None
 
 class ReadingUpdate(BaseModel):
     current_reading: Optional[str] = None
@@ -56,8 +59,9 @@ class ReadingResponse(ReadingBase):
     date: datetime
     created_at: datetime
     updated_at: datetime
-    photos: List[ReadingPhoto] = []
+    photos: List[ReadingPhotoResponse] = []
     meter: dict  # Incluirá informações básicas do medidor
 
     class Config:
         orm_mode = True
+        arbitrary_types_allowed = True  # Permite tipos arbitrários

@@ -14,7 +14,7 @@ export class ReadingService {
   private mockReadings: Reading[] = [
     {
       id: 1,
-      meter_id: 1,
+      meterId: 1,
       currentReading: '',
       date: new Date(2025, 4, 25),
       status: 'PENDING',
@@ -37,9 +37,8 @@ export class ReadingService {
       //   }
       // }
     },
-    {
-      id: 2, 
-      meter_id: 2,
+    {      id: 2, 
+      meterId: 2,
       currentReading: '145',
       date: new Date(2025, 4, 24),
       registeredBy: 1,
@@ -47,7 +46,7 @@ export class ReadingService {
       observations: '',
       photos: [
         { 
-          id: 'photo_abc123',
+          id: 1,
           readingId: 2,
           filePath: 'server/path/full/photo_abc123.jpg',
           croppedFilePath: 'server/path/cropped/photo_abc123.jpg',
@@ -74,7 +73,7 @@ export class ReadingService {
     },
     {
       id: 3,
-      meter_id: 3,
+      meterId: 3,
       currentReading: '',
       date: new Date(2025, 4, 28),
       status: 'INACCESSIBLE',
@@ -128,7 +127,7 @@ export class ReadingService {
   } 
   
   createReading(readingData: Reading): Observable<Reading> {
-    return this.meterService.getMeterById(readingData.meter_id!).pipe(
+    return this.meterService.getMeterById(readingData.meterId!).pipe(
       switchMap(meter => {
         if (!meter) {
           return throwError(() => new Error('Medidor não encontrado'));
@@ -137,7 +136,7 @@ export class ReadingService {
         const newId = Math.max(...this.mockReadings.map(r => r.id)) + 1;
         const newReading: Reading = {
           id: newId,
-          meter_id: readingData.meter_id!,
+          meterId: readingData.meterId!,
           currentReading: '',
           date: new Date(),
           status: 'PENDING',
@@ -160,13 +159,16 @@ export class ReadingService {
   // Método para simular o salvamento de fotos
   saveReadingPhoto(readingId: number, fullImageBase64: string, croppedImageBase64: string): Observable<ReadingPhoto> {
     console.log(`ReadingService: Simulando salvamento de foto para readingId: ${readingId}`);
-    
-    const newPhotoId = `photo_${Math.random().toString(36).substring(2, 9)}`;
+      // Gera um ID numérico baseado no maior ID existente + 1
+    const newPhotoId = this.mockReadingPhotos.length > 0 
+      ? Math.max(...this.mockReadingPhotos.map(p => typeof p.id === 'string' ? parseInt(p.id) : p.id)) + 1
+      : 1;
+
     const newPhoto: ReadingPhoto = {
       id: newPhotoId,
       readingId: readingId,
-      filePath: `server/path/full/${newPhotoId}.jpg`,
-      croppedFilePath: `server/path/cropped/${newPhotoId}.jpg`,
+      filePath: `uploads/readings/${readingId}/photos/${newPhotoId}/original.jpg`,
+      croppedFilePath: `uploads/readings/${readingId}/photos/${newPhotoId}/cropped.jpg`,
       isCropped: true,
       timestamp: new Date()
     };

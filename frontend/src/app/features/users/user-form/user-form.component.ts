@@ -84,7 +84,7 @@ export class UserFormComponent implements OnInit {
             name: user.name,
             role: user.role,
             status: user.status,
-            is_active: user.is_active,
+            is_active: user.active,
             initials: user.initials,
             avatarColor: user.avatarColor
           });

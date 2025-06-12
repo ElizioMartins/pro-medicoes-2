@@ -15,13 +15,14 @@ export class MeterService {
       measurementTypeId: 1,
       serialNumber: 'W12345678',
       active: true,
-      measurementType: { id: 1, name: 'Água', unit: 'm³'},
+      measurementType: { id: 1, name: 'Água', unit: 'm³', active: true },
       unit: { 
         id: 101,
         identifier: 'Apto 101', 
         owner: 'João Silva', 
         condominiumId: 1,
         metersCount: 1,
+        active: true,
         lastReading: new Date(2025, 4, 25)
       }
     },
@@ -31,13 +32,14 @@ export class MeterService {
       measurementTypeId: 2,
       serialNumber: 'E87654321',
       active: true,
-      measurementType: { id: 2, name: 'Energia', unit: 'kWh'},
+      measurementType: { id: 2, name: 'Energia', unit: 'kWh', active: true },
       unit: { 
         id: 102,
         identifier: 'Apto 102', 
         owner: 'Maria Oliveira', 
         condominiumId: 1,
         metersCount: 2,
+        active: true,
         lastReading: new Date(2025, 4, 24)
       }
     },
@@ -47,13 +49,14 @@ export class MeterService {
       measurementTypeId: 3,
       serialNumber: 'G34567890',
       active: true,
-      measurementType: { id: 3, name: 'Gás', unit: 'm³' },
+      measurementType: { id: 3, name: 'Gás', unit: 'm³' , active: true },
       unit: { 
         id: 102,
         identifier: 'Apto 102', 
         owner: 'Maria Oliveira', 
         condominiumId: 1,
         metersCount: 2,
+        active: true,
         lastReading: new Date(2025, 4, 26)
       }
     }

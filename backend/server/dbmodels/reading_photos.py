@@ -44,3 +44,4 @@ class ReadingPhotoResponse(ReadingPhotoBase):
 
     class Config:
         orm_mode = True
+        arbitrary_types_allowed = True  # Permite tipos arbitrários

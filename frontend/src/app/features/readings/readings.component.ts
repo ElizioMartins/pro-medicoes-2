@@ -81,7 +81,7 @@ export class ReadingsComponent implements OnInit {
     this.readingService.getReadings().pipe(
       tap(readings => {
         // Get unique meter IDs
-        const meterIds = new Set(readings.map(r => r.meter_id));
+        const meterIds = new Set(readings.map(r => r.meterId));
         
         // Load all meters
         return this.meterService.getMeters().subscribe({
@@ -92,7 +92,7 @@ export class ReadingsComponent implements OnInit {
             // Attach meters to readings
             this.allReadings = readings.map(reading => ({
               ...reading,
-              meter: this.metersCache.get(reading.meter_id)
+              meter: this.metersCache.get(reading.meterId)
             }));
             
             this.applyFilters();
@@ -121,23 +121,23 @@ export class ReadingsComponent implements OnInit {
 
   // Métodos auxiliares para acessar dados relacionados
   getCondominiumName(reading: Reading): string {
-    const meter = this.metersCache.get(reading.meter_id);
+    const meter = this.metersCache.get(reading.meterId);
     if (!meter?.unit?.condominiumId) return 'N/A';
     return this.condominiumNames.get(meter.unit.condominiumId) || 'N/A';
   }
 
   getUnitIdentifier(reading: Reading): string {
-    const meter = this.metersCache.get(reading.meter_id);
+    const meter = this.metersCache.get(reading.meterId);
     return meter?.unit?.identifier || 'N/A';
   }
 
   getMeasurementTypeName(reading: Reading): string {
-    const meter = this.metersCache.get(reading.meter_id);
+    const meter = this.metersCache.get(reading.meterId);
     return meter?.measurementType?.name || 'N/A';
   }
 
   getMeasurementTypeUnit(reading: Reading): string {
-    const meter = this.metersCache.get(reading.meter_id);
+    const meter = this.metersCache.get(reading.meterId);
     return meter?.measurementType?.unit || '';
   }
 
@@ -152,7 +152,7 @@ export class ReadingsComponent implements OnInit {
     let readings = [...this.allReadings];
 
     // Primeiro, vamos carregar os medidores necessários para os filtros
-    const uniqueMeterIds = new Set(readings.map(r => r.meter_id));
+    const uniqueMeterIds = new Set(readings.map(r => r.meterId));
     const missingMeterIds = Array.from(uniqueMeterIds).filter(id => !this.metersCache.has(id));
 
     // Se houver medidores não carregados, carregá-los primeiro
@@ -178,14 +178,14 @@ export class ReadingsComponent implements OnInit {
 
     if (this.selectedCondominiumId) {
       readings = readings.filter(r => {
-        const meter = this.metersCache.get(r.meter_id);
+        const meter = this.metersCache.get(r.meterId);
         return meter?.unit?.condominiumId === Number(this.selectedCondominiumId);
       });
     }
 
     if (this.selectedMeasurementTypeId) {
       readings = readings.filter(r => {
-        const meter = this.metersCache.get(r.meter_id);
+        const meter = this.metersCache.get(r.meterId);
         return meter?.measurementTypeId === Number(this.selectedMeasurementTypeId);
       });
     }
