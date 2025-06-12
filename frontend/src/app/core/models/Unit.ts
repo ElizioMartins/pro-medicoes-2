@@ -1,13 +1,18 @@
-import { Meter } from './Meter';
+import { Meter } from "./Meter";
 
 export interface Unit {
   id: number;
+  condominiumId: number;
   identifier: string;
   owner: string;
-  condominiumId: number;
   metersCount: number;
   lastReading: Date | null;
+  observations?: string;
+  active: boolean;
   createdAt?: Date;
   updatedAt?: Date;
-  meters?: Meter[]; // Novo relacionamento com Meters
+  
+  // Relacionamentos
+  condominium?: any;
+  meters?: Meter[];
 }

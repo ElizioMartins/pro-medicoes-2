@@ -1,8 +1,15 @@
+import { Reading } from "./Reading";
+
 export interface ReadingPhoto {
-  id: string;
+  id: number;
   readingId: number;
-  filePath: string; // Path to the full image
-  croppedFilePath?: string; // Path to the cropped image
-  isCropped?: boolean; // From React code, seems useful
-  timestamp?: Date; // Timestamp of when the photo was taken
+  filePath: string;
+  croppedFilePath?: string;
+  isCropped?: boolean;
+  timestamp?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+  
+  // Relacionamento
+  reading?: Reading;
 }

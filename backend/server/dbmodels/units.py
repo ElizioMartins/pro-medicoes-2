@@ -10,22 +10,17 @@ class Unit(Base):
     __tablename__ = "units"
     __table_args__ = {'extend_existing': True}    
     id = Column(Integer, primary_key=True, index=True)
+    condominium_id = Column(Integer, ForeignKey("condominiums.id", ondelete="CASCADE"))
     identifier = Column(String, index=True)
     owner = Column(String)
-    condominium_id = Column(Integer, ForeignKey("condominiums.id", ondelete="CASCADE"))
     meters_count = Column(Integer, default=0)
     last_reading = Column(DateTime, nullable=True)
-    active = Column(Boolean, default=True)
     observations = Column(String, nullable=True)
+    active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
-    # Relacionamento com Condominium (já existente)
-    condominium = relationship("Condominium", back_populates="units")
-
-    # Novo relacionamento com Meters
-    meters = relationship("Meter", back_populates="unit")
-
+    
+    
 # Pydantic Models
 class UnitBase(BaseModel):
     identifier: str

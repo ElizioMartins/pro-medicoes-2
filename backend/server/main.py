@@ -15,6 +15,7 @@ from routers.condominiums import router as condominiums_router
 from routers.units import router as units_router
 from routers.meters import router as meters_router
 from routers.measurement_types import router as measurement_types_router
+from routers.reading_photos import router as reading_photos_router
 
 # Criar todas as tabelas
 Base.metadata.create_all(bind=engine)
@@ -44,6 +45,7 @@ app.include_router(condominiums_router, prefix="/api/condominiums", tags=["condo
 app.include_router(units_router, prefix="/api/units", tags=["units"])
 app.include_router(meters_router, prefix="/api/meters", tags=["meters"])
 app.include_router(measurement_types_router, prefix="/api/measurement-types", tags=["measurement-types"])
+app.include_router(reading_photos_router, prefix="/api", tags=["reading-photos"])
 
 # Criar pasta para salvar imagens se não existir
 UPLOAD_DIR = "uploads"

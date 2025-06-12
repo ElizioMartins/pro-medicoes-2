@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import List, Optional
 from pydantic import BaseModel
 from .database import Base
+from .reading_photos import ReadingPhoto  # Certifique-se de que o caminho está correto
 import enum
 
 class ReadingStatus(str, enum.Enum):
@@ -11,18 +12,7 @@ class ReadingStatus(str, enum.Enum):
     COMPLETED = "COMPLETED"
     INACCESSIBLE = "INACCESSIBLE"
 
-class ReadingPhoto(Base):
-    __tablename__ = "reading_photos"
 
-    id = Column(Integer, primary_key=True, index=True)
-    reading_id = Column(Integer, ForeignKey("readings.id", ondelete="CASCADE"))
-    full_photo_url = Column(String)
-    cropped_photo_url = Column(String, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
-    # Relacionamento
-    reading = relationship("Reading", back_populates="photos")
 
 class Reading(Base):
     __tablename__ = "readings"
@@ -44,19 +34,6 @@ class Reading(Base):
     meter = relationship("Meter", back_populates="readings")
     photos = relationship("ReadingPhoto", back_populates="reading", cascade="all, delete-orphan")
 
-class ReadingPhotoBase(BaseModel):
-    full_photo_url: str
-    cropped_photo_url: Optional[str] = None
-    
-class ReadingPhotoCreate(ReadingPhotoBase):
-    pass
-
-class ReadingPhotoResponse(ReadingPhotoBase):
-    id: int
-    reading_id: int
-
-    class Config:
-        orm_mode = True
 
 class ReadingBase(BaseModel):
     meter_id: int
@@ -66,7 +43,7 @@ class ReadingBase(BaseModel):
     observations: Optional[str] = None
 
 class ReadingCreate(ReadingBase):
-    photos: Optional[List[ReadingPhotoCreate]] = None
+    photos: Optional[List[ReadingPhoto]] = None
 
 class ReadingUpdate(BaseModel):
     current_reading: Optional[str] = None
@@ -79,7 +56,7 @@ class ReadingResponse(ReadingBase):
     date: datetime
     created_at: datetime
     updated_at: datetime
-    photos: List[ReadingPhotoResponse] = []
+    photos: List[ReadingPhoto] = []
     meter: dict  # Incluirá informações básicas do medidor
 
     class Config:

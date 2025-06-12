@@ -8,13 +8,15 @@ import enum
 
 class UserRole(str, enum.Enum):
     ADMIN = "Admin"
+    MANAGER = "Manager"
     USER = "User"
     READER = "Reader"
 
 class UserStatus(str, enum.Enum):
     ACTIVE = "Active"
     INACTIVE = "Inactive"
-    SUSPENDED = "Suspended"
+    PENDING = "Pending"
+    SUSPENDED = "Suspended"  # Mantemos este para compatibilidade com dados existentes
 
 class User(Base):
     __tablename__ = "users"
@@ -28,7 +30,9 @@ class User(Base):
     status = Column(Enum(UserStatus), default=UserStatus.ACTIVE)
     last_access = Column(DateTime, nullable=True)
     avatar_url = Column(String, nullable=True)
-    active = Column(Boolean, default=True)
+    avatar_color = Column(String, nullable=True)
+    initials = Column(String, nullable=True)
+    is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

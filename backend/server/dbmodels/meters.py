@@ -16,6 +16,4 @@ class Meter(Base):
     last_reading_date = Column(DateTime, nullable=True)
 
     # Relacionamentos
-    unit = relationship("Unit", back_populates="meters", cascade="all")
-    measurement_type = relationship("MeasurementType")
     readings = relationship("Reading", back_populates="meter", cascade="all, delete-orphan")
