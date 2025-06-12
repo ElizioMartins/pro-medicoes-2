@@ -18,3 +18,7 @@ export interface Meter {
   readings?: Reading[];
 }
 
+export interface MeterCreate extends Pick<Meter, 'unitId' | 'measurementTypeId' | 'serialNumber' | 'active'> {
+  lastReadingDate?: Date | null;
+}
+

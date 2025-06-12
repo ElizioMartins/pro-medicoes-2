@@ -6,6 +6,9 @@ import { FooterComponent } from '@shared/components/layout/footer/footer.compone
 import { ToastContainerComponent } from '@shared/components/ui/toast-container/toast-container.component';
 import { UserService } from '@core/services/user.service';
 import { CondominiumService } from '@core/services/Condominium.service';
+import { UnitService } from '@core/services/Unit.service';
+import { MeterService } from '@core/services/Meter.service';
+import { MeasurementTypeService } from '@core/services/MeasurementType.service';
 import { initializeDatabase } from './database-init';
 
 @Component({
@@ -21,14 +24,21 @@ import { initializeDatabase } from './database-init';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements OnInit {
-  constructor(
+export class AppComponent implements OnInit {  constructor(
     private readonly userService: UserService,
-    private readonly condominiumService: CondominiumService
+    private readonly condominiumService: CondominiumService,
+    private readonly unitService: UnitService,
+    private readonly meterService: MeterService,
+    private readonly measurementTypeService: MeasurementTypeService
   ) {}
-
   async ngOnInit() {
-    await initializeDatabase(this.userService, this.condominiumService);
+    await initializeDatabase(
+      this.userService,
+      this.condominiumService,
+      this.unitService,
+      this.meterService,
+      this.measurementTypeService
+    );
   }
 
   shouldShowHeader(): boolean {

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { delay } from 'rxjs/operators';
-import { Meter } from '@core/models/Meter';
+import { Meter, MeterCreate } from '@core/models/Meter';
 
 @Injectable({
   providedIn: 'root'
@@ -77,16 +77,14 @@ export class MeterService {
     const meters = this.mockMeters.filter(m => m.unitId === unitId);
     return of(meters).pipe(delay(300));
   }
-
-  createMeter(meterData: Meter): Observable<Meter> {
+  createMeter(meterData: MeterCreate): Observable<Meter> {
     const newId = Math.max(...this.mockMeters.map(m => m.id)) + 1;
     const newMeter: Meter = {
       id: newId,
-      unitId: meterData.unitId ,
-      unit: meterData.unit, // Assumindo que o objeto Unit já está completo
-      measurementTypeId: meterData.measurementTypeId ,
-      serialNumber: meterData.serialNumber ,
-      active: true
+      unitId: meterData.unitId,
+      measurementTypeId: meterData.measurementTypeId,
+      serialNumber: meterData.serialNumber,
+      active: meterData.active
     };
     
     this.mockMeters.push(newMeter);
