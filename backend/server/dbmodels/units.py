@@ -8,7 +8,8 @@ from .database import Base
 # SQLAlchemy Model
 class Unit(Base):
     __tablename__ = "units"
-    __table_args__ = {'extend_existing': True}    
+    __table_args__ = {'extend_existing': True}
+    
     id = Column(Integer, primary_key=True, index=True)
     condominium_id = Column(Integer, ForeignKey("condominiums.id", ondelete="CASCADE"))
     identifier = Column(String, index=True)
@@ -20,6 +21,9 @@ class Unit(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
+    # Relacionamentos
+    condominium = relationship("Condominium", back_populates="units")
+    meters = relationship("Meter", back_populates="unit", cascade="all, delete-orphan")
     
 # Pydantic Models
 class UnitBase(BaseModel):
@@ -46,5 +50,3 @@ class UnitResponse(UnitBase):
     updated_at: datetime    
     class Config:
         orm_mode = True
-        
-   
