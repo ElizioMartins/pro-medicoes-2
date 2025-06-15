@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import torch
 from ultralytics import YOLO  # YOLOv5 e YOLOv8 via ultralytics
@@ -19,8 +20,8 @@ from utils.augmentations import letterbox
 device = select_device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 # Caminhos para os modelos
-model_v5_path = "D:/DEV_PYTHON/WaterMeter3/server/best.pt"  # YOLOv5 model path
-model_v8_path = "D:/DEV_PYTHON/WaterMeter3/server/best-obb.pt"  # YOLOv8 model path
+model_v5_path = os.path.join(os.path.dirname(__file__), "best.pt")  # YOLOv5 model path
+model_v8_path = os.path.join(os.path.dirname(__file__), "best-obb.pt")  # YOLOv8 model path
 
 # Carregando os modelos
 model_v5 = DetectMultiBackend(model_v5_path, device=device)
