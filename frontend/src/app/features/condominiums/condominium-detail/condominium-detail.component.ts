@@ -4,11 +4,11 @@ import { ActivatedRoute } from '@angular/router';
 import { CardComponent } from '@shared/components/ui/card/card.component';
 import { ButtonComponent } from '@shared/components/ui/button/button.component';
 import { RouterLink } from '@angular/router';
-import { Condominium } from '@core/models/Condominium';
-import { Unit } from '@core/models/Unit';
+import { Condominium } from '../../shared/models/condominium.model';
+import { Unit } from '../../shared/models/unit.model';
 import { UnitService } from '@core/services/Unit.service';
 
-import { CondominiumService } from '@core/services/Condominium.service';
+import { CondominiumService } from '../../core/services/condominium.service';
 import { ToastService } from '@core/services/toast.service';
 
 @Component({

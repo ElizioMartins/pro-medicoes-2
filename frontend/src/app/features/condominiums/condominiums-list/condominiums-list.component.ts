@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { CardComponent } from '@shared/components/ui/card/card.component';
 import { ButtonComponent } from '@shared/components/ui/button/button.component';
 import { RouterLink } from '@angular/router';
-import { Condominium } from '@core/models/Condominium';
-import { CondominiumService } from '@core/services/Condominium.service';
+import { Condominium } from "../../shared/models/condominium.model";
+import { CondominiumService } from '../../core/services/condominium.service';
 import { ToastService } from '@core/services/toast.service';
 import { finalize } from 'rxjs';
 

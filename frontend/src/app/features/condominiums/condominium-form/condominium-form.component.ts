@@ -5,7 +5,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { CardComponent } from '@shared/components/ui/card/card.component';
 import { ButtonComponent } from '@shared/components/ui/button/button.component';
 import { InputComponent } from '@shared/components/ui/input/input.component';
-import { CondominiumService } from '@core/services/Condominium.service';
+import { CondominiumService } from '../../core/services/condominium.service';
 import { ToastService } from '@core/services/toast.service';
 import { cnpjValidator } from '@core/validators/cnpj.validator';
 

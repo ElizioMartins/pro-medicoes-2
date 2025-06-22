@@ -7,16 +7,16 @@ import { FormsModule } from '@angular/forms'; // Import FormsModule
 import { Observable, tap, catchError, throwError } from 'rxjs';
 
 // Import Services
-import { ReadingService } from '@core/services/Reading.service';
-import { MeasurementTypeService } from '@core/services/MeasurementType.service';
-import { CondominiumService } from '@core/services/Condominium.service';
-import { MeterService } from '@core/services/Meter.service';
+import { ReadingService } from "../../core/services/reading.service";
+import { MeasurementTypeService } from '../../core/services/MeasurementType.service';
+import { CondominiumService } from "../../core/services/condominium.service";
+import { MeterService } from '../../core/services/meter.service';
 
 // Import Models
-import { Reading } from '@core/models/Reading';
-import { MeasurementType } from '@core/models/MeasurementType';
-import { Condominium } from '@core/models/Condominium';
-import { Meter } from '@core/models/Meter';
+import { Reading } from "../../shared/models/reading.model";
+import { MeasurementType } from "../../shared/models/measurement-type.model";
+import { Condominium } from "../../shared/models/condominium.model";
+import { Meter } from "../../shared/models/meter.model";
 
 @Component({
   selector: 'app-readings',

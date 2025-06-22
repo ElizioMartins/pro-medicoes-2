@@ -8,8 +8,8 @@ import cv2
 from torchvision.ops import nms
 
 
-## YOLOv5 path
-YOLO_PATH = Path('D:\\DEV_PYTHON\\WaterMeter2\\yolov5')
+## YOLOv5 path - usando caminho relativo
+YOLO_PATH = Path(os.path.join(os.path.dirname(__file__), 'yolov5'))
 sys.path.append(str(YOLO_PATH))
 
 from models.common import DetectMultiBackend
