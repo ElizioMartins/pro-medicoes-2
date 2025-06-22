@@ -1,3 +1,6 @@
+import { BaseEntity } from "./base.model";
+import { ReadingStatus } from "./enums";
+import { Meter } from "./meter.model";
 
 export interface ReadingPhoto {
   id?: number;

@@ -1,3 +1,4 @@
+import { BaseEntity } from "./base.model";
 
 export interface Unit extends BaseEntity {
   condominium_id: number;

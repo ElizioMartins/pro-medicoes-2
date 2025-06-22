@@ -1,3 +1,4 @@
+import { BaseEntity } from "./base.model";
 
 export interface Condominium extends BaseEntity {
   name: string;

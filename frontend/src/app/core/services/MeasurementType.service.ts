@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { MeasurementType } from '../models/MeasurementType';
 import { environment } from 'src/environments/environment';
+import { MeasurementType } from '@app/shared/models/measurement-type.model';
 
 @Injectable({
   providedIn: 'root'

@@ -1,3 +1,5 @@
+import { BaseEntity } from "./base.model";
+import { MeasurementType } from "./measurement-type.model";
 
 export interface Meter extends BaseEntity {
   unit_id: number;

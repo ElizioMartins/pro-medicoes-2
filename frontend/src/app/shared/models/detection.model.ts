@@ -1,3 +1,4 @@
+import { ApiResponse } from "./api-response.model";
 
 export interface DetectionResult {
   number_detected: string;

@@ -4,12 +4,12 @@ import { ActivatedRoute } from '@angular/router';
 import { CardComponent } from '@shared/components/ui/card/card.component';
 import { ButtonComponent } from '@shared/components/ui/button/button.component';
 import { RouterLink } from '@angular/router';
-import { Condominium } from '../../shared/models/condominium.model';
-import { Unit } from '../../shared/models/unit.model';
 import { UnitService } from '@core/services/Unit.service';
 
-import { CondominiumService } from '../../core/services/condominium.service';
 import { ToastService } from '@core/services/toast.service';
+import { Condominium } from '@app/shared/models/condominium.model';
+import { Unit } from '@app/shared/models/unit.model';
+import { CondominiumService } from '@app/core/services/Condominium.service';
 
 @Component({
   selector: 'app-condominium-detail',
@@ -53,12 +53,12 @@ export class CondominiumDetailComponent implements OnInit {
     
     this.condominiumService.getCondominiumById(this.condominiumId)
       .subscribe({
-        next: (data) => {
+        next: (data: Condominium | null) => {
           this.condominium = data;
           this.isLoading = false;
           this.loadUnits();
         },
-        error: (error) => {
+        error: () => {
           this.error = 'Não foi possível carregar os dados do condomínio.';
           this.toastService.show({
             title: 'Erro ao carregar condomínio',

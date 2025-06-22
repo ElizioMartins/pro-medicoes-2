@@ -1,3 +1,5 @@
+import { BaseEntity } from "./base.model";
+import { UserRole } from "./enums";
 
 export interface User extends BaseEntity {
   username: string;
