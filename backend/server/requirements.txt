@@ -8,4 +8,6 @@ sqlalchemy
 pydantic-sqlalchemy
 python-jose[cryptography]
 passlib[bcrypt]
+ultralytics
+pydantic[email]
 

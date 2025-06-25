@@ -2,11 +2,11 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UserService } from '@app/core/services/user.service';
-import { User } from '@app/core/models/User';
 import { CardComponent } from '@shared/components/ui/card/card.component';
 import { ButtonComponent } from '@shared/components/ui/button/button.component';
 import { ToastService } from '@app/core/services/toast.service';
 import { finalize } from 'rxjs';
+import { User } from '@app/shared/models/user.model';
 
 @Component({
   selector: 'app-user-delete',

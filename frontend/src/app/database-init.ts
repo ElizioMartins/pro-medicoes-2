@@ -4,11 +4,8 @@ import { CondominiumService } from './core/services/Condominium.service';
 import { UnitService } from './core/services/Unit.service';
 import { MeterService } from './core/services/Meter.service';
 import { MeasurementTypeService } from './core/services/MeasurementType.service';
-import { User } from './core/models/User';
-import { Condominium } from './core/models/Condominium';
-import { Unit } from './core/models/Unit';
-import { Meter, MeterCreate } from './core/models/Meter';
-import { MeasurementType } from './core/models/MeasurementType';
+import { User } from './shared/models/user.model';
+import { UserRole } from './shared/models/enums';
 
 export async function initializeDatabase(
   userService: UserService,
@@ -27,10 +24,7 @@ async function initializeUsers(userService: UserService) {
     {
       username: 'joao.silva',
       email: 'joao.silva@example.com',
-      password: 'Senha@123',
-      name: 'João Silva',
-      role: 'Admin' as const,
-      status: 'Active' as const,
+      role: UserRole.ADMIN,
       lastAccess: null,
       active: true,
       initials: 'JS',
