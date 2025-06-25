@@ -7,9 +7,9 @@ import { forkJoin, of, throwError, switchMap, Observable, Subject } from 'rxjs';
 import { delay, tap, catchError, takeUntil } from 'rxjs/operators';
 import { trigger, state, style, animate, transition } from '@angular/animations';
 
-import { ReadingService } from '@core/services/Reading.service';
-import { Reading } from '@core/models/Reading';
-import { ReadingPhoto } from '@core/models/ReadingPhoto';
+import { ReadingService } from "../../core/services/reading.service";
+import { Reading } from "../../shared/models/reading.model";
+import { ReadingPhoto } from "../../shared/models/reading.model";
 import { MeterPhotoCaptureAngularComponent, PhotoCaptureEvent } from '@shared/components/meter-photo-capture/meter-photo-capture.component';
 import { CardComponent } from '@shared/components/ui/card/card.component';
 import { ButtonComponent } from '@shared/components/ui/button/button.component';

@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UserService } from '@app/core/services/user.service';
-import { User } from '@app/core/models/User';
 import { CardComponent } from '@shared/components/ui/card/card.component';
 import { ButtonComponent } from '@shared/components/ui/button/button.component';
 import { InputComponent } from '@shared/components/ui/input/input.component';

@@ -5,9 +5,9 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { CardComponent } from '@shared/components/ui/card/card.component';
 import { ButtonComponent } from '@shared/components/ui/button/button.component';
 import { InputComponent } from '@shared/components/ui/input/input.component';
-import { CondominiumService } from '@core/services/Condominium.service';
 import { ToastService } from '@core/services/toast.service';
 import { cnpjValidator } from '@core/validators/cnpj.validator';
+import { CondominiumService } from '@app/core/services/Condominium.service';
 
 @Component({
   selector: 'app-condominium-form',
@@ -150,7 +150,7 @@ export class CondominiumFormComponent implements OnInit {
       this.isLoading = true;
       this.condominiumService.getCondominiumById(this.condominiumId)
         .subscribe({
-          next: (condominium) => {
+          next: (condominium: { [key: string]: any; }) => {
             this.form.patchValue(condominium);
             this.isLoading = false;
           },

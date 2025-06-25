@@ -7,16 +7,16 @@ import { FormsModule } from '@angular/forms'; // Import FormsModule
 import { Observable, tap, catchError, throwError } from 'rxjs';
 
 // Import Services
-import { ReadingService } from '@core/services/Reading.service';
-import { MeasurementTypeService } from '@core/services/MeasurementType.service';
-import { CondominiumService } from '@core/services/Condominium.service';
-import { MeterService } from '@core/services/Meter.service';
+import { ReadingService } from "../../core/services/reading.service";
+import { MeasurementTypeService } from '../../core/services/MeasurementType.service';
+import { CondominiumService } from "../../core/services/condominium.service";
+import { MeterService } from '../../core/services/meter.service';
 
 // Import Models
-import { Reading } from '@core/models/Reading';
-import { MeasurementType } from '@core/models/MeasurementType';
-import { Condominium } from '@core/models/Condominium';
-import { Meter } from '@core/models/Meter';
+import { Reading } from "../../shared/models/reading.model";
+import { MeasurementType } from "../../shared/models/measurement-type.model";
+import { Condominium } from "../../shared/models/condominium.model";
+import { Meter } from "../../shared/models/meter.model";
 
 @Component({
   selector: 'app-readings',
@@ -60,7 +60,7 @@ export class ReadingsComponent implements OnInit {
     this.isLoading = true;
     this.error = null;
     // Fetch all necessary data    // Get condominiums
-    this.condominiumService.getCondominiums().subscribe({
+    this.condominiumService.getCondominiumById().subscribe({
       next: data => {
         this.condominiums = data;
         // Preencher o mapa de nomes dos condomínios
@@ -121,38 +121,38 @@ export class ReadingsComponent implements OnInit {
 
   // Métodos auxiliares para acessar dados relacionados
   getCondominiumName(reading: Reading): string {
-    const meter = this.metersCache.get(reading.meterId);
+    const meter = this.metersCache.get(reading.meter_id);
     if (!meter?.unit?.condominiumId) return 'N/A';
     return this.condominiumNames.get(meter.unit.condominiumId) || 'N/A';
   }
 
   getUnitIdentifier(reading: Reading): string {
-    const meter = this.metersCache.get(reading.meterId);
+    const meter = this.metersCache.get(reading.meter_id);
     return meter?.unit?.identifier || 'N/A';
   }
 
   getMeasurementTypeName(reading: Reading): string {
-    const meter = this.metersCache.get(reading.meterId);
-    return meter?.measurementType?.name || 'N/A';
+    const meter = this.metersCache.get(reading.meter_id);
+    return meter?.measurement_type?.name || 'N/A';
   }
 
   getMeasurementTypeUnit(reading: Reading): string {
-    const meter = this.metersCache.get(reading.meterId);
-    return meter?.measurementType?.unit || '';
+    const meter = this.metersCache.get(reading.meter_id);
+    return meter?.measurement_type?.unit || '';
   }
 
   getReadingValue(reading: Reading): string {
     if (reading.status === 'INACCESSIBLE') {
-      return reading.inaccessibleReason || 'Inacessível';
+      return reading.inaccessible_reason || 'Inacessível';
     }
-    return `${reading.currentReading} ${this.getMeasurementTypeUnit(reading)}`;
+    return `${reading.current_reading} ${this.getMeasurementTypeUnit(reading)}`;
   }
 
   applyFilters(): void {
     let readings = [...this.allReadings];
 
     // Primeiro, vamos carregar os medidores necessários para os filtros
-    const uniqueMeterIds = new Set(readings.map(r => r.meterId));
+    const uniqueMeterIds = new Set(readings.map(r => r.meter_id));
     const missingMeterIds = Array.from(uniqueMeterIds).filter(id => !this.metersCache.has(id));
 
     // Se houver medidores não carregados, carregá-los primeiro
@@ -178,15 +178,15 @@ export class ReadingsComponent implements OnInit {
 
     if (this.selectedCondominiumId) {
       readings = readings.filter(r => {
-        const meter = this.metersCache.get(r.meterId);
+        const meter = this.metersCache.get(r.meter_id);
         return meter?.unit?.condominiumId === Number(this.selectedCondominiumId);
       });
     }
 
     if (this.selectedMeasurementTypeId) {
       readings = readings.filter(r => {
-        const meter = this.metersCache.get(r.meterId);
-        return meter?.measurementTypeId === Number(this.selectedMeasurementTypeId);
+        const meter = this.metersCache.get(r.meter_id);
+        return meter?.measurement_type_id === Number(this.selectedMeasurementTypeId);
       });
     }
     
