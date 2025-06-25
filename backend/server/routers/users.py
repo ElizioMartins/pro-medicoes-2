@@ -8,6 +8,45 @@ from dbmodels.users import User, UserCreate, UserUpdate, UserResponse, UserRole
 
 router = APIRouter()
 
+@router.post("/login")
+def login(username: str, password: str, db: Session = Depends(get_db)):
+    """
+    Endpoint de login para autenticação de usuários.
+    TODO: Implementar criptografia de senha e geração de token JWT.
+    """
+    user = db.query(User).filter(
+        (User.username == username) | (User.email == username)
+    ).first()
+    
+    if not user:
+        raise HTTPException(status_code=401, detail="Usuário não encontrado")
+    
+    if not user.active:
+        raise HTTPException(status_code=401, detail="Usuário inativo")
+    
+    # TODO: Verificar senha criptografada
+    if user.password_hash != password:
+        raise HTTPException(status_code=401, detail="Senha incorreta")
+    
+    # Atualizar último acesso
+    user.last_access = datetime.utcnow()
+    db.commit()
+    
+    return {
+        "id": user.id,
+        "username": user.username,
+        "email": user.email,
+        "name": user.name,
+        "role": user.role,
+        "status": user.status,
+        "active": user.active,
+        "lastAccess": user.last_access,
+        "initials": user.initials,
+        "avatarColor": user.avatar_color,
+        "created_at": user.created_at,
+        "updated_at": user.updated_at
+    }
+
 @router.get("", response_model=dict)
 def get_users(
     page: int = Query(1, ge=1),
