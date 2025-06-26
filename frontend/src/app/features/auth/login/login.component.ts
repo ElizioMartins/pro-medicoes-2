@@ -2,8 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import { AuthService } from '@core/auth/services/auth.service';
-import { ToastService } from '@core/services/toast.service';
+import { UserService } from '../../../core/services/user.service';
 import { ButtonComponent } from '@shared/components/ui/button/button.component';
 import { InputComponent } from '@shared/components/ui/input/input.component';
 import { CardComponent } from '@shared/components/ui/card/card.component';
@@ -25,26 +24,21 @@ export class LoginComponent {
   loginForm: FormGroup;
   isSubmitting = false;
   returnUrl: string = '/dashboard';
+  errorMessage: string = '';
 
   constructor(
     private fb: FormBuilder,
-    private authService: AuthService,
+    private userService: UserService,
     private router: Router,
-    private route: ActivatedRoute,
-    private toastService: ToastService
+    private route: ActivatedRoute
   ) {
     this.loginForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
+      username: ['', Validators.required],
       password: ['', Validators.required]
     });
 
     // Obter URL de retorno dos parâmetros da rota ou usar '/dashboard' como padrão
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
-    
-    // Redirecionar se já estiver autenticado
-    if (this.authService.isAuthenticated) {
-      this.router.navigate([this.returnUrl]);
-    }
   }
 
   onSubmit(): void {
@@ -58,17 +52,16 @@ export class LoginComponent {
     }
 
     this.isSubmitting = true;
+    this.errorMessage = '';
     
-    this.authService.login(this.loginForm.value).subscribe({
-      next: () => {
+    this.userService.login(this.loginForm.value).subscribe({
+      next: (user) => {
+        // Salvar dados do usuário no localStorage ou sessionStorage
+        localStorage.setItem('currentUser', JSON.stringify(user));
         this.router.navigate([this.returnUrl]);
       },
       error: (error) => {
-        this.toastService.show({
-          title: 'Erro ao fazer login',
-          description: error.message || 'Credenciais inválidas',
-          variant: 'destructive'
-        });
+        this.errorMessage = error.error?.detail || 'Credenciais inválidas';
         this.isSubmitting = false;
       }
     });

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { User } from '@app/shared/models/user.model';
+import { User, UserCreate, UserUpdate, UserLogin } from '../../shared/models/user.model';
 
 @Injectable({
   providedIn: 'root'
@@ -12,10 +12,16 @@ export class UserService {
 
   constructor(private readonly http: HttpClient) {}
 
+  login(credentials: UserLogin): Observable<User> {
+    return this.http.post<User>(`${this.apiUrl}/login`, credentials);
+  }
+
   getUsers(page: number = 1, pageSize: number = 10): Observable<{ users: User[], total: number }> {
     const params = { page: page.toString(), pageSize: pageSize.toString() };
     return this.http.get<{ users: User[], total: number }>(`${this.apiUrl}`, { params });
-  }  searchUsers(
+  }
+
+  searchUsers(
     searchTerm: string, 
     role: string = 'all', 
     page: number = 1, 
@@ -30,11 +36,11 @@ export class UserService {
     return this.http.get<{ users: User[], total: number }>(`${this.apiUrl}/search`, { params });
   }
 
-  createUser(user: Partial<User>): Observable<User> {
+  createUser(user: UserCreate): Observable<User> {
     return this.http.post<User>(`${this.apiUrl}`, user);
   }
 
-  updateUser(id: number, user: Partial<User>): Observable<User> {
+  updateUser(id: number, user: UserUpdate): Observable<User> {
     return this.http.put<User>(`${this.apiUrl}/${id}`, user);
   }
 
