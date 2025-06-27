@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './core/auth/guards/auth.guard';
 
 export const routes: Routes = [
   {
@@ -22,12 +21,10 @@ export const routes: Routes = [
   },
   {
     path: 'dashboard',
-    canActivate: [authGuard],
     loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent)
   },
   {
     path: 'condominiums',
-    canActivate: [authGuard],
     children: [
       {
         path: '',
@@ -56,12 +53,10 @@ export const routes: Routes = [
   },
   {
     path: 'measurement-types',
-    canActivate: [authGuard],
     loadComponent: () => import('./features/measurement-types/measurement-types.component').then(m => m.MeasurementTypesComponent)
   },
   {
     path: 'units',
-    canActivate: [authGuard],
     children: [     
       {
         path: ':unitId/meters',
@@ -79,7 +74,6 @@ export const routes: Routes = [
   },
   {
     path: 'readings',
-    canActivate: [authGuard],
       children: [
         {
           path: '',
@@ -98,11 +92,9 @@ export const routes: Routes = [
   },
   {
     path: 'reports',
-    canActivate: [authGuard],
     loadComponent: () => import('./features/reports/reports.component').then(m => m.ReportsComponent)
   },
   {    path: 'users',
-    canActivate: [authGuard],
     children: [
       {
         path: '',
@@ -123,13 +115,7 @@ export const routes: Routes = [
     ]
   },
   {
-    path: 'profile',
-    canActivate: [authGuard], // Assuming protected
-    loadComponent: () => import('./features/user-profile/profile.component').then(m => m.ProfileComponent)
-  },
-  {
     path: 'settings',
-    canActivate: [authGuard], // Assuming protected
     loadComponent: () => import('./features/settings/settings.component').then(m => m.SettingsComponent)
   },
   {
