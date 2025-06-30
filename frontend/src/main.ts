@@ -2,29 +2,19 @@ import { bootstrapApplication } from '@angular/platform-browser';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
-import { APP_INITIALIZER, importProvidersFrom } from '@angular/core';
 
 import { AppComponent } from './app/app.component';
 import { routes } from './app/app.routes';
-import { authInterceptor } from './app/core/auth/interceptors/auth.interceptor';
-import { AuthService } from './app/core/auth/services/auth.service';
-
-function initializeApp(authService: AuthService) {
-  return () => authService.initializeAuth();
-}
+import { errorInterceptor } from './app/core/interceptors/error.interceptor';
 
 bootstrapApplication(AppComponent, {
   providers: [
     provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(
-      withInterceptors([authInterceptor])
+      withInterceptors([errorInterceptor])
     ),
-    provideAnimations(),
-    {
-      provide: APP_INITIALIZER,
-      useFactory: initializeApp,
-      deps: [AuthService],
-      multi: true
-    }
+    provideAnimations()
   ]
 }).catch(err => console.error(err));
+
+
