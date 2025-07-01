@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { CardComponent } from '@shared/components/ui/card/card.component';
 import { ButtonComponent } from '@shared/components/ui/button/button.component';
 import { RouterLink } from '@angular/router';
-import { FormsModule } from '@angular/forms'; // Import FormsModule
+import { FormsModule } from '@angular/forms';
 import { Observable, tap, catchError, throwError } from 'rxjs';
 
 // Import Services
@@ -26,7 +26,7 @@ import { Meter } from "../../shared/models/meter.model";
     CardComponent,
     ButtonComponent,
     RouterLink,
-    FormsModule 
+    FormsModule
   ],
   templateUrl: './readings.component.html',
   styleUrls: ['./readings.component.scss']
@@ -35,13 +35,13 @@ export class ReadingsComponent implements OnInit {
   allReadings: Reading[] = [];
   filteredReadings: Reading[] = [];
   paginatedReadings: Reading[] = [];
-  
+
   condominiums: Condominium[] = [];
   measurementTypes: MeasurementType[] = [];
 
   isLoading = true;
   error: string | null = null;
-    // Filter selections
+  // Filter selections
   selectedCondominiumId: number | null = null;
   selectedMeasurementTypeId: number | null = null;
   selectedPeriod: string = "all";
@@ -60,51 +60,51 @@ export class ReadingsComponent implements OnInit {
     this.isLoading = true;
     this.error = null;
     // Fetch all necessary data    // Get condominiums
-    this.condominiumService.getCondominiumById().subscribe({
-      next: data => {
+    this.condominiumService.getCondominiums().subscribe({
+      next: (data: Condominium[]) => {
         this.condominiums = data;
         // Preencher o mapa de nomes dos condomínios
         data.forEach(condo => {
           this.condominiumNames.set(condo.id, condo.name);
         });
       },
-      error: err => console.error('Error fetching condominiums', err)
+      error: (err: any) => console.error('Error fetching condominiums', err)
     });
 
     // Get measurement types
     this.measurementTypeService.getMeasurementTypes().subscribe({
-      next: data => this.measurementTypes = data,
-      error: err => console.error('Error fetching measurement types', err)
+      next: (data: MeasurementType[]) => this.measurementTypes = data,
+      error: (err: any) => console.error('Error fetching measurement types', err)
     });
 
     // Get readings and meters
     this.readingService.getReadings().pipe(
-      tap(readings => {
+      tap((readings: Reading[]) => {
         // Get unique meter IDs
-        const meterIds = new Set(readings.map(r => r.meterId));
+        const meterIds = new Set(readings.map(r => r.meter_id));
         
         // Load all meters
-        return this.meterService.getMeters().subscribe({
-          next: meters => {
+        this.meterService.getMeters().subscribe({
+          next: (meters: Meter[]) => {
             // Build meter cache
-            meters.forEach(meter => this.metersCache.set(meter.id, meter));
+            meters.forEach((meter: Meter) => this.metersCache.set(meter.id, meter));
             
             // Attach meters to readings
-            this.allReadings = readings.map(reading => ({
+            this.allReadings = readings.map((reading: Reading) => ({
               ...reading,
-              meter: this.metersCache.get(reading.meterId)
+              meter: this.metersCache.get(reading.meter_id)
             }));
             
             this.applyFilters();
             this.isLoading = false;
           },
-          error: err => {
+          error: (err: any) => {
             console.error('Error fetching meters:', err);
             this.error = 'Falha ao carregar os medidores. Tente novamente mais tarde.';
             this.isLoading = false;
           }
         });      }),
-      catchError(err => {
+      catchError((err: any) => {
         console.error('Error fetching readings:', err);
         this.error = 'Falha ao carregar as leituras. Tente novamente mais tarde.';
         this.isLoading = false;
@@ -122,8 +122,8 @@ export class ReadingsComponent implements OnInit {
   // Métodos auxiliares para acessar dados relacionados
   getCondominiumName(reading: Reading): string {
     const meter = this.metersCache.get(reading.meter_id);
-    if (!meter?.unit?.condominiumId) return 'N/A';
-    return this.condominiumNames.get(meter.unit.condominiumId) || 'N/A';
+    if (!meter?.unit?.condominium_id) return 'N/A';
+    return this.condominiumNames.get(meter.unit.condominium_id) || 'N/A';
   }
 
   getUnitIdentifier(reading: Reading): string {
@@ -160,11 +160,11 @@ export class ReadingsComponent implements OnInit {
       this.isLoading = true;
       // Assumindo que você tem um método para buscar múltiplos medidores
       this.meterService.getMeters().subscribe({
-        next: (meters) => {
-          meters.forEach(meter => this.metersCache.set(meter.id, meter));
+        next: (meters: Meter[]) => {
+          meters.forEach((meter: Meter) => this.metersCache.set(meter.id, meter));
           this.applyFiltersInternal();
         },
-        error: (err) => {
+        error: (err: any) => {
           console.error('Error fetching meters', err);
           this.error = 'Falha ao carregar os medidores. Tente novamente mais tarde.';
           this.isLoading = false;
@@ -179,14 +179,14 @@ export class ReadingsComponent implements OnInit {
     if (this.selectedCondominiumId) {
       readings = readings.filter(r => {
         const meter = this.metersCache.get(r.meter_id);
-        return meter?.unit?.condominiumId === Number(this.selectedCondominiumId);
+        return meter?.unit?.condominium_id === Number(this.selectedCondominiumId);
       });
     }
 
     if (this.selectedMeasurementTypeId) {
       readings = readings.filter(r => {
         const meter = this.metersCache.get(r.meter_id);
-        return meter?.measurement_type_id === Number(this.selectedMeasurementTypeId);
+        return meter?.measurement_type?.id === Number(this.selectedMeasurementTypeId);
       });
     }
     
