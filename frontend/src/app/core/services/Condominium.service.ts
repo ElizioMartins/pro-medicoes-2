@@ -16,6 +16,10 @@ export class CondominiumService extends BaseApiService<Condominium, CondominiumC
     super(http);
   }
 
+  getCondominiums(): Observable<Condominium[]> {
+    return this.http.get<Condominium[]>('/api/condominiums');
+  }
+
   getUnits(condominiumId: number): Observable<PaginatedResponse<Unit>> {
     return this.http.get<PaginatedResponse<Unit>>(`${this.baseUrl}/${condominiumId}/units`);
   }

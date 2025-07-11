@@ -35,6 +35,10 @@ export class ReadingService extends BaseApiService<Reading, ReadingCreate, Readi
     formData.append('file', file);
     return this.http.post<ApiResponse<ReadingPhoto>>(`${this.baseUrl}/${readingId}/photos`, formData);
   }
+
+  getReadings(): Observable<Reading[]> {
+    return this.http.get<Reading[]>('/api/readings');
+  }
 }
 
 
