@@ -8,6 +8,7 @@ export interface Unit extends BaseEntity {
   last_reading?: string;
   observations?: string;
   active: boolean;
+  meters?: any[]; // Adicionado para compatibilidade com uso no código
 }
 
 export interface UnitCreate {

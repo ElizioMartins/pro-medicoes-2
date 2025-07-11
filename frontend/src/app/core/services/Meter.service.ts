@@ -16,6 +16,10 @@ export class MeterService extends BaseApiService<Meter, MeterCreate, MeterUpdate
     super(http);
   }
 
+  getMeters(): Observable<Meter[]> {
+    return this.http.get<Meter[]>('/api/meters');
+  }
+
   getByUnit(unitId: number): Observable<PaginatedResponse<Meter>> {
     return this.http.get<PaginatedResponse<Meter>>(`${this.baseUrl}/unit/${unitId}`);
   }

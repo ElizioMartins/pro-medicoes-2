@@ -9,8 +9,9 @@ import { Unit } from "../../shared/models/unit.model";
 import { UnitService } from '@core/services/Unit.service';
 import { ToastService } from '@core/services/toast.service';
 import { Meter } from "../../shared/models/meter.model";
-import { MeasurementTypeService } from '../../core/services/MeasurementType.service';
+import { MeasurementTypeService } from '../../core/services/measurementtype.service';
 import { MeasurementType } from "../../shared/models/measurement-type.model";
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-unit-form',

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MeasurementTypeService } from '../../core/services/MeasurementType.service';
+import { MeasurementTypeService } from '../../core/services/measurementtype.service';
 import { MeasurementType } from "../../shared/models/measurement-type.model";
 import { CardComponent } from '@shared/components/ui/card/card.component';
 import { ButtonComponent } from '@shared/components/ui/button/button.component';

@@ -10,7 +10,7 @@ import { ButtonComponent } from '@shared/components/ui/button/button.component';
 import { InputComponent } from '@shared/components/ui/input/input.component';
 
 // Models
-import { Meter, MeterCreate, MeterUpdate } from "../../shared/models/meter.model";
+import { Meter } from "../../shared/models/meter.model";
 import { MeasurementType } from "../../shared/models/measurement-type.model";
 
 // Services
@@ -244,7 +244,7 @@ export class MeterFormComponent implements OnInit, OnDestroy {
 
     if (this.isEditMode() && this.meterId) {
       // Modo de edição
-      const updateData: MeterUpdate = formData;
+      const updateData: Meter = formData;
       
       this.meterService.update(this.meterId, updateData)
         .pipe(
@@ -263,7 +263,7 @@ export class MeterFormComponent implements OnInit, OnDestroy {
         });
     } else {
       // Modo de criação
-      const createData: MeterCreate = {
+      const createData: Meter = {
         ...formData,
         unit_id: this.unitId!
       };

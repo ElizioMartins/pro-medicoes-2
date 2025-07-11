@@ -7,7 +7,7 @@ import { ButtonComponent } from '@shared/components/ui/button/button.component';
 import { InputComponent } from '@shared/components/ui/input/input.component';
 import { ToastService } from '@core/services/toast.service';
 import { cnpjValidator } from '@core/validators/cnpj.validator';
-import { CondominiumService } from '@app/core/services/Condominium.service';
+import { CondominiumService } from '@app/core/services/condominium.service';
 
 @Component({
   selector: 'app-condominium-form',

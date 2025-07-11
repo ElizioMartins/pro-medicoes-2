@@ -70,7 +70,7 @@
                   </span>
                 </td>
                 <td>{{ reading.date | date:'dd/MM/yyyy' }}</td>
-                <td>{{ reading.registeredBy || 'Não registrado' }}</td>
+                <td>{{ reading.registered_by || 'Não registrado' }}</td>
                 <td class="actions-cell">
                   <app-button [routerLink]="['/readings', reading.id, 'form']" size="sm" variant="outline">
                     {{ reading.status === 'PENDING' ? 'Registrar' : 'Ver/Editar' }}

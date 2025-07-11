@@ -9,7 +9,7 @@ import { UnitService } from '@core/services/Unit.service';
 import { ToastService } from '@core/services/toast.service';
 import { Condominium } from '@app/shared/models/condominium.model';
 import { Unit } from '@app/shared/models/unit.model';
-import { CondominiumService } from '@app/core/services/Condominium.service';
+import { CondominiumService } from '@app/core/services/condominium.service';
 
 @Component({
   selector: 'app-condominium-detail',

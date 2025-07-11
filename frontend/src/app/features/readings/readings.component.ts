@@ -8,7 +8,7 @@ import { Observable, tap, catchError, throwError } from 'rxjs';
 
 // Import Services
 import { ReadingService } from "../../core/services/reading.service";
-import { MeasurementTypeService } from '../../core/services/MeasurementType.service';
+import { MeasurementTypeService } from '../../core/services/measurementtype.service';
 import { CondominiumService } from "../../core/services/condominium.service";
 import { MeterService } from '../../core/services/meter.service';
 

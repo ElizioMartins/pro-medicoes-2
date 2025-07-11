@@ -1,9 +1,9 @@
 import { firstValueFrom } from 'rxjs';
 import { UserService } from './core/services/user.service';
-import { CondominiumService } from './core/services/Condominium.service';
+import { CondominiumService } from './core/services/condominium.service';
 import { UnitService } from './core/services/Unit.service';
-import { MeterService } from './core/services/Meter.service';
-import { MeasurementTypeService } from './core/services/MeasurementType.service';
+import { MeterService } from './core/services/meter.service';
+import { MeasurementTypeService } from './core/services/measurementtype.service';
 import { User } from './shared/models/user.model';
 import { UserRole } from './shared/models/enums';
 

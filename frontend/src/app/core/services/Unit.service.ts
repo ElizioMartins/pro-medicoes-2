@@ -18,9 +18,9 @@ export class UnitService {
         map(units => units.map(unit => ({
           ...unit,
           id: Number(unit.id),
-          lastReading: unit.lastReading ? new Date(unit.lastReading) : null,
-          createdAt: unit.createdAt ? new Date(unit.createdAt) : undefined,
-          updatedAt: unit.updatedAt ? new Date(unit.updatedAt) : undefined
+          last_reading: unit.last_reading,
+          created_at: unit.created_at,
+          updated_at: unit.updated_at
         })))
       );
   }
@@ -31,9 +31,9 @@ export class UnitService {
         map(unit => ({
           ...unit,
           id: Number(unit.id),
-          lastReading: unit.lastReading ? new Date(unit.lastReading) : null,
-          createdAt: unit.createdAt ? new Date(unit.createdAt) : undefined,
-          updatedAt: unit.updatedAt ? new Date(unit.updatedAt) : undefined
+          last_reading: unit.last_reading,
+          created_at: unit.created_at,
+          updated_at: unit.updated_at
         }))
       );
   }
@@ -44,9 +44,9 @@ export class UnitService {
         map(unit => ({
           ...unit,
           id: Number(unit.id),
-          lastReading: unit.lastReading ? new Date(unit.lastReading) : null,
-          createdAt: unit.createdAt ? new Date(unit.createdAt) : undefined,
-          updatedAt: unit.updatedAt ? new Date(unit.updatedAt) : undefined
+          last_reading: unit.last_reading,
+          created_at: unit.created_at,
+          updated_at: unit.updated_at
         }))
       );
   }
@@ -57,9 +57,9 @@ export class UnitService {
         map(unit => ({
           ...unit,
           id: Number(unit.id),
-          lastReading: unit.lastReading ? new Date(unit.lastReading) : null,
-          createdAt: unit.createdAt ? new Date(unit.createdAt) : undefined,
-          updatedAt: unit.updatedAt ? new Date(unit.updatedAt) : undefined
+          last_reading: unit.last_reading,
+          created_at: unit.created_at,
+          updated_at: unit.updated_at
         }))
       );
   }

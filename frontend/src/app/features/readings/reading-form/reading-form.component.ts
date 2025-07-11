@@ -99,9 +99,9 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
           if (reading) {
             this.currentReading = reading;
             this.readingForm.patchValue({
-              currentReading: reading.currentReading || '',
+              currentReading: reading.current_reading || '',
               inaccessible: reading.status === 'INACCESSIBLE',
-              inaccessibleReason: reading.inaccessibleReason || '',
+              inaccessibleReason: reading.inaccessible_reason || '',
               notes: reading.observations || ''
             });
             
@@ -112,7 +112,7 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
             if (reading.photos && reading.photos.length > 0) {
               // Carregaria a foto do servidor em produção
               this.capturedFullImage = reading.photos[0].filePath;
-              this.capturedCroppedImage = reading.photos[0].croppedFilePath || null;
+              this.capturedCroppedImage = reading.photos[0].photo_path || null;
             }
             
             this.isLoading = false;
@@ -247,10 +247,10 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
     }
 
     const readingUpdatePayload: Partial<Reading> = {
-      currentReading: formValue.inaccessible ? null : formValue.currentReading,
+      current_reading: formValue.inaccessible ? null : formValue.currentReading,
       observations: formValue.notes,
       status,
-      inaccessibleReason: formValue.inaccessible ? formValue.inaccessibleReason : null,
+      inaccessible_reason: formValue.inaccessible ? formValue.inaccessibleReason : null,
       date: new Date()
     };
 

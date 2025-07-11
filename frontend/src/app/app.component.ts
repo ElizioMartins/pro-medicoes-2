@@ -5,11 +5,11 @@ import { HeaderComponent } from '@shared/components/layout/header/header.compone
 import { FooterComponent } from '@shared/components/layout/footer/footer.component';
 import { ToastContainerComponent } from '@shared/components/ui/toast-container/toast-container.component';
 import { UserService } from '@core/services/user.service';
-import { CondominiumService } from '@core/services/Condominium.service';
 import { UnitService } from '@core/services/Unit.service';
-import { MeterService } from '@core/services/Meter.service';
-import { MeasurementTypeService } from '@core/services/MeasurementType.service';
+import { MeasurementTypeService } from '@core/services/measurementtype.service';
 import { initializeDatabase } from './database-init';
+import { CondominiumService } from './core/services/condominium.service';
+import { MeterService } from './core/services/meter.service';
 
 @Component({
   selector: 'app-root',

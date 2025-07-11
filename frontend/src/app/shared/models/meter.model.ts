@@ -8,6 +8,7 @@ export interface Meter extends BaseEntity {
   active: boolean;
   last_reading_date?: string;
   measurement_type?: MeasurementType;
+  unit?: any; // Adicionado para compatibilidade com uso no código
 }
 
 export interface MeterCreate {
