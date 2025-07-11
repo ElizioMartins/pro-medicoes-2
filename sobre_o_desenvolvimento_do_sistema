@@ -1,0 +1,714 @@
+Plano de Desenvolvimento Passo a Passo - Sistema Pro-Medições
+
+Introdução
+
+Com base na análise detalhada do sistema Pro-Medições, este documento apresenta um plano estruturado para concluir o desenvolvimento da aplicação de gestão de leituras de medidores em condomínios. O sistema utiliza Angular 17 no frontend com componentes standalone modernos e Python/FastAPI no backend, integrado com modelos de inteligência artificial YOLOv5 e YOLOv8 para detecção automática de números em medidores.
+
+O plano está organizado em fases sequenciais, priorizando a correção de problemas críticos, implementação de funcionalidades essenciais e estabelecimento de uma arquitetura robusta com tipagem forte em todos os níveis da aplicação.
+
+Fase 1: Correção de Problemas Críticos e Configuração Base
+
+1.1 Correção de Configurações do Backend
+
+A primeira prioridade é resolver os problemas de configuração que impedem o funcionamento adequado do sistema. O arquivo utilits.py contém caminhos hardcoded que precisam ser corrigidos para permitir execução em diferentes ambientes.
+
+Ações necessárias:
+
+1.1.1 Correção de Caminhos dos Modelos YOLO
+
+•
+Remover caminhos absolutos hardcoded (D:\DEV_PYTHON\...)
+
+•
+Implementar caminhos relativos baseados na estrutura do projeto
+
+•
+Criar variáveis de ambiente para configuração flexível
+
+•
+Adicionar verificação de existência dos arquivos de modelo
+
+1.1.2 Organização dos Modelos de IA
+
+•
+Criar diretório models/ no backend para armazenar os arquivos .pt
+
+•
+Implementar download automático dos modelos se não existirem
+
+•
+Configurar carregamento condicional baseado na disponibilidade dos modelos
+
+•
+Adicionar fallback para execução sem IA quando modelos não estão disponíveis
+
+1.1.3 Correção do Arquivo database.py
+
+•
+Adicionar função get_db() que está sendo importada mas não existe
+
+•
+Implementar gerenciamento adequado de sessões do SQLAlchemy
+
+•
+Configurar pool de conexões para melhor performance
+
+•
+Adicionar tratamento de erros de conexão
+
+1.2 Padronização de Modelos e Tipagem
+
+Para garantir consistência e facilitar futuras manutenções, é essencial estabelecer uma tipagem forte e padronizada em todo o sistema.
+
+1.2.1 Modelos TypeScript no Frontend
+
+•
+Criar interfaces TypeScript correspondentes a todos os modelos Pydantic
+
+•
+Implementar enums para status e tipos de dados
+
+•
+Estabelecer convenções de nomenclatura consistentes
+
+•
+Criar modelos de request/response separados
+
+1.2.2 Padronização de Respostas da API
+
+•
+Implementar wrapper padrão para todas as respostas
+
+•
+Definir estrutura consistente para tratamento de erros
+
+•
+Criar tipos para paginação e filtros
+
+•
+Estabelecer formato padrão para validações
+
+1.3 Configuração do Ambiente de Desenvolvimento
+
+1.3.1 Backend
+
+•
+Criar arquivo requirements.txt completo e atualizado
+
+•
+Configurar variáveis de ambiente com python-dotenv
+
+•
+Implementar configurações separadas para desenvolvimento/produção
+
+•
+Adicionar scripts de inicialização do banco de dados
+
+1.3.2 Frontend
+
+•
+Verificar e atualizar dependências do Angular
+
+•
+Configurar environments para diferentes ambientes
+
+•
+Implementar interceptors para tratamento de erros HTTP
+
+•
+Configurar proxy para desenvolvimento local
+
+Fase 2: Implementação Completa da Gestão de Medidores
+
+2.1 Backend - Routers e Serviços de Medidores
+
+A gestão de medidores é fundamental para o funcionamento do sistema, pois conecta as unidades às leituras através dos tipos de medição.
+
+2.1.1 Aprimoramento do Router de Medidores
+
+•
+Implementar CRUD completo para medidores
+
+•
+Adicionar endpoints para busca por unidade
+
+•
+Criar endpoint para histórico de leituras por medidor
+
+•
+Implementar validações de negócio (medidor único por tipo/unidade)
+
+2.1.2 Serviços de Negócio
+
+•
+Criar serviço para cálculo de consumo entre leituras
+
+•
+Implementar validação de sequência de leituras
+
+•
+Adicionar lógica para detecção de leituras anômalas
+
+•
+Criar serviço para estatísticas de medidores
+
+2.2 Frontend - Componentes de Gestão de Medidores
+
+2.2.1 Componentes Standalone
+
+•
+Criar componente de listagem de medidores por unidade
+
+•
+Implementar formulário de cadastro/edição de medidores
+
+•
+Desenvolver componente de visualização de histórico
+
+•
+Criar componente para associação de tipos de medição
+
+2.2.2 Serviços Angular
+
+•
+Implementar serviço para comunicação com API de medidores
+
+•
+Criar serviço de cache para tipos de medição
+
+•
+Desenvolver serviço para validações de formulário
+
+•
+Implementar serviço para formatação de dados
+
+2.3 Integração e Validações
+
+2.3.1 Validações de Negócio
+
+•
+Garantir que cada unidade tenha no máximo um medidor por tipo
+
+•
+Validar números de série únicos quando informados
+
+•
+Implementar validação de datas de leituras sequenciais
+
+•
+Criar validações para status de medidores ativos/inativos
+
+Fase 3: Sistema Completo de Leituras com Integração IA
+
+3.1 Backend - Processamento de Leituras
+
+O sistema de leituras é o coração da aplicação, integrando captura de imagens, processamento por IA e armazenamento de dados.
+
+3.1.1 Aprimoramento do Endpoint de Detecção
+
+•
+Refatorar endpoint /detect/ para melhor estrutura
+
+•
+Implementar validação robusta de tipos de arquivo
+
+•
+Adicionar suporte para múltiplas imagens por leitura
+
+•
+Criar sistema de fallback quando IA falha
+
+3.1.2 Processamento de Imagens
+
+•
+Implementar redimensionamento automático de imagens
+
+•
+Adicionar compressão para otimizar armazenamento
+
+•
+Criar sistema de backup das imagens originais
+
+•
+Implementar detecção de qualidade de imagem
+
+3.1.3 Integração com Modelos YOLO
+
+•
+Otimizar carregamento dos modelos para melhor performance
+
+•
+Implementar sistema de confiança combinada dos dois modelos
+
+•
+Criar lógica para seleção automática do melhor modelo
+
+•
+Adicionar logging detalhado do processo de detecção
+
+3.2 Frontend - Interface de Leituras
+
+3.2.1 Componente de Captura
+
+•
+Implementar captura via câmera do dispositivo
+
+•
+Criar interface para upload de múltiplas imagens
+
+•
+Desenvolver preview das imagens antes do envio
+
+•
+Adicionar indicadores de progresso durante processamento
+
+3.2.2 Componente de Leitura Manual
+
+•
+Criar formulário para entrada manual de leituras
+
+•
+Implementar validação de formato de números
+
+•
+Adicionar campos para observações e status
+
+•
+Criar interface para casos de medidores inacessíveis
+
+3.2.3 Visualização de Resultados
+
+•
+Desenvolver componente para exibir resultado da IA
+
+•
+Implementar interface para correção manual
+
+•
+Criar visualização do histórico de leituras
+
+•
+Adicionar gráficos de consumo por período
+
+3.3 Workflow de Leituras
+
+3.3.1 Processo Automatizado
+
+1.
+Seleção do medidor/unidade
+
+2.
+Captura ou upload da imagem
+
+3.
+Processamento automático pela IA
+
+4.
+Validação e possível correção manual
+
+5.
+Confirmação e salvamento da leitura
+
+6.
+Atualização de estatísticas e contadores
+
+3.3.2 Tratamento de Exceções
+
+•
+Implementar fluxo para medidores inacessíveis
+
+•
+Criar processo para leituras duvidosas
+
+•
+Adicionar sistema de aprovação para leituras anômalas
+
+•
+Implementar notificações para casos especiais
+
+Fase 4: Sistema de Relatórios e Dashboards
+
+4.1 Backend - APIs de Relatórios
+
+4.1.1 Endpoints de Estatísticas
+
+•
+Criar endpoint para consumo por período
+
+•
+Implementar API para comparativos mensais/anuais
+
+•
+Desenvolver endpoint para ranking de consumo
+
+•
+Adicionar API para detecção de vazamentos
+
+4.1.2 Processamento de Dados
+
+•
+Implementar cálculos de consumo médio
+
+•
+Criar algoritmos para detecção de anomalias
+
+•
+Desenvolver sistema de alertas automáticos
+
+•
+Implementar cache para consultas complexas
+
+4.2 Frontend - Dashboards Interativos
+
+4.2.1 Dashboard Principal
+
+•
+Criar visão geral com métricas principais
+
+•
+Implementar gráficos de consumo por condomínio
+
+•
+Desenvolver indicadores de performance
+
+•
+Adicionar alertas visuais para anomalias
+
+4.2.2 Relatórios Detalhados
+
+•
+Implementar relatórios por unidade/medidor
+
+•
+Criar comparativos entre períodos
+
+•
+Desenvolver exportação para PDF/Excel
+
+•
+Adicionar filtros avançados por data/tipo
+
+4.3 Visualizações com Chart.js
+
+4.3.1 Gráficos de Consumo
+
+•
+Implementar gráficos de linha para evolução temporal
+
+•
+Criar gráficos de barras para comparativos
+
+•
+Desenvolver gráficos de pizza para distribuição
+
+•
+Adicionar gráficos de área para tendências
+
+Fase 5: Funcionalidades Avançadas e Otimizações
+
+5.1 Sistema de Notificações
+
+5.1.1 Backend
+
+•
+Implementar sistema de alertas por email
+
+•
+Criar notificações push para mobile
+
+•
+Desenvolver sistema de lembretes de leitura
+
+•
+Adicionar alertas para consumo anômalo
+
+5.1.2 Frontend
+
+•
+Criar componente de notificações in-app
+
+•
+Implementar centro de notificações
+
+•
+Desenvolver configurações de preferências
+
+•
+Adicionar badges para notificações não lidas
+
+5.2 Otimizações de Performance
+
+5.2.1 Backend
+
+•
+Implementar cache Redis para consultas frequentes
+
+•
+Otimizar queries do banco de dados
+
+•
+Adicionar paginação em todas as listagens
+
+•
+Implementar compressão de respostas
+
+5.2.2 Frontend
+
+•
+Implementar lazy loading para imagens
+
+•
+Otimizar bundle size com tree shaking
+
+•
+Adicionar service workers para cache
+
+•
+Implementar virtual scrolling para listas grandes
+
+5.3 Funcionalidades Mobile
+
+5.3.1 Responsividade
+
+•
+Otimizar interface para dispositivos móveis
+
+•
+Implementar gestos touch para navegação
+
+•
+Criar layouts específicos para tablets
+
+•
+Adicionar suporte para orientação landscape
+
+5.3.2 Capacitor Integration
+
+•
+Configurar build para aplicativo móvel
+
+•
+Implementar acesso à câmera nativa
+
+•
+Adicionar funcionalidades offline
+
+•
+Criar sincronização automática quando online
+
+Fase 6: Testes, Validação e Deploy
+
+6.1 Testes Automatizados
+
+6.1.1 Backend
+
+•
+Implementar testes unitários para todos os endpoints
+
+•
+Criar testes de integração para fluxos completos
+
+•
+Desenvolver testes para modelos de IA
+
+•
+Adicionar testes de performance para APIs
+
+6.1.2 Frontend
+
+•
+Implementar testes unitários para componentes
+
+•
+Criar testes de integração para serviços
+
+•
+Desenvolver testes end-to-end com Cypress
+
+•
+Adicionar testes de acessibilidade
+
+6.2 Validação e Qualidade
+
+6.2.1 Code Review
+
+•
+Estabelecer processo de revisão de código
+
+•
+Implementar linting e formatação automática
+
+•
+Criar documentação técnica completa
+
+•
+Adicionar comentários e documentação inline
+
+6.2.2 Testes de Usuário
+
+•
+Realizar testes com usuários reais
+
+•
+Coletar feedback sobre usabilidade
+
+•
+Implementar melhorias baseadas no feedback
+
+•
+Validar fluxos de trabalho completos
+
+6.3 Preparação para Produção
+
+6.3.1 Configuração de Deploy
+
+•
+Configurar ambiente de produção
+
+•
+Implementar CI/CD pipeline
+
+•
+Configurar monitoramento e logs
+
+•
+Adicionar backup automático do banco
+
+6.3.2 Documentação
+
+•
+Criar manual do usuário
+
+•
+Desenvolver documentação técnica
+
+•
+Implementar guias de instalação
+
+•
+Adicionar troubleshooting guide
+
+Cronograma Estimado
+
+Semana 1-2: Fase 1 (Correções Críticas)
+
+•
+Correção de configurações do backend
+
+•
+Padronização de modelos TypeScript
+
+•
+Configuração do ambiente de desenvolvimento
+
+Semana 3-4: Fase 2 (Gestão de Medidores)
+
+•
+Implementação completa do CRUD de medidores
+
+•
+Desenvolvimento dos componentes Angular
+
+•
+Integração e validações
+
+Semana 5-7: Fase 3 (Sistema de Leituras)
+
+•
+Desenvolvimento do sistema de captura e processamento
+
+•
+Integração com modelos de IA
+
+•
+Interface de usuário para leituras
+
+Semana 8-9: Fase 4 (Relatórios e Dashboards)
+
+•
+Implementação de APIs de relatórios
+
+•
+Desenvolvimento de dashboards interativos
+
+•
+Visualizações com Chart.js
+
+Semana 10-11: Fase 5 (Funcionalidades Avançadas)
+
+•
+Sistema de notificações
+
+•
+Otimizações de performance
+
+•
+Funcionalidades mobile
+
+Semana 12: Fase 6 (Testes e Deploy)
+
+•
+Testes automatizados
+
+•
+Validação com usuários
+
+•
+Preparação para produção
+
+Considerações Técnicas Importantes
+
+Tipagem Forte e Modelos
+
+Conforme solicitado, o sistema deve manter tipagem forte em todos os níveis. Isso inclui:
+
+•
+Interfaces TypeScript correspondentes a todos os modelos Pydantic
+
+•
+Enums compartilhados entre frontend e backend
+
+•
+Validação de tipos em tempo de compilação e execução
+
+•
+Documentação automática baseada nos tipos definidos
+
+Arquitetura Escalável
+
+O sistema deve ser projetado para crescimento futuro:
+
+•
+Microserviços preparados para separação futura
+
+•
+Cache distribuído para melhor performance
+
+•
+API versionada para compatibilidade
+
+•
+Banco de dados otimizado para grandes volumes
+
+Segurança
+
+Aspectos de segurança devem ser considerados em todas as fases:
+
+•
+Autenticação JWT robusta
+
+•
+Autorização baseada em roles
+
+•
+Validação de entrada em todos os endpoints
+
+•
+Proteção contra ataques comuns (CSRF, XSS, etc.)
+
+Conclusão
+
+Este plano de desenvolvimento fornece uma roadmap estruturada para concluir o sistema Pro-Medições, priorizando a correção de problemas críticos, implementação de funcionalidades essenciais e estabelecimento de uma arquitetura robusta e escalável. A execução sequencial das fases garantirá um desenvolvimento organizado e a entrega de um sistema completo e funcional para gestão de leituras de medidores em condomínios.
+
+A ênfase na tipagem forte e uso consistente de modelos em todos os níveis da aplicação facilitará futuras manutenções e atualizações, conforme solicitado. O cronograma estimado de 12 semanas permite um desenvolvimento cuidadoso com tempo adequado para testes e validações.
+

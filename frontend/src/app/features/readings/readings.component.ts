@@ -7,16 +7,16 @@ import { FormsModule } from '@angular/forms';
 import { Observable, tap, catchError, throwError } from 'rxjs';
 
 // Import Services
-import { ReadingService } from "../../core/services/reading.service";
-import { MeasurementTypeService } from '../../core/services/measurementtype.service';
-import { CondominiumService } from "../../core/services/condominium.service";
-import { MeterService } from '../../core/services/meter.service';
+import { ReadingService } from "@core/services/reading.service";
+import { MeasurementTypeService } from '@core/services/measurementtype.service';
+import { CondominiumService } from "@core/services/condominium.service";
+import { MeterService } from '@core/services/meter.service';
 
 // Import Models
-import { Reading } from "../../shared/models/reading.model";
-import { MeasurementType } from "../../shared/models/measurement-type.model";
-import { Condominium } from "../../shared/models/condominium.model";
-import { Meter } from "../../shared/models/meter.model";
+import { Reading } from "@shared/models/reading.model";
+import { MeasurementType } from "@shared/models/measurement-type.model";
+import { Condominium } from "@shared/models/condominium.model";
+import { Meter } from "@shared/models/meter.model";
 
 @Component({
   selector: 'app-readings',
@@ -78,7 +78,7 @@ export class ReadingsComponent implements OnInit {
     });
 
     // Get readings and meters
-    this.readingService.getReadings().pipe(
+    this.readingService.getAllReadings().pipe(
       tap((readings: Reading[]) => {
         // Get unique meter IDs
         const meterIds = new Set(readings.map(r => r.meter_id));

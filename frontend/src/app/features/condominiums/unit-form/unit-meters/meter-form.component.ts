@@ -7,15 +7,14 @@ import { Subject, takeUntil, finalize } from 'rxjs';
 // UI Components
 import { CardComponent } from '@shared/components/ui/card/card.component';
 import { ButtonComponent } from '@shared/components/ui/button/button.component';
-import { InputComponent } from '@shared/components/ui/input/input.component';
 
 // Models
-import { Meter } from "../../shared/models/meter.model";
-import { MeasurementType } from "../../shared/models/measurement-type.model";
+import { Meter } from "@shared/models/meter.model";
+import { MeasurementType } from "@shared/models/measurement-type.model";
 
 // Services
-import { MeterService } from '../../core/services/meter.service';
-import { NotificationService } from '../../core/services/notification.service';
+import { MeterService } from '@core/services/meter.service';
+import { NotificationService } from '@core/services/notification.service';
 
 @Component({
   selector: 'app-meter-form',
@@ -24,8 +23,7 @@ import { NotificationService } from '../../core/services/notification.service';
     CommonModule,
     ReactiveFormsModule,
     CardComponent,
-    ButtonComponent,
-    InputComponent
+    ButtonComponent
   ],
   template: `
     <div class="container mx-auto p-2 sm:p-4">
@@ -200,7 +198,7 @@ export class MeterFormComponent implements OnInit, OnDestroy {
     ]);
   }
 
-  private loadMeter(): void {
+  loadMeter(): void {
     if (!this.meterId) return;
     
     this.isLoading.set(true);

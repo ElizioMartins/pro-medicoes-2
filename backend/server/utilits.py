@@ -1,84 +1,104 @@
 import os
 import numpy as np
 import torch
-from ultralytics import YOLO  # YOLOv5 e YOLOv8 via ultralytics
+from ultralytics import YOLO  # YOLOv8 via ultralytics
 import sys
 from pathlib import Path
 import cv2
 from torchvision.ops import nms
 
-
+# YOLOv5 imports comentados temporariamente
 ## YOLOv5 path - usando caminho relativo
-YOLO_PATH = Path(os.path.join(os.path.dirname(__file__), 'yolov5'))
-sys.path.append(str(YOLO_PATH))
+# YOLO_PATH = Path(os.path.join(os.path.dirname(__file__), 'yolov5'))
+# sys.path.append(str(YOLO_PATH))
 
-from models.common import DetectMultiBackend
-from utils.torch_utils import select_device
-from utils.general import non_max_suppression
-from utils.augmentations import letterbox
+# from models.common import DetectMultiBackend
+# from utils.torch_utils import select_device
+# from utils.general import non_max_suppression
+# from utils.augmentations import letterbox
 
-device = select_device("cuda:0" if torch.cuda.is_available() else "cpu")
+# device = select_device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 # Caminhos para os modelos
-model_v5_path = os.path.join(os.path.dirname(__file__), "best.pt")  # YOLOv5 model path
+# model_v5_path = os.path.join(os.path.dirname(__file__), "best.pt")  # YOLOv5 model path (comentado)
 model_v8_path = os.path.join(os.path.dirname(__file__), "best-obb.pt")  # YOLOv8 model path
 
 # Carregando os modelos
-model_v5 = DetectMultiBackend(model_v5_path, device=device)
+# model_v5 = DetectMultiBackend(model_v5_path, device=device)  # Comentado
+
+## YOLOv8 apenas
+device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
 ## POCO PENSAR UM MODELO QUE USE OS DOIS JUNTOS
 #model_v5 = YOLO(model_v5_path)  # YOLOv5 model
-model_v8 = YOLO(model_v8_path)  # YOLOv8 model
+
+# Verificar se o modelo YOLOv8 existe
+if os.path.exists(model_v8_path):
+    model_v8 = YOLO(model_v8_path)  # YOLOv8 model
+    print(f"Modelo YOLOv8 carregado com sucesso: {model_v8_path}")
+else:
+    print(f"AVISO: Modelo YOLOv8 não encontrado em: {model_v8_path}")
+    model_v8 = None
 
 #print(f"Modelo YOLOv8 carregado com sucesso: {model_v8}")
 
 
 def run_yolov5(image_np: np.ndarray):
-    img0 = image_np.copy()  # Cópia da imagem original
-    img = letterbox(image_np, new_shape=640)[0]  # Redimensionamento da imagem
-    img = img.transpose((2, 0, 1))[::-1]  # Reorganiza os canais
-    img = np.ascontiguousarray(img)  # Torna a imagem contígua na memória
-    img = torch.from_numpy(img).to(device).float() / 255.0  # Normaliza para intervalo [0, 1]
-    img = img.unsqueeze(0)  # Adiciona uma dimensão para o batch
+    """
+    Função YOLOv5 comentada temporariamente devido a dependências faltantes
+    """
+    # img0 = image_np.copy()  # Cópia da imagem original
+    # img = letterbox(image_np, new_shape=640)[0]  # Redimensionamento da imagem
+    # img = img.transpose((2, 0, 1))[::-1]  # Reorganiza os canais
+    # img = np.ascontiguousarray(img)  # Torna a imagem contígua na memória
+    # img = torch.from_numpy(img).to(device).float() / 255.0  # Normaliza para intervalo [0, 1]
+    # img = img.unsqueeze(0)  # Adiciona uma dimensão para o batch
 
-    with torch.no_grad():  # Desliga o cálculo do gradiente para otimização
-        pred = model_v5(img, augment=False, visualize=False)  # Faz a predição
-        pred = non_max_suppression(pred, conf_thres=0.25, iou_thres=0.45)[0]  # Aplica NMS
+    # with torch.no_grad():  # Desliga o cálculo do gradiente para otimização
+    #     pred = model_v5(img, augment=False, visualize=False)  # Faz a predição
+    #     pred = non_max_suppression(pred, conf_thres=0.25, iou_thres=0.45)[0]  # Aplica NMS
 
-    results = []
-    if pred is not None and len(pred):
-        pred[:, :4] = scale_coords(img.shape[2:], pred[:, :4], img0.shape).round()  # Ajusta as coordenadas para a escala original da imagem
+    # results = []
+    # if pred is not None and len(pred):
+    #     pred[:, :4] = scale_coords(img.shape[2:], pred[:, :4], img0.shape).round()  # Ajusta as coordenadas para a escala original da imagem
 
-        for *xyxy, conf, cls in pred:  # Loop sobre as caixas detectadas
-            # Filtra as detecções com base na confiança e classe
-            class_id = int(cls)
-            conf = float(conf)
-            if conf < 0.3:  # Ajuste do limiar de confiança (simulando o limiar do YOLOv8)
-                continue
+    #     for *xyxy, conf, cls in pred:  # Loop sobre as caixas detectadas
+    #         # Filtra as detecções com base na confiança e classe
+    #         class_id = int(cls)
+    #         conf = float(conf)
+    #         if conf < 0.3:  # Ajuste do limiar de confiança (simulando o limiar do YOLOv8)
+    #             continue
 
-            # Coleta a caixa e a classe detectada
-            x1, y1, x2, y2 = xyxy
-            box_coords = [x1.item(), y1.item(), x2.item(), y2.item()]
-            results.append({
-                "box": box_coords,  # Adiciona a caixa detectada
-                "confidence": conf,  # Confiança da detecção
-                "class_id": class_id  # Classe detectada
-            })
+    #         # Coleta a caixa e a classe detectada
+    #         x1, y1, x2, y2 = xyxy
+    #         box_coords = [x1.item(), y1.item(), x2.item(), y2.item()]
+    #         results.append({
+    #             "box": box_coords,  # Adiciona a caixa detectada
+    #             "confidence": conf,  # Confiança da detecção
+    #             "class_id": class_id  # Classe detectada
+    #         })
 
-    # Ordena os resultados pela coordenada X (simulando a ordem de leitura da esquerda para a direita)
-    results.sort(key=lambda r: r["box"][0])
+    # # Ordena os resultados pela coordenada X (simulando a ordem de leitura da esquerda para a direita)
+    # results.sort(key=lambda r: r["box"][0])
 
-    # Gera o número detectado a partir das classes ordenadas
-    digits = [str(r["class_id"]) for r in results if r["confidence"] >= 0.3]  # Filtra com base na confiança
-    number_detected = ''.join(digits)
+    # # Gera o número detectado a partir das classes ordenadas
+    # digits = [str(r["class_id"]) for r in results if r["confidence"] >= 0.3]  # Filtra com base na confiança
+    # number_detected = ''.join(digits)
 
-    # Calcula a confiança média
-    avg_conf = sum(r["confidence"] for r in results) / len(results) if results else None
+    # # Calcula a confiança média
+    # avg_conf = sum(r["confidence"] for r in results) / len(results) if results else None
 
+    # return {
+    #     "number_detected": number_detected,
+    #     "confidence": float(avg_conf) if avg_conf is not None else None,
+    #     "box": [float(x) for x in results[0]["box"]] if results else None  # Retorna a primeira caixa detectada
+    # }
+    
+    # Retorna resultado vazio por enquanto
     return {
-        "number_detected": number_detected,
-        "confidence": float(avg_conf) if avg_conf is not None else None,
-        "box": [float(x) for x in results[0]["box"]] if results else None  # Retorna a primeira caixa detectada
+        "number_detected": "",
+        "confidence": 0.0,
+        "box": None
     }
 
 
@@ -89,11 +109,28 @@ def run_yolov5(image_np: np.ndarray):
 
 
 def run_yolov8_obb(image_np: np.ndarray):
-    results = model_v8.predict(source=image_np, conf=0.3, iou=0.4, device=0 if torch.cuda.is_available() else 'cpu')[0]
+    # Verificar se o modelo YOLOv8 está carregado
+    if model_v8 is None:
+        print("AVISO: Modelo YOLOv8 não está disponível. Retornando resultado vazio.")
+        return {
+            "number_detected": "",
+            "confidence": 0.0,
+            "box": None
+        }
+    
+    try:
+        results = model_v8.predict(source=image_np, conf=0.3, iou=0.4, device=0 if torch.cuda.is_available() else 'cpu')[0]
 
-    xywhr_boxes = results.obb.xywhr.cpu().numpy()
-    confidences = results.obb.conf.cpu().numpy()
-    labels = results.obb.cls.cpu().numpy()
+        xywhr_boxes = results.obb.xywhr.cpu().numpy()
+        confidences = results.obb.conf.cpu().numpy()
+        labels = results.obb.cls.cpu().numpy()
+    except Exception as e:
+        print(f"Erro ao executar YOLOv8: {e}")
+        return {
+            "number_detected": "",
+            "confidence": 0.0,
+            "box": None
+        }
 
     # Converter (x_center, y_center, w, h, rotation) → (x1, y1, x2, y2) para NMS
     boxes_xyxy = []

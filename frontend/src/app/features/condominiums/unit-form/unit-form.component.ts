@@ -5,13 +5,13 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { CardComponent } from '@shared/components/ui/card/card.component';
 import { ButtonComponent } from '@shared/components/ui/button/button.component';
-import { Unit } from "../../shared/models/unit.model";
+import { Unit } from "@shared/models/unit.model";
 import { UnitService } from '@core/services/Unit.service';
 import { ToastService } from '@core/services/toast.service';
-import { Meter } from "../../shared/models/meter.model";
-import { MeasurementTypeService } from '../../core/services/measurementtype.service';
-import { MeasurementType } from "../../shared/models/measurement-type.model";
-import { NotificationService } from '../../core/services/notification.service';
+import { Meter } from "@shared/models/meter.model";
+import { MeasurementTypeService } from '@core/services/measurementtype.service';
+import { MeasurementType } from "@shared/models/measurement-type.model";
+import { NotificationService } from '@core/services/notification.service';
 
 @Component({
   selector: 'app-unit-form',
@@ -103,8 +103,8 @@ export class UnitFormComponent implements OnInit {
 
   createMeterGroup(meter?: Partial<Meter>): FormGroup {
     return this.fb.group({
-      measurementTypeId: [meter?.measurementTypeId ?? '', Validators.required],
-      serialNumber: [meter?.serialNumber ?? '', Validators.required]
+      measurementTypeId: [meter?.measurement_type_id ?? '', Validators.required],
+      serialNumber: [meter?.serial_number ?? '', Validators.required]
     });
   }
 

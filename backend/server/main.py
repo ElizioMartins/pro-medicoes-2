@@ -9,6 +9,7 @@ from datetime import datetime
 
 from dbmodels import Base, engine
 from dbmodels.database import get_db
+from dbmodels.readings import Reading, ReadingStatus
 from routers.readings import router as readings_router
 from routers.users import router as users_router
 from routers.condominiums import router as condominiums_router
@@ -36,7 +37,8 @@ app.add_middleware(
 )
 
 # Importa funções do utils.py
-from utilits import run_yolov5, run_yolov8_obb
+# from utilits import run_yolov5, run_yolov8_obb  # YOLOv5 comentado temporariamente
+from utilits import run_yolov8_obb
 
 # Adiciona os endpoints
 app.include_router(readings_router, prefix="/api/readings", tags=["readings"])
@@ -102,10 +104,13 @@ async def detect_image(
         image = Image.open(io.BytesIO(contents)).convert("RGB")
         image_np = np.array(image)
 
-        yolov5_results = run_yolov5(image_np)
+        # Usando apenas YOLOv8 por enquanto
+        # yolov5_results = run_yolov5(image_np)  # Comentado temporariamente
         yolov8_results = run_yolov8_obb(image_np)
 
-        best_result = yolov8_results if yolov8_results["confidence"] > yolov5_results["confidence"] else yolov5_results
+        # Usar apenas YOLOv8 results
+        best_result = yolov8_results
+        # best_result = yolov8_results if yolov8_results["confidence"] > yolov5_results["confidence"] else yolov5_results
         
         # Salvar imagem
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -115,9 +120,10 @@ async def detect_image(
         
         # Salvar leitura no banco
         reading = Reading(
-            number_detected=best_result["number_detected"],
-            confidence=best_result["confidence"],
-            image_path=image_path,
+            meter_id=1,  # Temporário - será fornecido pelo frontend
+            current_reading=best_result["number_detected"],
+            status=ReadingStatus.COMPLETED,
+            observations=f"Detecção automática com confiança: {best_result['confidence']:.2f}",
             # user_id será adicionado quando implementarmos autenticação
         )
         db.add(reading)
@@ -126,9 +132,9 @@ async def detect_image(
 
         return {
             "id": reading.id,
-            "number_detected": reading.number_detected,
-            "confidence": reading.confidence,
-            "timestamp": reading.timestamp,
+            "number_detected": reading.current_reading,
+            "confidence": best_result["confidence"],
+            "timestamp": reading.created_at,
         }
 
     except Exception as e:

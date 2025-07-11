@@ -1,12 +1,7 @@
 import { BaseEntity } from "./base.model";
 import { ReadingStatus } from "./enums";
 import { Meter } from "./meter.model";
-
-export interface ReadingPhoto {
-  id?: number;
-  photo_path: string;
-  created_at?: string;
-}
+import { ReadingPhoto } from "./reading-photo.model";
 
 export interface Reading extends BaseEntity {
   meter_id: number;

@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MeasurementTypeService } from '../../core/services/measurementtype.service';
-import { MeasurementType } from "../../shared/models/measurement-type.model";
+import { MeasurementType } from "@shared/models/measurement-type.model";
 import { CardComponent } from '@shared/components/ui/card/card.component';
 import { ButtonComponent } from '@shared/components/ui/button/button.component';
 import { ToastService } from '@core/services/toast.service';
@@ -192,7 +192,13 @@ import { ToastService } from '@core/services/toast.service';
 })
 export class MeasurementTypesComponent implements OnInit {
   measurementTypes: MeasurementType[] = [];
-  currentType: Omit<MeasurementType, 'id'> = { name: '', unit: '', active: true };
+  currentType: Omit<MeasurementType, 'id'> = { 
+    name: '', 
+    unit: '', 
+    active: true,
+    created_at: '',
+    updated_at: ''
+  };
   editingType: MeasurementType | null = null;
   
   isLoading = true;
@@ -226,15 +232,25 @@ export class MeasurementTypesComponent implements OnInit {
   }
 
   startEdit(type: MeasurementType): void {
-    this.editingType = type;    this.currentType = {
+    this.editingType = type;    
+    this.currentType = {
       name: type.name,
       unit: type.unit,
-      active: type.active ?? true
+      active: type.active ?? true,
+      created_at: type.created_at,
+      updated_at: type.updated_at
     };
   }
+  
   cancelEdit(): void {
     this.editingType = null;
-    this.currentType = { name: '', unit: '', active: true };
+    this.currentType = { 
+      name: '', 
+      unit: '', 
+      active: true,
+      created_at: '',
+      updated_at: ''
+    };
     this.formError = null;
   }
 
@@ -267,8 +283,15 @@ export class MeasurementTypesComponent implements OnInit {
     } else {
       // Adicionando novo tipo
       this.measurementTypeService.addMeasurementType(this.currentType).subscribe({
-        next: () => {          this.loadMeasurementTypes();
-          this.currentType = { name: '', unit: '', active: true };
+        next: () => {          
+          this.loadMeasurementTypes();
+          this.currentType = { 
+            name: '', 
+            unit: '', 
+            active: true,
+            created_at: '',
+            updated_at: ''
+          };
           this.toastService.show({
             title: 'Tipo de medição criado com sucesso',
             variant: 'default'

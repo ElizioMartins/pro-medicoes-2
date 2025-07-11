@@ -7,13 +7,15 @@ import { forkJoin, of, throwError, switchMap, Observable, Subject } from 'rxjs';
 import { delay, tap, catchError, takeUntil } from 'rxjs/operators';
 import { trigger, state, style, animate, transition } from '@angular/animations';
 
-import { ReadingService } from "../../core/services/reading.service";
-import { Reading } from "../../shared/models/reading.model";
-import { ReadingPhoto } from "../../shared/models/reading.model";
 import { MeterPhotoCaptureAngularComponent, PhotoCaptureEvent } from '@shared/components/meter-photo-capture/meter-photo-capture.component';
 import { CardComponent } from '@shared/components/ui/card/card.component';
 import { ButtonComponent } from '@shared/components/ui/button/button.component';
 import { InputComponent } from '@shared/components/ui/input/input.component';
+import { Reading } from '@app/shared/models/reading.model';
+import { ReadingStatus } from '@app/shared/models/enums';
+import { ReadingPhoto } from '@shared/models/reading-photo.model';
+import { ReadingService } from '@core/services/reading.service';
+import { ApiResponse } from '@shared/models/api-response.model';
 
 @Component({
   selector: 'app-reading-form',
@@ -239,11 +241,11 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
 
     let status: Reading['status'];
     if (formValue.inaccessible) {
-      status = 'INACCESSIBLE';
+      status = ReadingStatus.INACCESSIBLE;
     } else if (formValue.currentReading && this.capturedCroppedImage) {
-      status = 'COMPLETED';
+      status = ReadingStatus.COMPLETED;
     } else {
-      status = 'PENDING';
+      status = ReadingStatus.PENDING;
     }
 
     const readingUpdatePayload: Partial<Reading> = {
@@ -251,17 +253,19 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
       observations: formValue.notes,
       status,
       inaccessible_reason: formValue.inaccessible ? formValue.inaccessibleReason : null,
-      date: new Date()
+      date: new Date().toISOString()
     };
 
     const updateReading$ = this.readingService.updateReading(this.currentReadingIdFromRoute, readingUpdatePayload);
 
-    let updatePhoto$: Observable<ReadingPhoto | null> = of(null);
+    let updatePhoto$: Observable<ApiResponse<ReadingPhoto> | null> = of(null);
     if (this.newPhotoTaken && this.capturedFullImage && this.capturedCroppedImage) {
+      const formData = new FormData();
+      formData.append('file', this.capturedFullImage);
+      formData.append('cropped_file', this.capturedCroppedImage);
       updatePhoto$ = this.readingService.saveReadingPhoto(
         this.currentReadingIdFromRoute,
-        this.capturedFullImage,
-        this.capturedCroppedImage
+        formData
       );
     }
 

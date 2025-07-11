@@ -4,7 +4,7 @@ import { CardComponent } from '@shared/components/ui/card/card.component';
 import { ButtonComponent } from '@shared/components/ui/button/button.component';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { User } from "../../shared/models/user.model";
+import { User } from "@shared/models/user.model";
 import { finalize, Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { UserService } from '@app/core/services/user.service';
 import { ToastService } from '@app/core/services/toast.service';

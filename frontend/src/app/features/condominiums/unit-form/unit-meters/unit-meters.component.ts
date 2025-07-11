@@ -8,12 +8,12 @@ import { CardComponent } from '@shared/components/ui/card/card.component';
 import { ButtonComponent } from '@shared/components/ui/button/button.component';
 
 // Models
-import { Meter } from "../../shared/models/meter.model";
-import { Unit } from "../../shared/models/unit.model";
+import { Meter } from "@shared/models/meter.model";
+import { Unit } from "@shared/models/unit.model";
 
 // Services
-import { MeterService } from '../../core/services/meter.service';
-import { NotificationService } from '../../core/services/notification.service';
+import { MeterService } from '@core/services/meter.service';
+import { NotificationService } from '@core/services/notification.service';
 
 @Component({
   selector: 'app-unit-meters',
