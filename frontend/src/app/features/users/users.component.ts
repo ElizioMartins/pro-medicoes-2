@@ -69,6 +69,27 @@ export class UsersComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
   }
+
+  // Métodos para verificar permissões
+  canCreateUsers(): boolean {
+    return this.userService.canCreateUsers();
+  }
+
+  canEditUsers(): boolean {
+    return this.userService.canEditUsers();
+  }
+
+  canDeleteUsers(): boolean {
+    return this.userService.canDeleteUsers();
+  }
+
+  canEditUser(user: User): boolean {
+    return this.userService.canEditUser(user.id);
+  }
+
+  canDeleteUser(): boolean {
+    return this.userService.canDeleteUser();
+  }
   onSearchInput(event: Event): void {
     const value = (event.target as HTMLInputElement).value;
     this.searchTerm = value; // Atualiza o valor do input

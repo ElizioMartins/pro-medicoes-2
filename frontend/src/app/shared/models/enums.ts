@@ -5,9 +5,10 @@ export enum ReadingStatus {
 }
 
 export enum UserRole {
-  ADMIN = 'ADMIN',
-  MANAGER = 'MANAGER',
-  READER = 'READER'
+  ADMIN = 'Admin',
+  MANAGER = 'Manager',
+  USER = 'User',
+  READER = 'Reader'
 }
 
 

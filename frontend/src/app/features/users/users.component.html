@@ -1,7 +1,12 @@
 <div class="users-container">
   <div class="users-header">
     <h1 class="users-title">Usuários</h1>
-    <app-button routerLink="/users/new">Novo Usuário</app-button>
+    <app-button 
+      *ngIf="canCreateUsers()" 
+      routerLink="/users/new"
+    >
+      Novo Usuário
+    </app-button>
   </div>
   
   <app-card [elevated]="true" class="users-card">
@@ -66,8 +71,22 @@
               </span>
             </td>            <td>{{ user.lastAccess | date:'dd/MM/yyyy HH:mm' }}</td>
             <td class="actions-cell">
-              <app-button [routerLink]="['/users', user.id, 'edit']" size="sm" variant="secondary">Editar</app-button>
-              <app-button [routerLink]="['/users', user.id, 'delete']" size="sm" variant="danger">Excluir</app-button>
+              <app-button 
+                *ngIf="canEditUser(user)" 
+                [routerLink]="['/users', user.id, 'edit']" 
+                size="sm" 
+                variant="secondary"
+              >
+                Editar
+              </app-button>
+              <app-button 
+                *ngIf="canDeleteUser()" 
+                [routerLink]="['/users', user.id, 'delete']" 
+                size="sm" 
+                variant="danger"
+              >
+                Excluir
+              </app-button>
             </td>
           </tr>
         </tbody>

@@ -49,16 +49,58 @@ export class UserService {
     return !!localStorage.getItem('authToken');
   }
 
-  getUsers(page: number = 1, pageSize: number = 10): Observable<{ users: User[], total: number }> {
+  // Métodos para verificar permissões
+  canViewAllUsers(): boolean {
+    const user = this.getCurrentUser();
+    return user?.role === 'Admin' || user?.role === 'Manager';
+  }
+
+  canEditUsers(): boolean {
+    const user = this.getCurrentUser();
+    return user?.role === 'Admin' || user?.role === 'Manager';
+  }
+
+  canDeleteUsers(): boolean {
+    const user = this.getCurrentUser();
+    return user?.role === 'Admin' || user?.role === 'Manager';
+  }
+
+  canCreateUsers(): boolean {
+    const user = this.getCurrentUser();
+    return user?.role === 'Admin' || user?.role === 'Manager';
+  }
+
+  canEditUser(targetUserId: number): boolean {
+    const currentUser = this.getCurrentUser();
+    if (!currentUser) return false;
+
+    // Admin e Manager podem editar usuários
+    if (currentUser.role === 'Admin' || currentUser.role === 'Manager') {
+      return true;
+    }
+
+    // Outros usuários podem apenas editar a si mesmos
+    return currentUser.id === targetUserId;
+  }
+
+  canDeleteUser(): boolean {
+    const currentUser = this.getCurrentUser();
+    if (!currentUser) return false;
+
+    // Apenas Admin e Manager podem excluir usuários
+    return currentUser.role === 'Admin' || currentUser.role === 'Manager';
+  }
+
+  getUsers(page = 1, pageSize = 10): Observable<{ users: User[], total: number }> {
     const params = { page: page.toString(), pageSize: pageSize.toString() };
     return this.http.get<{ users: User[], total: number }>(`${this.apiUrl}`, { params });
   }
 
   searchUsers(
     searchTerm: string, 
-    role: string = 'all', 
-    page: number = 1, 
-    pageSize: number = 10
+    role = 'all', 
+    page = 1, 
+    pageSize = 10
   ): Observable<{ users: User[], total: number }> {
     const params = { 
       searchTerm, 
@@ -70,7 +112,7 @@ export class UserService {
   }
 
   createUser(user: UserCreate): Observable<User> {
-    return this.http.post<User>(`${this.apiUrl}`, user);
+    return this.http.post<User>(`${this.apiUrl}/`, user);
   }
 
   updateUser(id: number, user: UserUpdate): Observable<User> {

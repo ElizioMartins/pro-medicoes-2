@@ -37,24 +37,8 @@ export class LoginComponent {
       password: ['', Validators.required]
     });
 
-    // Debug: Verificar mudanças no formulário
-    this.loginForm.valueChanges.subscribe(value => {
-      console.log('Form value changed:', value);
-      console.log('Form valid:', this.loginForm.valid);
-      console.log('Form invalid:', this.loginForm.invalid);
-    });
-
     // Obter URL de retorno dos parâmetros da rota ou usar '/dashboard' como padrão
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
-  }
-
-  get formDebugInfo() {
-    return {
-      valid: this.loginForm.valid,
-      invalid: this.loginForm.invalid,
-      value: this.loginForm.value,
-      errors: this.loginForm.errors
-    };
   }
 
   onSubmit(): void {

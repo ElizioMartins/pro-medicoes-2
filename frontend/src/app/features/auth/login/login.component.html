@@ -37,17 +37,6 @@
       >
         Entrar
       </app-button>
-      
-      <!-- Debug info (remover em produção) -->
-      <div class="debug-info" style="margin-top: 1rem; padding: 1rem; background: #f3f4f6; border-radius: 4px; font-size: 0.875rem;">
-        <div>Form Valid: {{ loginForm.valid }}</div>
-        <div>Form Invalid: {{ loginForm.invalid }}</div>
-        <div>Username: {{ loginForm.get('username')?.value }}</div>
-        <div>Password: {{ loginForm.get('password')?.value }}</div>
-        <div>Username Valid: {{ loginForm.get('username')?.valid }}</div>
-        <div>Password Valid: {{ loginForm.get('password')?.valid }}</div>
-        <div>Button Disabled: {{ loginForm.invalid || isSubmitting }}</div>
-      </div>
     </form>
   </app-card>
 </div>
