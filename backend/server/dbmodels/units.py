@@ -12,7 +12,7 @@ class Unit(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     condominium_id = Column(Integer, ForeignKey("condominiums.id", ondelete="CASCADE"))
-    identifier = Column(String, index=True)
+    number = Column(String, index=True)  # Número da unidade (ex: 101, 102, etc.)
     owner = Column(String)
     meters_count = Column(Integer, default=0)
     last_reading = Column(DateTime, nullable=True)
@@ -27,7 +27,7 @@ class Unit(Base):
     
 # Pydantic Models
 class UnitBase(BaseModel):
-    identifier: str
+    number: str
     owner: str
     meters_count: int = 0
     last_reading: Optional[datetime] = None
@@ -38,7 +38,7 @@ class UnitCreate(UnitBase):
     pass
 
 class UnitUpdate(BaseModel):
-    identifier: Optional[str] = None
+    number: Optional[str] = None
     owner: Optional[str] = None
     active: Optional[bool] = None
     observations: Optional[str] = None

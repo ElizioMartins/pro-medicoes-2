@@ -62,7 +62,7 @@
               </tr>
             </thead>
             <tbody>              <tr *ngFor="let reading of paginatedReadings">                <td>{{ getCondominiumName(reading) }}</td>
-                <td>{{ getUnitIdentifier(reading) }}</td>
+                <td>{{ getUnitNumber(reading) }}</td>
                 <td>{{ getMeasurementTypeName(reading) }}</td>
                 <td>
                   <span [ngClass]="{'text-yellow-600': reading.status === 'INACCESSIBLE'}">

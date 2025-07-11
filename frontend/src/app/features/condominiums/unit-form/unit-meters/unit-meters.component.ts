@@ -32,7 +32,7 @@ import { NotificationService } from '@core/services/notification.service';
           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div>
               <h1 class="text-xl sm:text-2xl font-bold text-gray-800">
-                Medidores da Unidade: {{ unit()?.identifier || 'Carregando...' }}
+                Medidores da Unidade: {{ unit()?.number || 'Carregando...' }}
               </h1>
               <p class="text-sm text-gray-600 mt-1">
                 Gerencie os medidores desta unidade

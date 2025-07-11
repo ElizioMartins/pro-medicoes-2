@@ -44,7 +44,7 @@ from utilits import run_yolov8_obb
 app.include_router(readings_router, prefix="/api/readings", tags=["readings"])
 app.include_router(users_router, prefix="/api/users", tags=["users"])
 app.include_router(condominiums_router, prefix="/api/condominiums", tags=["condominiums"])
-app.include_router(units_router, prefix="/api/units", tags=["units"])
+app.include_router(units_router, prefix="/api", tags=["units"])  # Sem prefix para incluir condominiums/x/units
 app.include_router(meters_router, prefix="/api/meters", tags=["meters"])
 app.include_router(measurement_types_router, prefix="/api/measurement-types", tags=["measurement-types"])
 app.include_router(reading_photos_router, prefix="/api", tags=["reading-photos"])

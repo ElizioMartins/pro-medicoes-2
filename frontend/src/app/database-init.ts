@@ -5,7 +5,7 @@ import { UnitService } from './core/services/Unit.service';
 import { MeterService } from './core/services/meter.service';
 import { MeasurementTypeService } from './core/services/measurementtype.service';
 import { MeasurementType } from './shared/models/measurement-type.model';
-import { Unit } from './shared/models/unit.model';
+import { Unit, UnitCreate } from './shared/models/unit.model';
 import { User } from './shared/models/user.model';
 import { UserRole } from './shared/models/enums';
 import { MeterCreate } from './shared/models/meter.model';
@@ -148,8 +148,8 @@ async function createUnitMeters(
     try {
       await firstValueFrom(meterService.create(meter));
       console.log(`Medidor ${meter.serial_number} adicionado com sucesso.`);
-    } catch (error: any) {
-      console.error(`Erro ao adicionar medidor para unidade ${unit.identifier}:`, error);
+    } catch (error: unknown) {
+      console.error(`Erro ao adicionar medidor para unidade ${unit.number}:`, error);
     }
   }
 }
@@ -162,23 +162,20 @@ async function createCondominiumUnits(
   measurementTypes: MeasurementType[]
 ) {
   for (let i = 1; i <= 3; i++) {
-    const unit: Partial<Unit> = {
-      condominium_id: condominiumId,
-      identifier: `Apto ${i.toString().padStart(2, '0')}`,
+    const unit: UnitCreate = {
+      number: `Apto ${i.toString().padStart(2, '0')}`,
       owner: `Proprietário ${i}`,
-      meters_count: 2,
-      active: true,
       observations: `Unidade ${i} do ${condominiumName}`,
-      last_reading: undefined
+      active: true
     };
 
     try {
       const createdUnit = await firstValueFrom(unitService.createUnit(condominiumId, unit));
-      console.log(`Unidade ${unit.identifier} adicionada com sucesso.`);
+      console.log(`Unidade ${unit.number} adicionada com sucesso.`);
 
       await createUnitMeters(createdUnit, measurementTypes, meterService);
-    } catch (error: any) {
-      console.error(`Erro ao adicionar unidade ${unit.identifier}:`, error);
+    } catch (error: unknown) {
+      console.error(`Erro ao adicionar unidade ${unit.number}:`, error);
     }
   }
 }

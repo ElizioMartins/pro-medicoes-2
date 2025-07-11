@@ -76,10 +76,11 @@ export class CondominiumDetailComponent implements OnInit {
     this.unitService.getUnits(this.condominiumId)
       .subscribe({
         next: (data) => {
-          this.units = data;
+          this.units = data.units;
           this.isLoadingUnits = false;
         },
         error: (error) => {
+          console.error('Erro ao carregar unidades:', error);
           this.unitsError = 'Não foi possível carregar as unidades.';
           this.toastService.show({
             title: 'Erro ao carregar unidades',

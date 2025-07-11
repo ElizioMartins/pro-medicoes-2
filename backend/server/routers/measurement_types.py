@@ -5,12 +5,17 @@ from datetime import datetime
 
 from dbmodels.database import get_db
 from dbmodels.measurement_types import MeasurementType, MeasurementTypeBase, MeasurementTypeCreate, MeasurementTypeUpdate, MeasurementTypeResponse
+from dbmodels.users import User
+from dependencies import get_current_user, get_manager_or_admin, get_any_authenticated_user
 
 router = APIRouter()
 
 @router.get("/", response_model=List[MeasurementTypeResponse])
-def get_measurement_types(db: Session = Depends(get_db)):
-    measurement_types = db.query(MeasurementType).all()
+def get_measurement_types(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_any_authenticated_user)
+):
+    measurement_types = db.query(MeasurementType).filter(MeasurementType.active == True).all()
     return measurement_types
 
 @router.post("/", response_model=MeasurementTypeResponse)

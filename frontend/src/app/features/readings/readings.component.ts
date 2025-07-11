@@ -126,9 +126,9 @@ export class ReadingsComponent implements OnInit {
     return this.condominiumNames.get(meter.unit.condominium_id) || 'N/A';
   }
 
-  getUnitIdentifier(reading: Reading): string {
+  getUnitNumber(reading: Reading): string {
     const meter = this.metersCache.get(reading.meter_id);
-    return meter?.unit?.identifier || 'N/A';
+    return meter?.unit?.number || 'N/A';
   }
 
   getMeasurementTypeName(reading: Reading): string {
