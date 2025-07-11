@@ -47,7 +47,8 @@
         <div class="text-sm text-gray-600 mb-2">
           Quantidade configurada: {{ unitForm.get('metersCount')?.value || 0 }} medidores
         </div>
-        <div *ngFor="let meter of meters.controls; let i = index" [formGroupName]="i" class="meter-item border p-3 mb-2 rounded bg-gray-50">
+        <div formArrayName="meters">
+          <div *ngFor="let meter of meters.controls; let i = index" [formGroupName]="i" class="meter-item border p-3 mb-2 rounded bg-gray-50">
           <div class="flex gap-2 items-end">
             <div class="flex-1">
               <label [for]="'measurementTypeId-' + i" class="block text-gray-700 text-sm font-bold mb-1">Tipo de Medição*</label>
@@ -62,7 +63,7 @@
               <input [id]="'serialNumber-' + i" type="text" formControlName="serialNumber" class="form-control" placeholder="Opcional">
             </div>
             <app-button type="button" variant="danger" (click)="removeMeter(i)">Remover</app-button>
-          </div>
+          </div>          </div>
         </div>
         <div class="flex gap-2 mt-2">
           <app-button type="button" variant="outline" (click)="addMeter()">Adicionar Medidor</app-button>

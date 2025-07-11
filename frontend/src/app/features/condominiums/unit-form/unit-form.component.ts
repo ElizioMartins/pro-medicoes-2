@@ -37,18 +37,36 @@ export class UnitFormComponent implements OnInit {
   }
 
   get isFormValid(): boolean {
+    // Validar campos básicos da unidade
+    const basicFormValid = !!(this.unitForm.get('number')?.valid && 
+                             this.unitForm.get('owner')?.valid && 
+                             this.unitForm.get('metersCount')?.valid);
+    
     const metersCount = this.unitForm.get('metersCount')?.value || 0;
     const metersMatch = this.meters.length === metersCount;
     
-    // Se não há medidores configurados, apenas validar o form principal
+    // Se não há medidores configurados, apenas validar o form básico
     if (metersCount === 0) {
-      return this.unitForm.valid && metersMatch;
+      return basicFormValid && metersMatch;
     }
     
-    // Se há medidores configurados, validar se todos os medidores estão válidos
-    const allMetersValid = this.meters.controls.every(meter => meter.valid);
+    // Se há medidores configurados, validar apenas se o measurementTypeId está preenchido
+    const allMetersValid = this.meters.controls.every(meter => {
+      const measurementTypeId = meter.get('measurementTypeId')?.value;
+      return measurementTypeId && measurementTypeId.trim() !== '';
+    });
     
-    return this.unitForm.valid && metersMatch && allMetersValid;
+    console.log('Form validation debug:', {
+      basicFormValid,
+      metersCount,
+      metersLength: this.meters.length,
+      metersMatch,
+      allMetersValid,
+      isValid: basicFormValid && metersMatch && allMetersValid,
+      formValue: this.unitForm.value
+    });
+    
+    return basicFormValid && metersMatch && allMetersValid;
   }
 
   constructor(
@@ -125,12 +143,10 @@ export class UnitFormComponent implements OnInit {
   }
 
   createMeterGroup(meter?: Partial<Meter>): FormGroup {
-    const group = this.fb.group({
-      measurementTypeId: [meter?.measurement_type_id ?? '', Validators.required],
-      serialNumber: [meter?.serial_number ?? ''] // Número de série opcional
+    return this.fb.group({
+      measurementTypeId: [meter?.measurement_type_id ?? ''],
+      serialNumber: [meter?.serial_number ?? '']
     });
-    
-    return group;
   }
 
   adjustMetersArray(count: number): void {
@@ -183,7 +199,21 @@ export class UnitFormComponent implements OnInit {
       return;
     }
 
-    if (this.unitForm.valid && !this.isSubmitting) {
+    // Validar se todos os medidores têm tipo de medição selecionado
+    const allMetersValid = this.meters.controls.every(meter => {
+      const measurementTypeId = meter.get('measurementTypeId')?.value;
+      return measurementTypeId && measurementTypeId.trim() !== '';
+    });
+
+    if (!allMetersValid) {
+      this.toastService.show({
+        title: 'Selecione o tipo de medição para todos os medidores',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (this.isFormValid && !this.isSubmitting) {
       this.isSubmitting = true;
       const formValue = this.unitForm.value;
       

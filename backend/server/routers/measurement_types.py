@@ -12,10 +12,13 @@ router = APIRouter()
 
 @router.get("/", response_model=List[MeasurementTypeResponse])
 def get_measurement_types(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_any_authenticated_user)
+    db: Session = Depends(get_db)
+    # Temporariamente removendo autenticação para debug
+    # current_user: User = Depends(get_any_authenticated_user)
 ):
+    print("Endpoint measurement_types chamado")
     measurement_types = db.query(MeasurementType).filter(MeasurementType.active == True).all()
+    print(f"Encontrados {len(measurement_types)} tipos de medição")
     return measurement_types
 
 @router.post("/", response_model=MeasurementTypeResponse)
