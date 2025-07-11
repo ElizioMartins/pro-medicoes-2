@@ -3,7 +3,7 @@ Script para inicializar o banco de dados com dados padrão.
 """
 import os
 from sqlalchemy.orm import Session
-from dbmodels.database import engine, get_db
+from dbmodels.database import engine, get_db, Base
 from dbmodels.users import User, UserRole, UserStatus
 from dbmodels.condominiums import Condominium
 from dbmodels.measurement_types import MeasurementType
@@ -13,6 +13,11 @@ def init_database():
     """
     Inicializa o banco de dados com dados padrão.
     """
+    # Criar todas as tabelas
+    print("🔄 Criando tabelas do banco de dados...")
+    Base.metadata.create_all(bind=engine)
+    print("✅ Tabelas criadas com sucesso!")
+    
     db = next(get_db())
     
     # Criar usuário admin padrão

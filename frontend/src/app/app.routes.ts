@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { AuthGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   {
@@ -21,10 +22,12 @@ export const routes: Routes = [
   },
   {
     path: 'dashboard',
-    loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent)
+    loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent),
+    canActivate: [AuthGuard]
   },
   {
     path: 'condominiums',
+    canActivate: [AuthGuard],
     children: [
       {
         path: '',
@@ -53,10 +56,12 @@ export const routes: Routes = [
   },
   {
     path: 'measurement-types',
+    canActivate: [AuthGuard],
     loadComponent: () => import('./features/measurement-types/measurement-types.component').then(m => m.MeasurementTypesComponent)
   },
   {
     path: 'units',
+    canActivate: [AuthGuard],
     children: [     
       {
         path: ':unitId/meters',
@@ -71,10 +76,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/condominiums/unit-form/unit-meters/meter-form.component').then(m => m.MeterFormComponent)
       }
     ]
-  },
-  {
+  },  {
     path: 'readings',
-      children: [
+    canActivate: [AuthGuard],
+    children: [
         {
           path: '',
           loadComponent: () => import('./features/readings/readings.component').then(m => m.ReadingsComponent),
@@ -92,9 +97,12 @@ export const routes: Routes = [
   },
   {
     path: 'reports',
+    canActivate: [AuthGuard],
     loadComponent: () => import('./features/reports/reports.component').then(m => m.ReportsComponent)
   },
-  {    path: 'users',
+  {
+    path: 'users',
+    canActivate: [AuthGuard],
     children: [
       {
         path: '',
@@ -116,6 +124,7 @@ export const routes: Routes = [
   },
   {
     path: 'settings',
+    canActivate: [AuthGuard],
     loadComponent: () => import('./features/settings/settings.component').then(m => m.SettingsComponent)
   },
   {

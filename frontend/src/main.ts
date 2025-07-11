@@ -6,13 +6,14 @@ import { provideAnimations } from '@angular/platform-browser/animations';
 import { AppComponent } from './app/app.component';
 import { routes } from './app/app.routes';
 import { errorInterceptor } from './app/core/interceptors/error.interceptor';
-import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import { authInterceptor } from './app/core/interceptors/auth.interceptor';
 
 bootstrapApplication(AppComponent, {
   providers: [
     provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(
       withInterceptors([
+        authInterceptor,
         errorInterceptor
       ])
     ),

@@ -1,7 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { ResponsiveService } from '@core/services/responsive.service';
+import { UserService } from '@core/services/user.service';
+import { User } from '@shared/models/user.model';
 
 @Component({
   selector: 'app-header',
@@ -44,9 +46,12 @@ import { ResponsiveService } from '@core/services/responsive.service';
           </nav>
           
           <div class="user-menu">
-            <div class="user-avatar">JS</div>
+            <div class="user-avatar">{{ getUserInitials() }}</div>
             <div class="user-dropdown">
               <ul class="dropdown-menu">
+                <li><span class="user-info">{{ currentUser?.name || 'Usuário' }}</span></li>
+                <li><span class="user-role">{{ currentUser?.role || '' }}</span></li>
+                <li class="divider"></li>
                 <li><a routerLink="/profile">Meu Perfil</a></li>
                 <li><a routerLink="/settings">Configurações</a></li>
                 <li><a href="#" (click)="logout($event)">Sair</a></li>
@@ -169,6 +174,26 @@ import { ResponsiveService } from '@core/services/responsive.service';
       background-color: #f3f4f6;
     }
     
+    .user-info {
+      font-weight: 600;
+      color: #1f2937;
+      padding: 0.5rem 1rem;
+      display: block;
+    }
+    
+    .user-role {
+      font-size: 0.875rem;
+      color: #6b7280;
+      padding: 0 1rem 0.5rem 1rem;
+      display: block;
+    }
+    
+    .divider {
+      height: 1px;
+      background-color: #e5e7eb;
+      margin: 0.5rem 0;
+    }
+    
     .mobile-menu-button {
       display: none;
       background: none;
@@ -239,10 +264,19 @@ import { ResponsiveService } from '@core/services/responsive.service';
     }
   `]
 })
-export class HeaderComponent {
+export class HeaderComponent implements OnInit {
   mobileMenuOpen = false;
+  currentUser: User | null = null;
   
-  constructor(public responsiveService: ResponsiveService) {}
+  constructor(
+    public responsiveService: ResponsiveService,
+    private userService: UserService,
+    private router: Router
+  ) {}
+  
+  ngOnInit(): void {
+    this.currentUser = this.userService.getCurrentUser();
+  }
   
   toggleMobileMenu(): void {
     this.mobileMenuOpen = !this.mobileMenuOpen;
@@ -250,7 +284,18 @@ export class HeaderComponent {
   
   logout(event: Event): void {
     event.preventDefault();
-    // Em uma implementação real, aqui chamaríamos o serviço de autenticação
-    console.log('Logout clicked');
+    this.userService.logout();
+    this.router.navigate(['/auth/login']);
+  }
+  
+  getUserInitials(): string {
+    if (this.currentUser?.name) {
+      return this.currentUser.name.split(' ')
+        .map(n => n[0])
+        .join('')
+        .toUpperCase()
+        .substring(0, 2);
+    }
+    return 'U';
   }
 }
