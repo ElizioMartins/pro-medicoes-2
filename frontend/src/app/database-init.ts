@@ -9,7 +9,7 @@ import { Unit } from './shared/models/unit.model';
 import { User } from './shared/models/user.model';
 import { UserRole } from './shared/models/enums';
 import { MeterCreate } from './shared/models/meter.model';
-import { Condominium } from './shared/models/condominium.model';
+import { Condominium, CondominiumCreate } from './shared/models/condominium.model';
 
 export async function initializeDatabase(
   userService: UserService,
@@ -233,7 +233,7 @@ async function initializeCondominiums(
 
   for (const condominium of initialCondominiums) {
     try {
-      const createdCondominium = await firstValueFrom(condominiumService.createCondominium(condominium));
+      const createdCondominium = await firstValueFrom(condominiumService.createCondominium(condominium as CondominiumCreate));
       console.log(`Condomínio ${condominium.name} adicionado com sucesso.`);
 
       await createCondominiumUnits(

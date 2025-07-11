@@ -61,10 +61,10 @@ export class ReadingsComponent implements OnInit {
     this.error = null;
     // Fetch all necessary data    // Get condominiums
     this.condominiumService.getCondominiums().subscribe({
-      next: (data: Condominium[]) => {
-        this.condominiums = data;
+      next: (data) => {
+        this.condominiums = data.condominiums;
         // Preencher o mapa de nomes dos condomínios
-        data.forEach(condo => {
+        data.condominiums.forEach(condo => {
           this.condominiumNames.set(condo.id, condo.name);
         });
       },

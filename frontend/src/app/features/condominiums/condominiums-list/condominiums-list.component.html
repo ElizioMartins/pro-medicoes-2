@@ -1,16 +1,47 @@
 <div class="condominiums-container">
   <div class="condominiums-header">
     <h1 class="condominiums-title">Condomínios</h1>
-    <app-button routerLink="/condominiums/new">Novo Condomínio</app-button>
+    <app-button 
+      *ngIf="canCreateCondominiums()" 
+      routerLink="/condominiums/new"
+    >
+      Novo Condomínio
+    </app-button>
   </div>
 
   <app-card [elevated]="true" class="condominiums-card">
+    <!-- Barra de busca -->
+    <div class="search-bar" style="margin-bottom: 1rem;">
+      <input 
+        type="text" 
+        placeholder="Buscar condomínios..." 
+        class="search-input"
+        [(ngModel)]="searchTerm"
+        (keyup.enter)="onSearch(searchTerm)"
+        style="padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; width: 300px;"
+      >
+      <button 
+        class="search-button" 
+        (click)="onSearch(searchTerm)"
+        style="margin-left: 0.5rem; padding: 0.5rem 1rem; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;"
+      >
+        Buscar
+      </button>
+    </div>
+
     <div class="condominiums-grid">
       <ng-container *ngIf="!isLoading && !error; else loadingOrError">
-        <app-card *ngFor="let condominium of condominiums" [routerLink]="['/condominiums', condominium.id]" class="condominium-card">
+        <app-card 
+          *ngFor="let condominium of condominiums" 
+          [routerLink]="['/condominiums', condominium.id]" 
+          class="condominium-card"
+          style="cursor: pointer; margin-bottom: 1rem; padding: 1rem;"
+        >
           <h3 class="condominium-name">{{ condominium.name }}</h3>
           <p class="condominium-address">{{ condominium.address }}</p>
-          <div class="condominium-stats">
+          <p><strong>CNPJ:</strong> {{ condominium.cnpj }}</p>
+          <p><strong>Gerente:</strong> {{ condominium.manager }}</p>
+          <div class="condominium-stats" style="display: flex; gap: 1rem; margin-top: 1rem;">
             <div class="stat-item">
               <span class="stat-value">{{ condominium.units_count }}</span>
               <span class="stat-label">Unidades</span>
@@ -19,6 +50,27 @@
               <span class="stat-value">{{ condominium.meters_count }}</span>
               <span class="stat-label">Medidores</span>
             </div>
+          </div>
+          
+          <!-- Botões de ação -->
+          <div class="action-buttons" style="margin-top: 1rem; display: flex; gap: 0.5rem;" *ngIf="canEditCondominiums() || canDeleteCondominiums()">
+            <app-button 
+              *ngIf="canEditCondominiums()"
+              [routerLink]="['/condominiums', condominium.id, 'edit']" 
+              size="sm" 
+              variant="secondary"
+              (click)="$event.stopPropagation()"
+            >
+              Editar
+            </app-button>
+            <app-button 
+              *ngIf="canDeleteCondominiums()"
+              size="sm" 
+              variant="danger"
+              (click)="$event.stopPropagation()"
+            >
+              Excluir
+            </app-button>
           </div>
         </app-card>
       </ng-container>
@@ -34,6 +86,32 @@
           </button>
         </div>
       </ng-template>
+    </div>
+
+    <!-- Paginação -->
+    <div class="pagination" *ngIf="!isLoading && !error && totalPages > 1" style="margin-top: 2rem; display: flex; justify-content: center; align-items: center; gap: 1rem;">
+      <button 
+        [disabled]="currentPage === 0"
+        (click)="onPageChange(currentPage - 1)"
+        style="padding: 0.5rem 1rem; border: 1px solid #ccc; background: white; cursor: pointer; border-radius: 4px;"
+      >
+        Anterior
+      </button>
+      
+      <span>Página {{ currentPage + 1 }} de {{ totalPages }}</span>
+      
+      <button 
+        [disabled]="currentPage >= totalPages - 1"
+        (click)="onPageChange(currentPage + 1)"
+        style="padding: 0.5rem 1rem; border: 1px solid #ccc; background: white; cursor: pointer; border-radius: 4px;"
+      >
+        Próxima
+      </button>
+    </div>
+
+    <!-- Informações do total -->
+    <div class="total-info" *ngIf="!isLoading && !error" style="margin-top: 1rem; text-align: center; color: #666;">
+      Total: {{ total }} condomínio(s)
     </div>
   </app-card>
 </div>
