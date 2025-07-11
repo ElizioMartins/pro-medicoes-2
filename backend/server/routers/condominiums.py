@@ -7,23 +7,38 @@ from datetime import datetime
 from dbmodels.database import get_db
 from dbmodels.condominiums import Condominium, CondominiumBase, CondominiumCreate, CondominiumUpdate, CondominiumResponse
 from dbmodels.units import Unit
+from dbmodels.users import User
+from dependencies import get_current_user, get_manager_or_admin, get_any_authenticated_user
 
 router = APIRouter()
 
 @router.get("/", response_model=List[CondominiumResponse])
-def get_condominiums(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def get_condominiums(
+    skip: int = 0, 
+    limit: int = 100, 
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_any_authenticated_user)  # Qualquer usuário autenticado pode ver
+):
     condominiums = db.query(Condominium).offset(skip).limit(limit).all()
     return condominiums
 
 @router.get("/{condominium_id}", response_model=CondominiumResponse)
-def get_condominium(condominium_id: int, db: Session = Depends(get_db)):
+def get_condominium(
+    condominium_id: int, 
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_any_authenticated_user)  # Qualquer usuário autenticado pode ver
+):
     condominium = db.query(Condominium).filter(Condominium.id == condominium_id).first()
     if condominium is None:
         raise HTTPException(status_code=404, detail="Condomínio não encontrado")
     return condominium
 
 @router.post("/", response_model=CondominiumResponse)
-def create_condominium(condominium: CondominiumCreate, db: Session = Depends(get_db)):
+def create_condominium(
+    condominium: CondominiumCreate, 
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_manager_or_admin)  # Apenas managers e admins podem criar
+):
     # Verifica se já existe um condomínio com o mesmo CNPJ
     existing_condominium = db.query(Condominium).filter(Condominium.cnpj == condominium.cnpj).first()
     if existing_condominium:

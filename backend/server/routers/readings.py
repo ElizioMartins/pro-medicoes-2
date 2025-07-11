@@ -7,6 +7,8 @@ from dbmodels.database import get_db
 from dbmodels.readings import Reading, ReadingResponse, ReadingCreate, ReadingUpdate
 from dbmodels.meters import Meter
 from dbmodels.readings import ReadingPhoto
+from dbmodels.users import User
+from dependencies import get_current_user, get_reader_or_above, get_any_authenticated_user
 
 router = APIRouter()
 
@@ -14,13 +16,18 @@ router = APIRouter()
 def get_readings(
     skip: int = 0,
     limit: int = 100,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_any_authenticated_user)  # Qualquer usuário autenticado pode ver
 ):
     readings = db.query(Reading).offset(skip).limit(limit).all()
     return readings
 
 @router.get("/{reading_id}", response_model=ReadingResponse)
-def get_reading(reading_id: int, db: Session = Depends(get_db)):
+def get_reading(
+    reading_id: int, 
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_any_authenticated_user)  # Qualquer usuário autenticado pode ver
+):
     reading = db.query(Reading).filter(Reading.id == reading_id).first()
     if reading is None:
         raise HTTPException(status_code=404, detail="Leitura não encontrada")
