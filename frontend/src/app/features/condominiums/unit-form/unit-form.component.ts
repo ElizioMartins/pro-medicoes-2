@@ -8,9 +8,10 @@ import { ButtonComponent } from '@shared/components/ui/button/button.component';
 import { Unit } from "@shared/models/unit.model";
 import { UnitService } from '@core/services/Unit.service';
 import { Meter } from "@shared/models/meter.model";
-import { MeasurementTypeService, MeasurementType } from '@core/services/measurement-type.service';
 import { MeterService } from '@core/services/meter.service';
 import { ToastService } from '@app/core/services/toast.service';
+import { MeasurementType } from '@app/shared/models/measurement-type.model';
+import { MeasurementTypeService } from '@app/core/services/measurementtype.service';
 
 @Component({
   selector: 'app-unit-form',
@@ -55,18 +56,18 @@ export class UnitFormComponent implements OnInit {
     // Se há medidores configurados, validar apenas se o measurementTypeId está preenchido
     const allMetersValid = this.meters.controls.every(meter => {
       const measurementTypeId = meter.get('measurementTypeId')?.value;
-      return measurementTypeId && measurementTypeId.trim() !== '';
+      return measurementTypeId;
     });
     
-    console.log('Form validation debug:', {
-      basicFormValid,
-      metersCount,
-      metersLength: this.meters.length,
-      metersMatch,
-      allMetersValid,
-      isValid: basicFormValid && metersMatch && allMetersValid,
-      formValue: this.unitForm.value
-    });
+    // console.log('Form validation debug:', {
+    //   basicFormValid,
+    //   metersCount,
+    //   metersLength: this.meters.length,
+    //   metersMatch,
+    //   allMetersValid,
+    //   isValid: basicFormValid && metersMatch && allMetersValid,
+    //   formValue: this.unitForm.value
+    // });
     
     return basicFormValid && metersMatch && allMetersValid;
   }
@@ -131,6 +132,7 @@ export class UnitFormComponent implements OnInit {
           observations: unit.observations,
           active: unit.active
         });
+        this.unitForm.patchValue({ metersCount: unit.meters_count || 0 });
         this.meters.clear();
         if (unit.meters && unit.meters.length > 0) {
           unit.meters.forEach(meter => this.meters.push(this.createMeterGroup(meter as Partial<Meter>)));
@@ -256,18 +258,18 @@ export class UnitFormComponent implements OnInit {
       }));
 
       // Inclui os medidores no payload da unidade usando UnitUpdate (ou UnitCreate se preferir)
-      const unitData: Unit = {
+      const unitData = {
         condominium_id: this.condominiumId,
         number: formValue.number,
         owner: formValue.owner,
         meters_count: formValue.metersCount,
         observations: formValue.observations,
         active: formValue.active,
-        meters: meters,
-        id: 0,
-        created_at: '',
-        updated_at: '',
-        last_reading: ''
+       // meters: meters,
+       // id: 0,
+       // created_at: '',
+       // updated_at: '',
+      //  last_reading: ''
       };
 
       const operation = this.isEditing

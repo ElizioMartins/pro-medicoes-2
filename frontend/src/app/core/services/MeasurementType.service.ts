@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -9,9 +9,9 @@ import { MeasurementType } from '@app/shared/models/measurement-type.model';
   providedIn: 'root'
 })
 export class MeasurementTypeService {
-  private readonly baseUrl = `${environment.apiUrl}/measurement-types`;
+  private readonly baseUrl = `${environment.apiUrl}/api/measurement-types`;
 
-  constructor(private http: HttpClient) { }
+  private http = inject(HttpClient);
 
   getMeasurementTypes(): Observable<MeasurementType[]> {
     return this.http.get<MeasurementType[]>(this.baseUrl).pipe(

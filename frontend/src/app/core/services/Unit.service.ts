@@ -27,7 +27,7 @@ export class UnitService {
     return this.http.get<Unit>(`${this.apiUrl}/units/${unitId}`);
   }
 
-  createUnit(condominiumId: number, unit: Unit): Observable<Unit> {
+  createUnit(condominiumId: number, unit: UnitUpdate): Observable<Unit> {
     // Permite enviar também os medidores no payload
     return this.http.post<Unit>(`${this.apiUrl}/condominiums/${condominiumId}/units`, unit);
   }
