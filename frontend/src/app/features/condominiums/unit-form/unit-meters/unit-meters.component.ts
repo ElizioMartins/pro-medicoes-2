@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink, Params } from '@angular/router';
 import { Subject, takeUntil, finalize } from 'rxjs';
@@ -14,6 +14,7 @@ import { Unit } from "@shared/models/unit.model";
 // Services
 import { MeterService } from '@core/services/meter.service';
 import { NotificationService } from '@core/services/notification.service';
+import { UnitService } from '@core/services/Unit.service';
 
 @Component({
   selector: 'app-unit-meters',
@@ -177,7 +178,7 @@ import { NotificationService } from '@core/services/notification.service';
 })
 export class UnitMetersComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
-  
+
   // Signals para estado reativo
   unit = signal<Unit | null>(null);
   meters = signal<Meter[]>([]);
@@ -185,12 +186,12 @@ export class UnitMetersComponent implements OnInit, OnDestroy {
   error = signal<string | null>(null);
   unitId = signal<number | null>(null);
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private meterService: MeterService,
-    private notificationService: NotificationService
-  ) {}
+  // Injeção via inject()
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private meterService = inject(MeterService);
+  private notificationService = inject(NotificationService);
+  private unitService = inject(UnitService);
 
   ngOnInit(): void {
     this.route.params.pipe(takeUntil(this.destroy$)).subscribe((params: Params) => {
@@ -219,20 +220,20 @@ export class UnitMetersComponent implements OnInit, OnDestroy {
     this.isLoading.set(true);
     this.error.set(null);
 
-    this.meterService.getByUnit(currentUnitId)
+    this.unitService.getUnitById(currentUnitId)
       .pipe(
         takeUntil(this.destroy$),
         finalize(() => this.isLoading.set(false))
       )
       .subscribe({
-        next: (response) => {
-          this.meters.set(response.data || []);
-          // TODO: Carregar dados da unidade se necessário
+        next: (unit) => {
+          this.unit.set(unit);
+          this.meters.set(unit.meters || []);
         },
         error: (error) => {
-          console.error('Erro ao carregar medidores:', error);
-          this.error.set('Erro ao carregar dados dos medidores.');
-          this.notificationService.showError('Erro ao carregar medidores');
+          console.error('Erro ao carregar unidade:', error);
+          this.error.set('Erro ao carregar dados da unidade.');
+          this.notificationService.showError('Erro ao carregar unidade');
         }
       });
   }
@@ -244,7 +245,7 @@ export class UnitMetersComponent implements OnInit, OnDestroy {
   }
 
   deleteMeter(id: number): void {
-    this.meterService.delete(id)
+    this.meterService.deleteMeter(id)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {

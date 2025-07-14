@@ -204,31 +204,31 @@ export class MeterFormComponent implements OnInit, OnDestroy {
     this.isLoading.set(true);
     this.error.set(null);
     
-    this.meterService.getById(this.meterId)
-      .pipe(
-        takeUntil(this.destroy$),
-        finalize(() => this.isLoading.set(false))
-      )
-      .subscribe({
-        next: (response) => {
-          if (response.data) {
-            const meter = response.data;
-            this.meterForm.patchValue({
-              measurement_type_id: meter.measurement_type_id,
-              serial_number: meter.serial_number || '',
-              active: meter.active
-            });
-            this.unitId = meter.unit_id;
-          } else {
-            this.error.set('Medidor não encontrado.');
-          }
-        },
-        error: (error) => {
-          console.error('Erro ao carregar medidor:', error);
-          this.error.set('Erro ao carregar dados do medidor.');
-          this.notificationService.showError('Erro ao carregar medidor');
-        }
-      });
+    // this.meterService.getMeters(this.meterId)
+    //   .pipe(
+    //     takeUntil(this.destroy$),
+    //     finalize(() => this.isLoading.set(false))
+    //   )
+    //   .subscribe({
+    //     next: (response) => {
+    //       if (response) {
+    //         const meter = response;
+    //         this.meterForm.patchValue({
+    //           measurement_type_id: meter.measurement_type_id,
+    //           serial_number: meter.serial_number || '',
+    //           active: meter.active
+    //         });
+    //         this.unitId = meter.unit_id;
+    //       } else {
+    //         this.error.set('Medidor não encontrado.');
+    //       }
+    //     },
+    //     error: (error) => {
+    //       console.error('Erro ao carregar medidor:', error);
+    //       this.error.set('Erro ao carregar dados do medidor.');
+    //       this.notificationService.showError('Erro ao carregar medidor');
+    //     }
+    //   });
   }
 
   onSubmit(): void {
@@ -244,7 +244,7 @@ export class MeterFormComponent implements OnInit, OnDestroy {
       // Modo de edição
       const updateData: Meter = formData;
       
-      this.meterService.update(this.meterId, updateData)
+      this.meterService.updateMeter(this.meterId, updateData)
         .pipe(
           takeUntil(this.destroy$),
           finalize(() => this.isSaving.set(false))
@@ -266,7 +266,7 @@ export class MeterFormComponent implements OnInit, OnDestroy {
         unit_id: this.unitId!
       };
       
-      this.meterService.create(createData)
+      this.meterService.createMeter(createData)
         .pipe(
           takeUntil(this.destroy$),
           finalize(() => this.isSaving.set(false))

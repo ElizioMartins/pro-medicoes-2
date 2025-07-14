@@ -27,6 +27,9 @@
         <div *ngIf="unitForm.get('metersCount')?.invalid && unitForm.get('metersCount')?.touched" class="error-message">
           Número de medidores deve ser maior ou igual a 0
         </div>
+        <div class="text-sm text-gray-600 mt-1">
+          <strong>Medidores cadastrados:</strong> {{ unit?.meters_count || 0 }}
+        </div>
       </div>
 
       <div class="form-group">
@@ -45,7 +48,7 @@
       <div class="form-group">
         <h3 class="text-lg font-semibold mb-2">Medidores</h3>
         <div class="text-sm text-gray-600 mb-2">
-          Quantidade configurada: {{ unitForm.get('metersCount')?.value || 0 }} medidores
+          Quantidade configurada: {{ unit?.meters_count || 0 }} medidores
         </div>
         <div formArrayName="meters">
           <div *ngFor="let meter of meters.controls; let i = index" [formGroupName]="i" class="meter-item border p-3 mb-2 rounded bg-gray-50">

@@ -43,10 +43,13 @@ class UnitUpdate(BaseModel):
     active: Optional[bool] = None
     observations: Optional[str] = None
 
+from .meters import MeterResponse
+
 class UnitResponse(UnitBase):
     id: int
     condominium_id: int
     created_at: datetime
-    updated_at: datetime    
+    updated_at: datetime
+    meters: List[MeterResponse] = []
     class Config:
         orm_mode = True

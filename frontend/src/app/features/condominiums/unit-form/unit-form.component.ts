@@ -1,15 +1,16 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { CardComponent } from '@shared/components/ui/card/card.component';
 import { ButtonComponent } from '@shared/components/ui/button/button.component';
-import { UnitCreate } from "@shared/models/unit.model";
+import { Unit } from "@shared/models/unit.model";
 import { UnitService } from '@core/services/Unit.service';
-import { ToastService } from '@core/services/toast.service';
 import { Meter } from "@shared/models/meter.model";
 import { MeasurementTypeService, MeasurementType } from '@core/services/measurement-type.service';
+import { MeterService } from '@core/services/meter.service';
+import { ToastService } from '@app/core/services/toast.service';
 
 @Component({
   selector: 'app-unit-form',
@@ -31,6 +32,7 @@ export class UnitFormComponent implements OnInit {
   condominiumId = 0;
   unitId?: number;
   measurementTypes: MeasurementType[] = [];
+  unit?: Unit;
 
   get meters(): FormArray {
     return this.unitForm.get('meters') as FormArray;
@@ -69,14 +71,15 @@ export class UnitFormComponent implements OnInit {
     return basicFormValid && metersMatch && allMetersValid;
   }
 
-  constructor(
-    private readonly fb: FormBuilder,
-    private readonly route: ActivatedRoute,
-    private readonly router: Router,
-    private readonly unitService: UnitService,
-    private readonly toastService: ToastService,
-    private readonly measurementTypeService: MeasurementTypeService
-  ) {
+  fb = inject(FormBuilder);
+  route = inject(ActivatedRoute);
+  router = inject(Router);
+  unitService = inject(UnitService);
+  measurementTypeService = inject(MeasurementTypeService);
+  meterService = inject(MeterService);
+  toastService = inject(ToastService);
+
+  constructor() {
     this.unitForm = this.fb.group({
       number: ['', Validators.required],
       owner: ['', Validators.required],
@@ -121,6 +124,7 @@ export class UnitFormComponent implements OnInit {
   loadUnit(id: number): void {
     this.unitService.getUnitById(id).subscribe({
       next: (unit) => {
+        this.unit = unit;
         this.unitForm.patchValue({
           number: unit.number,
           owner: unit.owner,
@@ -144,6 +148,7 @@ export class UnitFormComponent implements OnInit {
 
   createMeterGroup(meter?: Partial<Meter>): FormGroup {
     return this.fb.group({
+      id: [meter?.id ?? null],
       measurementTypeId: [meter?.measurement_type_id ?? ''],
       serialNumber: [meter?.serial_number ?? '']
     });
@@ -178,13 +183,40 @@ export class UnitFormComponent implements OnInit {
     }
   }
 
-  // Override do método removeMeter para considerar o limite
+  // Override do método removeMeter para considerar o limite e remover do backend
   removeMeter(index: number): void {
-    this.meters.removeAt(index);
-    // Atualizar o contador se necessário
-    const currentCount = this.unitForm.get('metersCount')?.value || 0;
-    if (this.meters.length < currentCount) {
-      this.unitForm.patchValue({ metersCount: this.meters.length });
+    const meterGroup = this.meters.at(index);
+    const meterId = meterGroup.get('id')?.value;
+    if (meterId) {
+      // Se o medidor já existe, remover do backend
+      this.meterService.deleteMeter(meterId).subscribe({
+        next: () => {
+          this.meters.removeAt(index);
+          this.toastService.show({
+            title: 'Medidor removido com sucesso',
+            variant: 'default'
+          });
+          // Atualizar o contador se necessário
+          const currentCount = this.unitForm.get('metersCount')?.value || 0;
+          if (this.meters.length < currentCount) {
+            this.unitForm.patchValue({ metersCount: this.meters.length });
+          }
+        },
+        error: (error) => {
+          console.error('Erro ao remover medidor:', error);
+          this.toastService.show({
+            title: 'Erro ao remover medidor',
+            variant: 'destructive'
+          });
+        }
+      });
+    } else {
+      // Se o medidor não existe no backend, apenas remove do array
+      this.meters.removeAt(index);
+      const currentCount = this.unitForm.get('metersCount')?.value || 0;
+      if (this.meters.length < currentCount) {
+        this.unitForm.patchValue({ metersCount: this.meters.length });
+      }
     }
   }
 
@@ -216,27 +248,60 @@ export class UnitFormComponent implements OnInit {
     if (this.isFormValid && !this.isSubmitting) {
       this.isSubmitting = true;
       const formValue = this.unitForm.value;
-      
-      const unitData: UnitCreate = {
+
+      // Monta os dados dos medidores para envio usando MeterCreate
+      const meters = (formValue.meters || []).map((meter: { measurementTypeId: number; serialNumber: string }) => ({
+        measurement_type_id: Number(meter.measurementTypeId),
+        serial_number: meter.serialNumber
+      }));
+
+      // Inclui os medidores no payload da unidade usando UnitUpdate (ou UnitCreate se preferir)
+      const unitData: Unit = {
+        condominium_id: this.condominiumId,
         number: formValue.number,
         owner: formValue.owner,
+        meters_count: formValue.metersCount,
         observations: formValue.observations,
-        active: formValue.active
+        active: formValue.active,
+        meters: meters,
+        id: 0,
+        created_at: '',
+        updated_at: '',
+        last_reading: ''
       };
-      
-      const operation = this.isEditing 
+
+      const operation = this.isEditing
         ? this.unitService.updateUnit(this.condominiumId, this.unitId!, unitData)
         : this.unitService.createUnit(this.condominiumId, unitData);
 
       operation
         .pipe(finalize(() => this.isSubmitting = false))
         .subscribe({
-          next: () => {
-            this.toastService.show({
-              title: `Unidade ${this.isEditing ? 'atualizada' : 'criada'} com sucesso!`,
-              variant: 'default'
-            });
-            this.router.navigate(['/condominiums', this.condominiumId]);
+          next: (unit) => {
+            // Após criar/editar a unidade, salva os medidores
+            const unitId = this.isEditing ? this.unitId! : unit.id;
+            const meterRequests = meters.map((meter: { measurement_type_id: number; serial_number: string; }) =>
+              this.meterService.createMeter({
+                unit_id: unitId,
+                measurement_type_id: meter.measurement_type_id,
+                serial_number: meter.serial_number
+              }).toPromise()
+            );
+            Promise.all(meterRequests)
+              .then(() => {
+                this.toastService.show({
+                  title: `Unidade ${this.isEditing ? 'atualizada' : 'criada'} com sucesso!`,
+                  variant: 'default'
+                });
+                this.router.navigate(['/condominiums', this.condominiumId]);
+              })
+              .catch(error => {
+                console.error('Erro ao salvar medidores:', error);
+                this.toastService.show({
+                  title: 'Erro ao salvar medidores',
+                  variant: 'destructive'
+                });
+              });
           },
           error: (error) => {
             console.error('Erro ao salvar unidade:', error);

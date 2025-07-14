@@ -5,6 +5,7 @@ from datetime import datetime
 
 from dbmodels.database import get_db
 from dbmodels.units import Unit, UnitBase, UnitCreate, UnitUpdate, UnitResponse
+from dbmodels.meters import Meter, MeterResponse
 from dbmodels.condominiums import Condominium
 from dbmodels.users import User
 from dependencies import get_current_user, get_manager_or_admin, get_any_authenticated_user
@@ -46,7 +47,16 @@ def get_unit(
     unit = db.query(Unit).filter(Unit.id == unit_id).first()
     if unit is None:
         raise HTTPException(status_code=404, detail="Unidade não encontrada")
-    return unit
+
+    # Buscar medidores associados à unidade
+    meters = db.query(Meter).filter(Meter.unit_id == unit_id).all()
+    # Serializar medidores
+    meters_response = [MeterResponse.from_orm(m) for m in meters]
+
+    # Serializar unidade e incluir medidores
+    unit_response = UnitResponse.from_orm(unit)
+    unit_response.meters = meters_response
+    return unit_response
 
 @router.post("/condominiums/{condominium_id}/units", response_model=UnitResponse)
 def create_unit(

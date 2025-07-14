@@ -1,8 +1,8 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Unit, UnitCreate, UnitUpdate } from '@app/shared/models/unit.model';
+import { Unit, UnitUpdate } from '@app/shared/models/unit.model';
 
 interface UnitListResponse {
   units: Unit[];
@@ -17,7 +17,7 @@ interface UnitListResponse {
 export class UnitService {
   private readonly apiUrl = `${environment.apiUrl}/api`;
 
-  constructor(private readonly http: HttpClient) {}
+  private readonly http = inject(HttpClient);
 
   getUnits(condominiumId: number, skip = 0, limit = 100): Observable<UnitListResponse> {
     return this.http.get<UnitListResponse>(`${this.apiUrl}/condominiums/${condominiumId}/units?skip=${skip}&limit=${limit}`);
@@ -27,7 +27,8 @@ export class UnitService {
     return this.http.get<Unit>(`${this.apiUrl}/units/${unitId}`);
   }
 
-  createUnit(condominiumId: number, unit: UnitCreate): Observable<Unit> {
+  createUnit(condominiumId: number, unit: Unit): Observable<Unit> {
+    // Permite enviar também os medidores no payload
     return this.http.post<Unit>(`${this.apiUrl}/condominiums/${condominiumId}/units`, unit);
   }
 

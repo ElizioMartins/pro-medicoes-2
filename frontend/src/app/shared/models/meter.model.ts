@@ -1,5 +1,6 @@
 import { BaseEntity } from "./base.model";
 import { MeasurementType } from "./measurement-type.model";
+import { Unit } from "./unit.model";
 
 export interface Meter extends BaseEntity {
   unit_id: number;
@@ -8,7 +9,7 @@ export interface Meter extends BaseEntity {
   active: boolean;
   last_reading_date?: string;
   measurement_type?: MeasurementType;
-  unit?: any; // Adicionado para compatibilidade com uso no código
+  unit?: Unit; // Adicionado para compatibilidade com uso no código
 }
 
 export interface MeterCreate {

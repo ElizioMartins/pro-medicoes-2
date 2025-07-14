@@ -1,4 +1,5 @@
 import { BaseEntity } from "./base.model";
+import { Meter } from "./meter.model";
 
 export interface Unit extends BaseEntity {
   condominium_id: number;
@@ -8,16 +9,16 @@ export interface Unit extends BaseEntity {
   last_reading?: string;
   observations?: string;
   active: boolean;
-  meters?: unknown[]; // Para compatibilidade com uso no código
+  meters?: Meter[]; // Para compatibilidade com uso no código
 }
 
-export interface UnitCreate {
+export interface UnitUpdate {
   number: string;
   owner: string;
   observations?: string;
   active?: boolean;
 }
 
-export type UnitUpdate = Partial<UnitCreate>;
+//export type UnitUpdate = Partial<UnitCreate>;
 
 

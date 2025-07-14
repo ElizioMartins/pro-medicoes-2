@@ -5,7 +5,7 @@ import { UnitService } from './core/services/Unit.service';
 import { MeterService } from './core/services/meter.service';
 import { MeasurementTypeService } from './core/services/measurementtype.service';
 import { MeasurementType } from './shared/models/measurement-type.model';
-import { Unit, UnitCreate } from './shared/models/unit.model';
+import { Unit } from './shared/models/unit.model';
 import { User } from './shared/models/user.model';
 import { UserRole } from './shared/models/enums';
 import { MeterCreate } from './shared/models/meter.model';
@@ -70,8 +70,8 @@ async function initializeUsers(userService: UserService) {
     try {
       await firstValueFrom(userService.createUser({ ...user, password: 'Senha@123' }));
       console.log(`Usuário ${user.username} adicionado com sucesso.`);
-    } catch (error: any) {
-      if (error?.status === 409) {
+    } catch (error) {
+      if (error === 409) {
         console.log(`Usuário ${user.username} já existe.`);
       } else {
         console.error(`Erro ao adicionar usuário ${user.username}:`, error);
@@ -109,8 +109,8 @@ async function initializeMeasurementTypes(measurementTypeService: MeasurementTyp
     try {
       await firstValueFrom(measurementTypeService.addMeasurementType(type));
       console.log(`Tipo de medição ${type.name} adicionado com sucesso.`);
-    } catch (error: any) {
-      if (error?.status === 409) {
+    } catch (error) {
+      if (error === 409) {
         console.log(`Tipo de medição ${type.name} já existe.`);
       } else {
         console.error(`Erro ao adicionar tipo de medição ${type.name}:`, error);
@@ -146,7 +146,7 @@ async function createUnitMeters(
     };
 
     try {
-      await firstValueFrom(meterService.create(meter));
+      await firstValueFrom(meterService.createMeter(meter));
       console.log(`Medidor ${meter.serial_number} adicionado com sucesso.`);
     } catch (error: unknown) {
       console.error(`Erro ao adicionar medidor para unidade ${unit.number}:`, error);
@@ -162,11 +162,16 @@ async function createCondominiumUnits(
   measurementTypes: MeasurementType[]
 ) {
   for (let i = 1; i <= 3; i++) {
-    const unit: UnitCreate = {
+    const unit: Unit = {
       number: `Apto ${i.toString().padStart(2, '0')}`,
       owner: `Proprietário ${i}`,
       observations: `Unidade ${i} do ${condominiumName}`,
-      active: true
+      active: true,
+      condominium_id: 0,
+      meters_count: 0,
+      id: 0,
+      created_at: '',
+      updated_at: ''
     };
 
     try {
@@ -174,7 +179,7 @@ async function createCondominiumUnits(
       console.log(`Unidade ${unit.number} adicionada com sucesso.`);
 
       await createUnitMeters(createdUnit, measurementTypes, meterService);
-    } catch (error: unknown) {
+    } catch (error) {
       console.error(`Erro ao adicionar unidade ${unit.number}:`, error);
     }
   }
@@ -240,8 +245,8 @@ async function initializeCondominiums(
         meterService,
         measurementTypes
       );
-    } catch (error: any) {
-      if (error?.status === 409) {
+    } catch (error: unknown) {
+      if (typeof error === 'object' && error !== null && 'status' in error && (error as { status?: number }).status === 409) {
         console.log(`Condomínio ${condominium.name} já existe.`);
       } else {
         console.error(`Erro ao adicionar condomínio ${condominium.name}:`, error);
