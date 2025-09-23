@@ -1,4 +1,3 @@
-import { Injectable } from '@angular/core';
 import { Reading, ReadingCreate, ReadingUpdate } from '../../shared/models/reading.model';
 import { BaseApiService } from './base-api.service';
 import { HttpClient } from '@angular/common/http';
@@ -6,6 +5,7 @@ import { Observable } from 'rxjs';
 import { DetectionResponse } from '../../shared/models/detection.model';
 import { PaginatedResponse, ApiResponse } from '../../shared/models/api-response.model';
 import { ReadingPhoto } from '../../shared/models/reading-photo.model';
+import { Injectable, inject } from '@angular/core';
 
 @Injectable({
   providedIn: 'root'
@@ -13,8 +13,13 @@ import { ReadingPhoto } from '../../shared/models/reading-photo.model';
 export class ReadingService extends BaseApiService<Reading, ReadingCreate, ReadingUpdate> {
   protected endpoint = '/api/readings';
 
-  constructor(http: HttpClient) {
-    super(http);
+  override readonly http = inject(HttpClient);
+  constructor() {
+    super(inject(HttpClient));
+  }
+
+  getReadingsFiltered(params: any): Observable<Reading[]> {
+    return this.http.get<Reading[]>(`/api/readings`, { params });
   }
 
   detectFromImage(file: File, meterId?: number): Observable<DetectionResponse> {

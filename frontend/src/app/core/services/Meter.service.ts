@@ -1,15 +1,21 @@
-import { inject, Injectable } from '@angular/core';
 import { Meter, MeterCreate } from '../../shared/models/meter.model';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { PaginatedResponse,ApiResponse} from '../../shared/models/api-response.model';
 import { Reading } from '../../shared/models/reading.model';
 import { environment } from '@environments/environment';
+import { inject, Injectable } from '@angular/core';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MeterService {
+  /**
+   * Busca um medidor pelo ID
+   */
+  getMeterById(meter_id: number): Observable<Meter> {
+    return this.http.get<Meter>(`${this.apiUrl}/${meter_id}`);
+  }
   /**
    * Cria um novo medidor
    */

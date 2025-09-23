@@ -80,11 +80,11 @@ export const routes: Routes = [
     path: 'readings',
     canActivate: [AuthGuard],
     children: [
-        // {
-        //   path: '',
-        //   loadComponent: () => import('./features/readings/readings.component').then(m => m.ReadingsComponent),
-        //   pathMatch: 'full' // Important for default child route
-        // },
+        {
+          path: '',
+          loadComponent: () => import('./features/readings/readings.component').then(m => m.ReadingsComponent),
+          pathMatch: 'full' // Importante para rota filha padrão
+        },
         {
           path: 'new', // For creating a new reading
           loadComponent: () => import('./features/readings/reading-form/reading-form.component').then(m => m.ReadingFormComponent)

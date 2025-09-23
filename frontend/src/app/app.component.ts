@@ -1,5 +1,3 @@
-import { Component, OnInit } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HeaderComponent } from '@shared/components/layout/header/header.component';
 import { FooterComponent } from '@shared/components/layout/footer/footer.component';
@@ -7,9 +5,10 @@ import { ToastContainerComponent } from '@shared/components/ui/toast-container/t
 import { UserService } from '@core/services/user.service';
 import { UnitService } from '@core/services/Unit.service';
 import { MeasurementTypeService } from '@core/services/measurementtype.service';
-import { initializeDatabase } from './database-init';
 import { CondominiumService } from './core/services/condominium.service';
 import { MeterService } from './core/services/meter.service';
+import { Component, inject } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
@@ -24,22 +23,13 @@ import { MeterService } from './core/services/meter.service';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements OnInit {  constructor(
-    private readonly userService: UserService,
-    private readonly condominiumService: CondominiumService,
-    private readonly unitService: UnitService,
-    private readonly meterService: MeterService,
-    private readonly measurementTypeService: MeasurementTypeService
-  ) {}
-  async ngOnInit() {
-    await initializeDatabase(
-      this.userService,
-      this.condominiumService,
-      this.unitService,
-      this.meterService,
-      this.measurementTypeService
-    );
-  }
+export class AppComponent  {  
+  private readonly userService = inject(UserService);
+  private readonly condominiumService = inject(CondominiumService);
+  private readonly unitService = inject(UnitService);
+  private readonly meterService = inject(MeterService);
+  private readonly measurementTypeService = inject(MeasurementTypeService);
+  
 
   shouldShowHeader(): boolean {
     // Lógica para determinar quando mostrar o header

@@ -1,15 +1,14 @@
-import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
 import { CardComponent } from '@shared/components/ui/card/card.component';
 import { ButtonComponent } from '@shared/components/ui/button/button.component';
-import { RouterLink } from '@angular/router';
-import { UnitService } from '@core/services/Unit.service';
-
 import { ToastService } from '@core/services/toast.service';
 import { Condominium } from '@app/shared/models/condominium.model';
 import { Unit } from '@app/shared/models/unit.model';
 import { CondominiumService } from '@app/core/services/condominium.service';
+import { Subject, takeUntil } from 'rxjs';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { RouterLink, ActivatedRoute, Router } from '@angular/router';
+import { UnitService } from '@app/core/services/Unit.service';
 
 @Component({
   selector: 'app-condominium-detail',
@@ -23,35 +22,44 @@ import { CondominiumService } from '@app/core/services/condominium.service';
   templateUrl: './condominium-detail.component.html',
   styleUrls: ['./condominium-detail.component.scss']
 })
-export class CondominiumDetailComponent implements OnInit {
-  condominiumId: number = 0;
+export class CondominiumDetailComponent implements OnInit, OnDestroy {
+  condominiumId = 0;
   condominium: Condominium | null = null;
   units: Unit[] = [];
   isLoading = false;
   isLoadingUnits = false;
   error: string | null = null;
   unitsError: string | null = null;
-    constructor(
-    private route: ActivatedRoute,
-    private condominiumService: CondominiumService,
-    private unitService: UnitService,
-    private toastService: ToastService
-  ) {}
+
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private condominiumService = inject(CondominiumService);
+  private unitService = inject(UnitService);
+  private toastService = inject(ToastService);
+  private destroy$ = new Subject<void>();
   
   ngOnInit(): void {
-    this.route.params.subscribe(params => {
-      const id = Number(params['id']);
-      if (!isNaN(id)) {
-        this.condominiumId = id;
-        this.loadCondominium();
-      }
-    });
+    this.route.params
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(params => {
+        const id = Number(params['id']);
+        if (!isNaN(id)) {
+          this.condominiumId = id;
+          this.loadCondominium();
+        }
+      });
   }
-    loadCondominium(): void {
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  loadCondominium(): void {
     this.isLoading = true;
-    this.error = null;
-    
+    this.error = null;    
     this.condominiumService.getCondominiumById(this.condominiumId)
+      .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data: Condominium | null) => {
           this.condominium = data;
@@ -68,14 +76,14 @@ export class CondominiumDetailComponent implements OnInit {
         }
       });
   }
-  
+
   loadUnits(): void {
     this.isLoadingUnits = true;
     this.unitsError = null;
-    
     this.unitService.getUnits(this.condominiumId)
+      .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (data) => {
+        next: (data: { units: Unit[] }) => {
           this.units = data.units;
           this.isLoadingUnits = false;
         },
@@ -94,6 +102,7 @@ export class CondominiumDetailComponent implements OnInit {
   deleteUnit(unitId: number): void {
     if (confirm('Tem certeza que deseja excluir esta unidade?')) {
       this.unitService.deleteUnit(this.condominiumId, unitId)
+        .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: () => {
             this.toastService.show({
@@ -114,6 +123,10 @@ export class CondominiumDetailComponent implements OnInit {
   }
 
   goBack(): void {
-    window.history.back();
+    this.router.navigate(['/condominiums']);
+  }
+
+  goToUnitForm(unitId: number): void {
+  this.router.navigate(['/units', unitId, 'meters']); // Listagem de medidores da unidade
   }
 }

@@ -15,6 +15,7 @@ class MeterBase(BaseModel):
     unit_id: int
     measurement_type_id: int
     serial_number: Optional[str] = None
+    active: Optional[bool] = True
 
 class MeterCreate(MeterBase):
     pass
@@ -22,10 +23,12 @@ class MeterCreate(MeterBase):
 class MeterUpdate(MeterBase):
     unit_id: Optional[int] = None
     measurement_type_id: Optional[int] = None
+    serial_number: Optional[str] = None
+    active: Optional[bool] = None
 
 class MeterResponse(MeterBase):
     id: int
-    
+    active: Optional[bool] = True
     class Config:
         orm_mode = True
 

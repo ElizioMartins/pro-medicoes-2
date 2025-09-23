@@ -1,13 +1,13 @@
-import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
 import { CardComponent } from '@shared/components/ui/card/card.component';
 import { ButtonComponent } from '@shared/components/ui/button/button.component';
 import { InputComponent } from '@shared/components/ui/input/input.component';
 import { ToastService } from '@core/services/toast.service';
 import { cnpjValidator } from '@core/validators/cnpj.validator';
 import { CondominiumService } from '@app/core/services/condominium.service';
+import { Component, OnInit, inject } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-condominium-form',
@@ -19,95 +19,8 @@ import { CondominiumService } from '@app/core/services/condominium.service';
     ButtonComponent,
     InputComponent
   ],
-  template: `
-    <div class="container mx-auto p-6">
-      <app-card [elevated]="true">
-        <h1 class="text-2xl font-semibold mb-6">{{ isEditMode ? 'Editar' : 'Novo' }} Condomínio</h1>
-
-        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="form-group">
-              <app-input
-                label="Nome"
-                type="text"
-                formControlName="name"
-                [error]="!!(form.get('name')?.errors && form.get('name')?.touched)"
-                errorMessage="Nome é obrigatório"
-              />
-            </div>
-
-            <div class="form-group">
-              <app-input
-                label="CNPJ"
-                type="text"
-                formControlName="cnpj"
-                [error]="!!(form.get('cnpj')?.errors && form.get('cnpj')?.touched)"
-                errorMessage="CNPJ inválido"
-                mask="00.000.000/0000-00"
-              />
-            </div>
-
-            <div class="form-group">
-              <app-input
-                label="Endereço"
-                type="text"
-                formControlName="address"
-                [error]="!!(form.get('address')?.errors && form.get('address')?.touched)"
-                errorMessage="Endereço é obrigatório"
-              />
-            </div>
-
-            <div class="form-group">
-              <app-input
-                label="Responsável"
-                type="text"
-                formControlName="manager"
-                [error]="!!(form.get('manager')?.errors && form.get('manager')?.touched)"
-                errorMessage="Responsável é obrigatório"
-              />
-            </div>
-
-            <div class="form-group">
-              <app-input
-                label="Telefone"
-                type="text"
-                formControlName="phone"
-                [error]="!!(form.get('phone')?.errors && form.get('phone')?.touched)"
-                errorMessage="Telefone é obrigatório"
-                mask="(00) 00000-0000"
-              />
-            </div>
-
-            <div class="form-group">
-              <app-input
-                label="Email"
-                type="email"
-                formControlName="email"
-                [error]="!!(form.get('email')?.errors && form.get('email')?.touched)"
-                errorMessage="Email inválido"
-              />
-            </div>
-          </div>
-
-          <div class="flex justify-end space-x-2 mt-6">
-            <app-button
-              type="button"
-              variant="outline"
-              (click)="goBack()"
-            >
-              Cancelar
-            </app-button>
-            <app-button
-              type="submit"
-              [disabled]="form.invalid || isLoading"
-            >
-              {{ isEditMode ? 'Atualizar' : 'Cadastrar' }}
-            </app-button>
-          </div>
-        </form>
-      </app-card>
-    </div>
-  `
+  templateUrl: './condominium-form.component.html',
+  styleUrls: ['./condominium-form.component.scss']
 })
 export class CondominiumFormComponent implements OnInit {
   form: FormGroup;
@@ -115,13 +28,13 @@ export class CondominiumFormComponent implements OnInit {
   isEditMode = false;
   condominiumId?: number;
 
-  constructor(
-    private fb: FormBuilder,
-    private condominiumService: CondominiumService,
-    private toastService: ToastService,
-    private router: Router,
-    private route: ActivatedRoute
-  ) {
+  private fb = inject(FormBuilder);
+  private condominiumService = inject(CondominiumService);
+  private toastService = inject(ToastService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+
+  constructor() {
     this.form = this.fb.group({
       name: ['', [Validators.required]],
       cnpj: ['', [Validators.required, cnpjValidator()]],
@@ -150,7 +63,7 @@ export class CondominiumFormComponent implements OnInit {
       this.isLoading = true;
       this.condominiumService.getCondominiumById(this.condominiumId)
         .subscribe({
-          next: (condominium: { [key: string]: any; }) => {
+          next: (condominium) => {
             this.form.patchValue(condominium);
             this.isLoading = false;
           },

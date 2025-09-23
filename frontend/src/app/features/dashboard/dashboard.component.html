@@ -1,0 +1,71 @@
+<div class="dashboard-container">
+  <h1 class="dashboard-title">Dashboard</h1>
+  
+  <div class="dashboard-stats">
+    <app-card class="stat-card" [elevated]="true">
+      <div class="stat-content">
+        <h3 class="stat-value">{{ condominiumsCount }}</h3>
+        <p class="stat-label">Condomínios</p>
+      </div>
+    </app-card>
+    
+    <app-card class="stat-card" [elevated]="true">
+      <div class="stat-content">
+        <h3 class="stat-value">{{ unitsCount }}</h3>
+        <p class="stat-label">Unidades</p>
+      </div>
+    </app-card>
+    
+    <app-card class="stat-card" [elevated]="true">
+      <div class="stat-content">
+        <h3 class="stat-value">{{ readingsCount }}</h3>
+        <p class="stat-label">Leituras</p>
+      </div>
+    </app-card>
+    
+    <app-card class="stat-card" [elevated]="true">
+      <div class="stat-content">
+        <h3 class="stat-value">{{ usersCount }}</h3>
+        <p class="stat-label">Usuários</p>
+      </div>
+    </app-card>
+  </div>
+  
+  <div class="dashboard-actions">
+    <app-card title="Ações Rápidas" [elevated]="true">
+      <div class="quick-actions">
+        <app-button (click)="navigateTo('/readings/new')">Nova Leitura</app-button>
+        <app-button (click)="navigateTo('/reports')" variant="secondary">Gerar Relatório</app-button>
+        <app-button (click)="navigateTo('/condominiums')" variant="outline">Ver Condomínios</app-button>
+      </div>
+    </app-card>
+  </div>
+  
+  <div class="dashboard-recent">
+    <app-card title="Leituras Recentes" [elevated]="true">
+      <div *ngIf="recentReadings.length > 0; else noReadings">
+        <table class="readings-table">
+          <thead>
+            <tr>
+              <th>Unidade</th>
+              <th>Tipo</th>
+              <th>Valor</th>
+              <th>Data</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let reading of recentReadings">
+              <td>{{ reading.unit }}</td>
+              <td>{{ reading.type }}</td>
+              <td>{{ reading.value }}</td>
+              <td>{{ reading.date | date:'dd/MM/yyyy' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <ng-template #noReadings>
+        <p class="no-data">Nenhuma leitura recente encontrada.</p>
+      </ng-template>
+    </app-card>
+  </div>
+</div>

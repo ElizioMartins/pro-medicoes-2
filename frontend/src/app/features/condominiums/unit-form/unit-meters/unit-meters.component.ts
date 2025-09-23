@@ -1,6 +1,5 @@
-import { Component, OnInit, OnDestroy, signal, inject } from '@angular/core';
+
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router, RouterLink, Params } from '@angular/router';
 import { Subject, takeUntil, finalize } from 'rxjs';
 
 // UI Components
@@ -15,6 +14,8 @@ import { Unit } from "@shared/models/unit.model";
 import { MeterService } from '@core/services/meter.service';
 import { NotificationService } from '@core/services/notification.service';
 import { UnitService } from '@core/services/Unit.service';
+import { Component, OnInit, OnDestroy, signal, inject } from '@angular/core';
+import { RouterLink, ActivatedRoute, Router, Params } from '@angular/router';
 
 @Component({
   selector: 'app-unit-meters',
@@ -44,7 +45,6 @@ import { UnitService } from '@core/services/Unit.service';
               variant="primary"
               class="w-full sm:w-auto">
               <span class="hidden sm:inline">Novo Medidor</span>
-              <span class="sm:hidden">+ Medidor</span>
             </app-button>
           </div>
 
@@ -84,35 +84,42 @@ import { UnitService } from '@core/services/Unit.service';
           <div *ngIf="!isLoading() && !error() && meters().length > 0">
             <!-- Desktop Table -->
             <div class="hidden md:block overflow-x-auto">
-              <table class="min-w-full bg-white">
-                <thead class="bg-gray-50 text-gray-600 text-sm leading-normal">
+              <table class="w-full max-w-6xl mx-auto bg-white border-separate border-spacing-y-2" style="min-width:900px;">
+                <colgroup>
+                  <col style="width: 8em; min-width: 80px;">
+                  <col style="width: 18em; min-width: 180px;">
+                  <col style="width: 18em; min-width: 180px;">
+                  <col style="width: 8em; min-width: 80px;">
+                  <col style="width: 18em; min-width: 180px;">
+                </colgroup>
+                <thead class="bg-gray-50 text-gray-700 text-base">
                   <tr>
-                    <th class="py-3 px-6 text-left">ID</th>
-                    <th class="py-3 px-6 text-left">Tipo de Medição</th>
-                    <th class="py-3 px-6 text-left">Número de Série</th>
-                    <th class="py-3 px-6 text-left">Status</th>
-                    <th class="py-3 px-6 text-center">Ações</th>
+                    <th class="py-4 px-8 text-left whitespace-nowrap">ID</th>
+                    <th class="py-4 px-8 text-left whitespace-nowrap">Tipo de Medição</th>
+                    <th class="py-4 px-8 text-left whitespace-nowrap">Número de Série</th>
+                    <th class="py-4 px-8 text-left whitespace-nowrap">Status</th>
+                    <th class="py-4 px-8 text-center whitespace-nowrap">Ações</th>
                   </tr>
                 </thead>
-                <tbody class="text-gray-600 text-sm">
+                <tbody class="text-gray-700 text-base">
                   <tr *ngFor="let meter of meters(); trackBy: trackByMeterId" 
                       class="border-b border-gray-200 hover:bg-gray-50">
-                    <td class="py-3 px-6">{{ meter.id }}</td>
-                    <td class="py-3 px-6">{{ getMeasurementTypeName(meter.measurement_type_id) }}</td>
-                    <td class="py-3 px-6">{{ meter.serial_number || 'Não especificado' }}</td>
-                    <td class="py-3 px-6">
+                    <td class="py-4 px-8 align-middle">{{ meter.id }}</td>
+                    <td class="py-4 px-8 align-middle">{{ getMeasurementTypeName(meter.measurement_type_id) }}</td>
+                    <td class="py-4 px-8 align-middle">{{ meter.serial_number || 'Não especificado' }}</td>
+                    <td class="py-4 px-8 align-middle">
                       <span [class]="meter.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
-                            class="px-2 py-1 text-xs font-medium rounded-full">
+                            class="px-3 py-1 text-sm font-medium rounded-full">
                         {{ meter.active ? 'Ativo' : 'Inativo' }}
                       </span>
                     </td>
-                    <td class="py-3 px-6 text-center">
-                      <div class="flex justify-center space-x-2">
+                    <td class="py-4 px-8 text-center align-middle">
+                      <div class="flex justify-center gap-4">
                         <app-button [routerLink]="['/units', unitId(), 'meters', meter.id, 'edit']" 
                                     size="sm" variant="outline">
                           Editar
                         </app-button>
-                        <app-button [routerLink]="['/readings', 'meter', meter.id]" 
+                        <app-button (click)="goToReadings(meter.id)"
                                     size="sm" variant="outline">
                           Leituras
                         </app-button>
@@ -128,7 +135,7 @@ import { UnitService } from '@core/services/Unit.service';
             </div>
 
             <!-- Mobile Cards -->
-            <div class="md:hidden space-y-4">
+            <!-- <div class="md:hidden space-y-4">
               <div *ngFor="let meter of meters(); trackBy: trackByMeterId" 
                    class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
                 <div class="flex items-start justify-between mb-3">
@@ -166,7 +173,7 @@ import { UnitService } from '@core/services/Unit.service';
                   </div>
                 </div>
               </div>
-            </div>
+            </div> -->
           </div>
         </div>
       </app-card>
@@ -267,5 +274,11 @@ export class UnitMetersComponent implements OnInit, OnDestroy {
     // TODO: Implementar busca do nome do tipo de medição
     // Por enquanto, retorna um placeholder
     return `Tipo ${typeId}`;
+  }
+
+    // Navegação explícita para depuração
+  goToReadings(meterId: number): void {
+    console.log('[DEBUG] Clique em Leituras para meterId:', meterId);
+    this.router.navigate(['/readings'], { queryParams: { meterId } });
   }
 }

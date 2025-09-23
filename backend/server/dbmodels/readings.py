@@ -60,7 +60,8 @@ class ReadingResponse(ReadingBase):
     created_at: datetime
     updated_at: datetime
     photos: List[ReadingPhotoResponse] = []
-    meter: dict  # Incluirá informações básicas do medidor
+    from .meters import MeterResponse
+    meter: Optional[MeterResponse] = None  # Incluirá informações básicas do medidor
 
     class Config:
         orm_mode = True

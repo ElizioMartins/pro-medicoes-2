@@ -9,22 +9,22 @@
           <h3 class="filters-title">Filtros</h3>
           <div class="filters-grid">
             <div class="filter-group">
-              <label>Condomínio</label>
-              <select class="filter-select" [(ngModel)]="selectedCondominiumId" (ngModelChange)="applyFilters()">
+              <label for="condominium-select">Condomínio</label>
+              <select id="condominium-select" class="filter-select" [(ngModel)]="selectedCondominiumId">
                 <option value="">Todos</option>
                 <option *ngFor="let condo of condominiums" [value]="condo.id">{{ condo.name }}</option>
               </select>
             </div>
             <div class="filter-group">
-              <label>Tipo de Medição</label>
-              <select class="filter-select" [(ngModel)]="selectedMeasurementTypeId" (ngModelChange)="applyFilters()">
+              <label for="measurement-type-select">Tipo de Medição</label>
+              <select id="measurement-type-select" class="filter-select" [(ngModel)]="selectedMeasurementTypeId">
                 <option value="">Todos</option>
                 <option *ngFor="let type of measurementTypes" [value]="type.id">{{ type.name }}</option>
               </select>
             </div>
             <div class="filter-group">
-              <label>Período</label>
-              <select class="filter-select" [(ngModel)]="selectedPeriod" (ngModelChange)="applyFilters()">
+              <label for="period-select">Período</label>
+              <select id="period-select" class="filter-select" [(ngModel)]="selectedPeriod">
                 <option value="all">Todos</option>
                 <option value="30">Últimos 30 dias</option>
                 <option value="90">Últimos 90 dias</option>
@@ -34,8 +34,7 @@
               </select>
             </div>
             <div class="filter-actions">
-              <!-- Apply filters button can be removed if filtering is done on change -->
-              <!-- <app-button variant="secondary" size="sm" (click)="applyFilters()">Aplicar Filtros</app-button> -->
+              <app-button variant="secondary" size="sm" (click)="applyFilters()">Aplicar Filtros</app-button>
               <app-button variant="outline" size="sm" (click)="clearFilters()">Limpar</app-button>
             </div>
           </div>

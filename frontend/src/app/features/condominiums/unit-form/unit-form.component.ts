@@ -1,7 +1,5 @@
-import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { CardComponent } from '@shared/components/ui/card/card.component';
 import { ButtonComponent } from '@shared/components/ui/button/button.component';
@@ -12,6 +10,8 @@ import { MeterService } from '@core/services/meter.service';
 import { ToastService } from '@app/core/services/toast.service';
 import { MeasurementType } from '@app/shared/models/measurement-type.model';
 import { MeasurementTypeService } from '@app/core/services/measurementtype.service';
+import { Component, OnInit, inject } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-unit-form',

@@ -92,12 +92,12 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let unit of units">
+              <tr *ngFor="let unit of units" (click)="goToUnitForm(unit.id)" style="cursor:pointer">
                 <td>{{ unit.number }}</td>
                 <td>{{ unit.owner }}</td>
                 <td>{{ unit.meters_count }}</td>
                 <td>{{ unit.last_reading | date:'dd/MM/yyyy' }}</td>
-                <td class="actions-cell">
+                <td class="actions-cell" (click)="$event.stopPropagation()">
                   <app-button [routerLink]="['/condominiums', condominiumId, 'units', unit.id, 'edit']" variant="outline" size="sm">Editar</app-button>
                   <app-button (click)="deleteUnit(unit.id)" (keyup.enter)="deleteUnit(unit.id)" variant="danger" size="sm">Excluir</app-button>
                 </td>

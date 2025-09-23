@@ -1,11 +1,12 @@
-import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
 import { UserService } from '../../../core/services/user.service';
 import { ButtonComponent } from '@shared/components/ui/button/button.component';
 import { InputComponent } from '@shared/components/ui/input/input.component';
 import { CardComponent } from '@shared/components/ui/card/card.component';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, inject } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-login',
@@ -23,15 +24,15 @@ import { CardComponent } from '@shared/components/ui/card/card.component';
 export class LoginComponent {
   loginForm: FormGroup;
   isSubmitting = false;
-  returnUrl: string = '/dashboard';
-  errorMessage: string = '';
+  returnUrl = '/dashboard';
+  errorMessage = '';
 
-  constructor(
-    private fb: FormBuilder,
-    private userService: UserService,
-    private router: Router,
-    private route: ActivatedRoute
-  ) {
+  private fb = inject(FormBuilder);
+  private userService = inject(UserService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+
+  constructor() {
     this.loginForm = this.fb.group({
       username: ['', Validators.required],
       password: ['', Validators.required]
@@ -59,7 +60,7 @@ export class LoginComponent {
         // O UserService já salva o token e usuário automaticamente
         this.router.navigate([this.returnUrl]);
       },
-      error: (error) => {
+      error: (error: HttpErrorResponse) => {
         this.errorMessage = error.error?.detail || 'Credenciais inválidas';
         this.isSubmitting = false;
       }

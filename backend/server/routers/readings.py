@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Query
 from sqlalchemy.orm import Session
 from typing import List
 from datetime import datetime
@@ -16,10 +16,14 @@ router = APIRouter()
 def get_readings(
     skip: int = 0,
     limit: int = 100,
+    meter_id: int = Query(None, description="Filtrar por ID do medidor"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_any_authenticated_user)  # Qualquer usuário autenticado pode ver
 ):
-    readings = db.query(Reading).offset(skip).limit(limit).all()
+    query = db.query(Reading)
+    if meter_id is not None:
+        query = query.filter(Reading.meter_id == meter_id)
+    readings = query.offset(skip).limit(limit).all()
     return readings
 
 @router.get("/{reading_id}", response_model=ReadingResponse)
