@@ -13,12 +13,14 @@ import { Reading } from '../../shared/models/reading.model';
 import { Condominium } from '../../shared/models/condominium.model';
 import { MeasurementType } from '../../shared/models/measurement-type.model';
 import { Unit } from '../../shared/models/unit.model';
+import { Meter } from '../../shared/models/meter.model';
 
 // Services  
 import { ReadingService } from '../../core/services/reading.service';
 import { CondominiumService } from '../../core/services/condominium.service';
 import { MeasurementTypeService } from '../../core/services/measurementtype.service';
 import { UnitService } from '../../core/services/Unit.service';
+import { MeterService } from '../../core/services/meter.service';
 import { NotificationService } from '../../core/services/notification.service';
 
 interface ReadingFilters {
@@ -64,11 +66,12 @@ export class ReadingsComponent implements OnInit, OnDestroy {
   private condominiumService = inject(CondominiumService);
   private unitService = inject(UnitService);
   private measurementTypeService = inject(MeasurementTypeService);
+  private meterService = inject(MeterService);
   private notificationService = inject(NotificationService);
 
   ngOnInit(): void {
+    this.handleRouteParams(); // Processar primeiro os route params
     this.loadInitialData();
-    this.handleRouteParams();
   }
 
   ngOnDestroy(): void {
@@ -103,16 +106,98 @@ export class ReadingsComponent implements OnInit, OnDestroy {
         }
       });
 
-    this.loadReadings();
+    // Só carregar leituras se não tiver meterId nos params (será carregado pelo contexto)
+    if (!this.filters().meterId) {
+      this.loadReadings();
+    }
   }
 
   private handleRouteParams(): void {
     this.route.queryParams
       .pipe(takeUntil(this.destroy$))
       .subscribe(params => {
-        if (params['meterId']) {
+        console.log('[DEBUG] Query params recebidos:', params);
+
+        // Se temos um contexto completo nos params, usar diretamente
+        if (params['meterId'] && params['unitId'] && params['condominiumId']) {
+          const filters: ReadingFilters = {
+            meterId: Number(params['meterId']),
+            unitId: Number(params['unitId']),
+            condominiumId: Number(params['condominiumId']),
+            measurementTypeId: params['measurementTypeId'] ? Number(params['measurementTypeId']) : undefined,
+            period: 'all'
+          };
+
+          console.log('[DEBUG] Usando contexto completo dos params:', filters);
+          
+          this.filters.set(filters);
+          
+          // Carregar unidades do condomínio para o filtro
+          if (filters.condominiumId) {
+            this.loadUnitsForCondominium(filters.condominiumId);
+          }
+          
+          // Carregar leituras com contexto completo
+          this.loadReadings();
+
+        } else if (params['meterId']) {
+          // Fallback: buscar contexto do medidor (método anterior)
           const meterId = Number(params['meterId']);
           this.filters.update(f => ({ ...f, meterId }));
+          this.loadMeterContext(meterId);
+        }
+      });
+  }
+
+  private loadMeterContext(meterId: number): void {
+    this.meterService.getMeterById(meterId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (meter: Meter) => {
+          if (meter && meter.unit_id) {
+            // Buscar informações da unidade para obter o condomínio
+            this.unitService.getUnitById(meter.unit_id)
+              .pipe(takeUntil(this.destroy$))
+              .subscribe({
+                next: (unit) => {
+                  if (unit && unit.condominium_id) {
+                    console.log('[DEBUG] Contexto do medidor:', {
+                      meterId,
+                      unitId: unit.id,
+                      condominiumId: unit.condominium_id,
+                      measurementTypeId: meter.measurement_type_id
+                    });
+
+                    // Pré-preencher filtros com contexto
+                    this.filters.update(f => ({
+                      ...f,
+                      condominiumId: unit.condominium_id,
+                      unitId: unit.id,
+                      // measurementTypeId deixar como undefined para mostrar "Todos"
+                      meterId
+                    }));
+
+                    // Carregar unidades do condomínio para o filtro
+                    this.loadUnitsForCondominium(unit.condominium_id);
+                    
+                    // Recarregar leituras com novo contexto
+                    this.loadReadings();
+                  }
+                },
+                error: (error) => {
+                  console.error('Erro ao carregar unidade do medidor:', error);
+                  // Mesmo com erro, carregar as leituras com o meterId
+                  this.loadReadings();
+                }
+              });
+          } else {
+            // Se não conseguir buscar contexto, carregar apenas com meterId
+            this.loadReadings();
+          }
+        },
+        error: (error) => {
+          console.error('Erro ao carregar medidor:', error);
+          // Mesmo com erro, carregar as leituras com o meterId
           this.loadReadings();
         }
       });
@@ -131,12 +216,12 @@ export class ReadingsComponent implements OnInit, OnDestroy {
       this.filteredUnits.set([]);
     }
     
-    this.onFilterChange();
+    // Removido: this.onFilterChange() - agora só filtra ao clicar em aplicar
   }
 
   onUnitChange(unitId: number | null): void {
     this.filters.update(f => ({ ...f, unitId: unitId || undefined }));
-    this.onFilterChange();
+    // Removido: this.onFilterChange() - agora só filtra ao clicar em aplicar
   }
 
   private loadUnitsForCondominium(condominiumId: number): void {
@@ -153,11 +238,12 @@ export class ReadingsComponent implements OnInit, OnDestroy {
   }
 
   onFilterChange(): void {
-    // Debounce could be added here if needed
-    this.loadReadings();
+    // Método mantido para compatibilidade, mas não faz nada
+    // Os filtros só são aplicados quando clicar no botão "Aplicar"
   }
 
   applyFilters(): void {
+    console.log('[DEBUG] Aplicando filtros manualmente');
     this.loadReadings();
   }
 
@@ -263,5 +349,40 @@ export class ReadingsComponent implements OnInit, OnDestroy {
       'INACCESSIBLE': 'bg-red-100 text-red-800'
     };
     return classMap[status] || 'bg-gray-100 text-gray-800';
+  }
+
+  // Getters para os filtros (necessário para ngModel funcionar corretamente com signals)
+  get selectedCondominiumId(): number | null {
+    return this.filters().condominiumId || null;
+  }
+
+  set selectedCondominiumId(value: number | null) {
+    this.onCondominiumChange(value);
+  }
+
+  get selectedUnitId(): number | null {
+    return this.filters().unitId || null;
+  }
+
+  set selectedUnitId(value: number | null) {
+    this.onUnitChange(value);
+  }
+
+  get selectedMeasurementTypeId(): number | null {
+    return this.filters().measurementTypeId || null;
+  }
+
+  set selectedMeasurementTypeId(value: number | null) {
+    this.filters.update(f => ({ ...f, measurementTypeId: value || undefined }));
+    // Removido: this.onFilterChange() - agora só filtra ao clicar em aplicar
+  }
+
+  get selectedPeriod(): string {
+    return this.filters().period || 'all';
+  }
+
+  set selectedPeriod(value: string) {
+    this.filters.update(f => ({ ...f, period: value }));
+    // Não chama onFilterChange() - só filtra ao clicar em aplicar
   }
 }

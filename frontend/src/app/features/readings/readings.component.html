@@ -9,8 +9,7 @@
           <label for="condominium-select">Condomínio</label>
           <select
             id="condominium-select"
-            [(ngModel)]="filters().condominiumId"
-            (ngModelChange)="onCondominiumChange($event)"
+            [(ngModel)]="selectedCondominiumId"
             class="filter-select">
             <option [value]="null">Todos os condomínios</option>
             <option *ngFor="let condo of condominiums()" [value]="condo.id">
@@ -23,9 +22,8 @@
           <label for="unit-select">Unidade</label>
           <select
             id="unit-select"
-            [(ngModel)]="filters().unitId"
-            (ngModelChange)="onUnitChange($event)"
-            [disabled]="!filters().condominiumId"
+            [(ngModel)]="selectedUnitId"
+            [disabled]="!selectedCondominiumId"
             class="filter-select">
             <option [value]="null">Todas as unidades</option>
             <option *ngFor="let unit of filteredUnits()" [value]="unit.id">
@@ -38,8 +36,7 @@
           <label for="measurement-type-select">Tipo de Medição</label>
           <select
             id="measurement-type-select"
-            [(ngModel)]="filters().measurementTypeId"
-            (ngModelChange)="onFilterChange()"
+            [(ngModel)]="selectedMeasurementTypeId"
             class="filter-select">
             <option [value]="null">Todos os tipos</option>
             <option *ngFor="let type of measurementTypes()" [value]="type.id">
@@ -52,8 +49,7 @@
           <label for="period-select">Período</label>
           <select
             id="period-select"
-            [(ngModel)]="filters().period"
-            (ngModelChange)="onFilterChange()"
+            [(ngModel)]="selectedPeriod"
             class="filter-select">
             <option value="all">Todos</option>
             <option value="7">Últimos 7 dias</option>

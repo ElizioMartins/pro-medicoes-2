@@ -138,9 +138,26 @@ export class MeterListComponent implements OnInit, OnDestroy {
     return measurementType?.name || `Tipo ${typeId}`;
   }
 
-  // Navegação explícita para depuração
+  // Navegação explícita com contexto completo
   goToReadings(meterId: number): void {
-    console.log('[DEBUG] Clique em Leituras para meterId:', meterId);
-    this.router.navigate(['/readings'], { queryParams: { meterId } });
+    const meter = this.meters().find(m => m.id === meterId);
+    const unit = this.unit();
+    
+    if (!meter || !unit) {
+      console.warn('[DEBUG] Dados incompletos para navegação:', { meter, unit });
+      // Fallback para navegação básica
+      this.router.navigate(['/readings'], { queryParams: { meterId } });
+      return;
+    }
+
+    const queryParams = {
+      meterId: meterId,
+      unitId: unit.id,
+      condominiumId: unit.condominium_id,
+      measurementTypeId: meter.measurement_type_id
+    };
+
+    console.log('[DEBUG] Navegando para leituras com contexto completo:', queryParams);
+    this.router.navigate(['/readings'], { queryParams });
   }
 }
