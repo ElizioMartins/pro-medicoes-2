@@ -38,7 +38,8 @@ interface ReadingFilters {
     CardComponent,
     ButtonComponent
   ],
-  templateUrl: './readings.component.html'
+  templateUrl: './readings.component.html',
+  styleUrl: './readings.component.scss'
 })
 export class ReadingsComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();

@@ -1,211 +1,129 @@
-<div class="container mx-auto p-2 sm:p-4 space-y-4">
-  <!-- Header -->
-  <app-card>
-    <div class="p-4 sm:p-6">
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <div>
-          <h1 class="text-xl sm:text-2xl font-bold text-gray-800">Leituras</h1>
-          <p class="text-sm text-gray-600 mt-1">Gerencie as leituras dos medidores</p>
-        </div>
-      </div>
-
-      <!-- Filtros -->
-      <div class="bg-gray-50 rounded-lg p-4 mb-6">
-        <h3 class="font-medium text-gray-900 mb-4">Filtros</h3>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <!-- Condomínio -->
-          <div>
-            <label for="condominium-select" class="block text-sm font-medium text-gray-700 mb-2">
-              Condomínio
-            </label>
-            <select
-              id="condominium-select"
-              [(ngModel)]="filters().condominiumId"
-              (ngModelChange)="onCondominiumChange($event)"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option [value]="null">Todos os condomínios</option>
-              <option *ngFor="let condo of condominiums()" [value]="condo.id">
-                {{ condo.name }}
-              </option>
-            </select>
-          </div>
-
-          <!-- Unidade -->
-          <div>
-            <label for="unit-select" class="block text-sm font-medium text-gray-700 mb-2">
-              Unidade
-            </label>
-            <select
-              id="unit-select"
-              [(ngModel)]="filters().unitId"
-              (ngModelChange)="onUnitChange($event)"
-              [disabled]="!filters().condominiumId"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100">
-              <option [value]="null">Todas as unidades</option>
-              <option *ngFor="let unit of filteredUnits()" [value]="unit.id">
-                Unidade {{ unit.number }}
-              </option>
-            </select>
-          </div>
-
-          <!-- Tipo de Medição -->
-          <div>
-            <label for="measurement-type-select" class="block text-sm font-medium text-gray-700 mb-2">
-              Tipo de Medição
-            </label>
-            <select
-              id="measurement-type-select"
-              [(ngModel)]="filters().measurementTypeId"
-              (ngModelChange)="onFilterChange()"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option [value]="null">Todos os tipos</option>
-              <option *ngFor="let type of measurementTypes()" [value]="type.id">
-                {{ type.name }}
-              </option>
-            </select>
-          </div>
-
-          <!-- Período -->
-          <div>
-            <label for="period-select" class="block text-sm font-medium text-gray-700 mb-2">
-              Período
-            </label>
-            <select
-              id="period-select"
-              [(ngModel)]="filters().period"
-              (ngModelChange)="onFilterChange()"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="all">Todos</option>
-              <option value="7">Últimos 7 dias</option>
-              <option value="30">Últimos 30 dias</option>
-              <option value="90">Últimos 90 dias</option>
-            </select>
-          </div>
+<div class="readings-container">
+  <h1 class="readings-title">Leituras</h1>
+  
+  <!-- Filtros Rápidos -->
+  <div class="dashboard-actions">
+    <app-card title="Filtros" [elevated]="true">
+      <div class="quick-filters">
+        <div class="filter-group">
+          <label for="condominium-select">Condomínio</label>
+          <select
+            id="condominium-select"
+            [(ngModel)]="filters().condominiumId"
+            (ngModelChange)="onCondominiumChange($event)"
+            class="filter-select">
+            <option [value]="null">Todos os condomínios</option>
+            <option *ngFor="let condo of condominiums()" [value]="condo.id">
+              {{ condo.name }}
+            </option>
+          </select>
         </div>
 
-        <div class="flex gap-2 mt-4">
-          <app-button (click)="applyFilters()" variant="primary" size="sm">
-            Aplicar Filtros
-          </app-button>
-          <app-button (click)="clearFilters()" variant="outline" size="sm">
-            Limpar Filtros
-          </app-button>
+        <div class="filter-group">
+          <label for="unit-select">Unidade</label>
+          <select
+            id="unit-select"
+            [(ngModel)]="filters().unitId"
+            (ngModelChange)="onUnitChange($event)"
+            [disabled]="!filters().condominiumId"
+            class="filter-select">
+            <option [value]="null">Todas as unidades</option>
+            <option *ngFor="let unit of filteredUnits()" [value]="unit.id">
+              Unidade {{ unit.number }}
+            </option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="measurement-type-select">Tipo de Medição</label>
+          <select
+            id="measurement-type-select"
+            [(ngModel)]="filters().measurementTypeId"
+            (ngModelChange)="onFilterChange()"
+            class="filter-select">
+            <option [value]="null">Todos os tipos</option>
+            <option *ngFor="let type of measurementTypes()" [value]="type.id">
+              {{ type.name }}
+            </option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="period-select">Período</label>
+          <select
+            id="period-select"
+            [(ngModel)]="filters().period"
+            (ngModelChange)="onFilterChange()"
+            class="filter-select">
+            <option value="all">Todos</option>
+            <option value="7">Últimos 7 dias</option>
+            <option value="30">Últimos 30 dias</option>
+            <option value="90">Últimos 90 dias</option>
+          </select>
+        </div>
+
+        <div class="filter-actions">
+          <app-button (click)="applyFilters()">Aplicar</app-button>
+          <app-button (click)="clearFilters()" variant="outline">Limpar</app-button>
         </div>
       </div>
+    </app-card>
+  </div>
 
-      <!-- Loading State -->
-      <div *ngIf="isLoading()" class="text-center py-12">
-        <div class="animate-spin inline-block w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
-        <p class="mt-2 text-gray-600">Carregando leituras...</p>
+  <!-- Loading State -->
+  <div *ngIf="isLoading()" class="loading-state">
+    <app-card [elevated]="true">
+      <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <p>Carregando leituras...</p>
       </div>
+    </app-card>
+  </div>
 
-      <!-- Error State -->
-      <div *ngIf="error()" class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg mb-6">
+  <!-- Error State -->
+  <div *ngIf="error()" class="error-state">
+    <app-card [elevated]="true">
+      <div class="error-content">
         <p><strong>Erro:</strong> {{ error() }}</p>
-        <app-button (click)="loadReadings()" variant="outline" class="mt-2">
-          Tentar Novamente
-        </app-button>
+        <app-button (click)="loadReadings()" variant="outline">Tentar Novamente</app-button>
       </div>
+    </app-card>
+  </div>
 
-      <!-- Empty State -->
-      <div *ngIf="!isLoading() && !error() && readings().length === 0" 
-           class="text-center py-12 bg-gray-50 rounded-lg">
-        <svg xmlns="http://www.w3.org/2000/svg" 
-             class="h-12 w-12 mx-auto text-gray-400" 
-             fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-        </svg>
-        <h3 class="mt-2 text-lg font-medium text-gray-900">Nenhuma leitura encontrada</h3>
-        <p class="mt-1 text-gray-500">Não há leituras para os filtros aplicados.</p>
+  <!-- Readings List -->
+  <div class="dashboard-recent">
+    <app-card title="Leituras" [elevated]="true">
+      <div *ngIf="!isLoading() && !error() && readings().length > 0; else noReadings">
+        <table class="readings-table">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Condomínio</th>
+              <th>Unidade</th>
+              <th>Tipo</th>
+              <th>Leitura</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let reading of readings(); trackBy: trackByReadingId">
+              <td>{{ reading.date | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td>{{ getCondominiumName(reading) }}</td>
+              <td>{{ getUnitNumber(reading) }}</td>
+              <td>{{ getMeasurementTypeName(reading) }}</td>
+              <td>{{ getReadingValue(reading) }}</td>
+              <td>
+                <span [class]="'status-badge ' + getStatusClass(reading.status)">
+                  {{ getStatusText(reading.status) }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-
-      <!-- Readings List -->
-      <div *ngIf="!isLoading() && !error() && readings().length > 0">
-        <!-- Desktop Table -->
-        <div class="hidden md:block overflow-x-auto">
-          <table class="w-full bg-white border border-gray-200 rounded-lg">
-            <thead class="bg-gray-50">
-              <tr>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Data
-                </th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Condomínio
-                </th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Unidade
-                </th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Tipo
-                </th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Leitura
-                </th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              <tr *ngFor="let reading of readings(); trackBy: trackByReadingId" 
-                  class="hover:bg-gray-50">
-                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {{ reading.date | date:'dd/MM/yyyy HH:mm' }}
-                </td>
-                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {{ getCondominiumName(reading) }}
-                </td>
-                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {{ getUnitNumber(reading) }}
-                </td>
-                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {{ getMeasurementTypeName(reading) }}
-                </td>
-                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {{ getReadingValue(reading) }}
-                </td>
-                <td class="px-4 py-4 whitespace-nowrap">
-                  <span [class]="getStatusClass(reading.status)" 
-                        class="px-2 py-1 text-xs font-medium rounded-full">
-                    {{ getStatusText(reading.status) }}
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Mobile Cards -->
-        <div class="md:hidden space-y-4">
-          <div *ngFor="let reading of readings(); trackBy: trackByReadingId" 
-               class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-            <div class="flex items-start justify-between mb-3">
-              <div class="flex-1">
-                <h3 class="font-semibold text-gray-900">
-                  {{ getCondominiumName(reading) }} - Unidade {{ getUnitNumber(reading) }}
-                </h3>
-                <p class="text-sm text-gray-600">{{ getMeasurementTypeName(reading) }}</p>
-              </div>
-              <span [class]="getStatusClass(reading.status)" 
-                    class="px-2 py-1 text-xs font-medium rounded-full">
-                {{ getStatusText(reading.status) }}
-              </span>
-            </div>
-            
-            <div class="space-y-2">
-              <div class="flex justify-between">
-                <span class="text-sm text-gray-500">Data:</span>
-                <span class="text-sm text-gray-900">{{ reading.date | date:'dd/MM/yyyy HH:mm' }}</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-sm text-gray-500">Leitura:</span>
-                <span class="text-sm text-gray-900 font-mono">{{ getReadingValue(reading) }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </app-card>
+      <ng-template #noReadings>
+        <p class="no-data">{{ isLoading() ? '' : 'Nenhuma leitura encontrada para os filtros aplicados.' }}</p>
+      </ng-template>
+    </app-card>
+  </div>
 </div>
