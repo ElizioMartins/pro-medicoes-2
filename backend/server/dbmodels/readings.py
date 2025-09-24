@@ -60,9 +60,47 @@ class ReadingResponse(ReadingBase):
     created_at: datetime
     updated_at: datetime
     photos: List[ReadingPhotoResponse] = []
-    from .meters import MeterResponse
-    meter: Optional[MeterResponse] = None  # Incluirá informações básicas do medidor
+    
+    # Importar aqui para evitar import circular
+    class MeterInfo(BaseModel):
+        id: int
+        serial_number: Optional[str] = None
+        unit_id: int
+        measurement_type_id: int
+        
+        class UnitInfo(BaseModel):
+            id: int
+            number: str
+            condominium_id: int
+            
+            class CondominiumInfo(BaseModel):
+                id: int
+                name: str
+                
+                class Config:
+                    orm_mode = True
+            
+            condominium: Optional[CondominiumInfo] = None
+            
+            class Config:
+                orm_mode = True
+        
+        class MeasurementTypeInfo(BaseModel):
+            id: int
+            name: str
+            unit: str
+            
+            class Config:
+                orm_mode = True
+        
+        unit: Optional[UnitInfo] = None
+        measurement_type: Optional[MeasurementTypeInfo] = None
+        
+        class Config:
+            orm_mode = True
+    
+    meter: Optional[MeterInfo] = None
 
     class Config:
         orm_mode = True
-        arbitrary_types_allowed = True  # Permite tipos arbitrários
+        arbitrary_types_allowed = True

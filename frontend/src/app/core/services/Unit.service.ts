@@ -23,6 +23,10 @@ export class UnitService {
     return this.http.get<UnitListResponse>(`${this.apiUrl}/condominiums/${condominiumId}/units?skip=${skip}&limit=${limit}`);
   }
 
+  getUnitsByCondominiumId(condominiumId: number): Observable<UnitListResponse> {
+    return this.getUnits(condominiumId, 0, 1000); // Get all units for the condominium
+  }
+
   getUnitById(unitId: number): Observable<Unit> {
     return this.http.get<Unit>(`${this.apiUrl}/units/${unitId}`);
   }

@@ -1,7 +1,28 @@
 import { BaseEntity } from "./base.model";
 import { ReadingStatus } from "./enums";
-import { Meter } from "./meter.model";
 import { ReadingPhoto } from "./reading-photo.model";
+
+// Interfaces específicas para Reading com informações aninhadas
+export interface ReadingMeter {
+  id: number;
+  serial_number?: string;
+  unit_id: number;
+  measurement_type_id: number;
+  unit?: {
+    id: number;
+    number: string;
+    condominium_id: number;
+    condominium?: {
+      id: number;
+      name: string;
+    };
+  };
+  measurement_type?: {
+    id: number;
+    name: string;
+    unit: string;
+  };
+}
 
 export interface Reading extends BaseEntity {
   meter_id: number;
@@ -12,7 +33,7 @@ export interface Reading extends BaseEntity {
   inaccessible_reason?: string;
   observations?: string;
   photos: ReadingPhoto[];
-  meter?: Partial<Meter>;
+  meter?: ReadingMeter;
 }
 
 export interface ReadingCreate {

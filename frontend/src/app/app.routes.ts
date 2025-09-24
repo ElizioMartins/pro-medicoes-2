@@ -46,11 +46,11 @@ export const routes: Routes = [
       },
       {
         path: ':condominiumId/units/new',
-        loadComponent: () => import('./features/condominiums/unit-form/unit-form.component').then(m => m.UnitFormComponent)
+        loadComponent: () => import('./features/units/unit-form/unit-form.component').then(m => m.UnitFormComponent)
       },
       {
         path: ':condominiumId/units/:id/edit',
-        loadComponent: () => import('./features/condominiums/unit-form/unit-form.component').then(m => m.UnitFormComponent)
+        loadComponent: () => import('./features/units/unit-form/unit-form.component').then(m => m.UnitFormComponent)
       }
     ]
   },
@@ -65,15 +65,15 @@ export const routes: Routes = [
     children: [     
       {
         path: ':unitId/meters',
-        loadComponent: () => import('./features/condominiums/unit-form/unit-meters/unit-meters.component').then(m => m.UnitMetersComponent)
+        loadComponent: () => import('./features/units/unit-form/unit-meters/unit-meters.component').then(m => m.UnitMetersComponent)
       },
       {
         path: ':unitId/meters/new',
-        loadComponent: () => import('./features/condominiums/unit-form/unit-meters/meter-form.component').then(m => m.MeterFormComponent)
+        loadComponent: () => import('./features/units/unit-form/unit-meters/meter-form.component').then(m => m.MeterFormComponent)
       },
       {
         path: ':unitId/meters/:id/edit',
-        loadComponent: () => import('./features/condominiums/unit-form/unit-meters/meter-form.component').then(m => m.MeterFormComponent)
+        loadComponent: () => import('./features/units/unit-form/unit-meters/meter-form.component').then(m => m.MeterFormComponent)
       }
     ]
   },  {

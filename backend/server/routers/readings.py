@@ -17,12 +17,39 @@ def get_readings(
     skip: int = 0,
     limit: int = 100,
     meter_id: int = Query(None, description="Filtrar por ID do medidor"),
+    condominium_id: int = Query(None, description="Filtrar por ID do condomínio"),
+    unit_id: int = Query(None, description="Filtrar por ID da unidade"),
+    measurement_type_id: int = Query(None, description="Filtrar por tipo de medição"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_any_authenticated_user)  # Qualquer usuário autenticado pode ver
 ):
-    query = db.query(Reading)
+    from sqlalchemy.orm import joinedload
+    from dbmodels.units import Unit
+    from dbmodels.condominiums import Condominium
+    from dbmodels.measurement_types import MeasurementType
+    
+    query = (db.query(Reading)
+             .options(
+                 joinedload(Reading.meter)
+                 .joinedload(Meter.unit)
+                 .joinedload(Unit.condominium)
+             )
+             .options(
+                 joinedload(Reading.meter)
+                 .joinedload(Meter.measurement_type)
+             )
+             .join(Meter)
+             .join(Unit))
+    
     if meter_id is not None:
         query = query.filter(Reading.meter_id == meter_id)
+    if condominium_id is not None:
+        query = query.filter(Unit.condominium_id == condominium_id)
+    if unit_id is not None:
+        query = query.filter(Meter.unit_id == unit_id)
+    if measurement_type_id is not None:
+        query = query.filter(Meter.measurement_type_id == measurement_type_id)
+    
     readings = query.offset(skip).limit(limit).all()
     return readings
 

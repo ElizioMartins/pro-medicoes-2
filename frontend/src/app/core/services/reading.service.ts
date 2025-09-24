@@ -18,8 +18,27 @@ export class ReadingService extends BaseApiService<Reading, ReadingCreate, Readi
     super(inject(HttpClient));
   }
 
-  getReadingsFiltered(params: any): Observable<Reading[]> {
-    return this.http.get<Reading[]>(`/api/readings`, { params });
+  getReadingsFiltered(params: {
+    meter_id?: number;
+    condominium_id?: number;
+    unit_id?: number;
+    measurement_type_id?: number;
+    skip?: number;
+    limit?: number;
+  }): Observable<Reading[]> {
+    // Remove parâmetros undefined/null e converte para string apenas valores válidos
+    const cleanParams: Record<string, string> = {};
+    
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== null && value !== undefined && value !== 0) {
+        cleanParams[key] = value.toString();
+      }
+    });
+    
+    console.log('[DEBUG] Parâmetros enviados para API:', cleanParams);
+    console.log('[DEBUG] URL completa:', this.baseUrl);
+    
+    return this.http.get<Reading[]>(this.baseUrl, { params: cleanParams });
   }
 
   detectFromImage(file: File, meterId?: number): Observable<DetectionResponse> {
@@ -31,7 +50,7 @@ export class ReadingService extends BaseApiService<Reading, ReadingCreate, Readi
     return this.http.post<DetectionResponse>('/api/detect', formData);
   }
 
-  getByMeter(meterId: number, params?: any): Observable<PaginatedResponse<Reading>> {
+  getByMeter(meterId: number, params?: Record<string, string | number>): Observable<PaginatedResponse<Reading>> {
     return this.http.get<PaginatedResponse<Reading>>(`/api/meters/${meterId}/readings`, { params });
   }
 
