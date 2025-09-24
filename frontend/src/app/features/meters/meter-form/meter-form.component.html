@@ -1,0 +1,105 @@
+    <div class="meter-form-container">
+      <app-card>
+        <div class="p-6">
+          <!-- Header -->
+          <div class="form-section">
+            <h1 class="meter-form-title">
+              {{ isEditMode() ? 'Editar' : 'Novo' }} Medidor
+            </h1>
+            <p class="meter-form-subtitle">
+              {{ isEditMode() ? 'Atualize as informações do medidor' : 'Cadastre um novo medidor para a unidade' }}
+            </p>
+          </div>
+          
+          <!-- Loading State -->
+          <div *ngIf="isLoading()" class="loading-state">
+            <div class="loading-content">
+              <div class="loading-spinner"></div>
+              <p>Carregando...</p>
+            </div>
+          </div>
+
+          <!-- Error State -->
+          <div *ngIf="error()" class="error-state">
+            <div class="error-content">
+              <p><strong>Erro:</strong> {{ error() }}</p>
+              <app-button (click)="loadMeter()" *ngIf="isEditMode()" variant="outline">
+                Tentar Novamente
+              </app-button>
+            </div>
+          </div>
+
+          <!-- Form -->
+          <form [formGroup]="meterForm" (ngSubmit)="onSubmit()" *ngIf="!isLoading() && !error()">
+            <!-- Tipo de Medição -->
+            <div class="form-group">
+              <label for="measurement_type_id">
+                Tipo de Medição <span class="required">*</span>
+              </label>
+              <select
+                id="measurement_type_id"
+                formControlName="measurement_type_id"
+                class="form-select"
+                [class.error]="meterForm.get('measurement_type_id')?.invalid && meterForm.get('measurement_type_id')?.touched"
+              >
+                <option value="">Selecione um tipo de medição</option>
+                <option *ngFor="let type of measurementTypes()" [value]="type.id">
+                  {{ type.name }} ({{ type.unit }})
+                </option>
+              </select>
+              <p *ngIf="meterForm.get('measurement_type_id')?.invalid && meterForm.get('measurement_type_id')?.touched" 
+                 class="error-message">
+                Tipo de medição é obrigatório
+              </p>
+            </div>
+
+            <!-- Número de Série -->
+            <div class="form-group">
+              <label for="serial_number">
+                Número de Série (Opcional)
+              </label>
+              <input
+                type="text"
+                id="serial_number"
+                formControlName="serial_number"
+                placeholder="Ex: ABC123456"
+                class="form-input"
+              >
+            </div>
+
+            <!-- Status Ativo -->
+            <div class="form-group">
+              <div class="checkbox-group">
+                <input
+                  type="checkbox"
+                  id="active"
+                  [checked]="meterForm.get('active')?.value"
+                  (change)="onActiveChange($event)"
+                >
+                <label for="active">
+                  Medidor ativo
+                </label>
+              </div>
+            </div>
+
+            <!-- Botões do formulário -->
+            <div class="form-actions form-actions-responsive">
+              <app-button 
+                type="submit" 
+                [disabled]="meterForm.invalid || isSaving()" 
+                [loading]="isSaving()"
+                variant="primary"
+                class="btn-primary">
+                {{ isEditMode() ? 'Salvar Alterações' : 'Criar Medidor' }}
+              </app-button>
+              <app-button 
+                type="button" 
+                variant="outline" 
+                (click)="goBack()">
+                Cancelar
+              </app-button>
+            </div>
+          </form>
+        </div>
+      </app-card>
+    </div>

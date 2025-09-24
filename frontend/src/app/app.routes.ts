@@ -65,15 +65,21 @@ export const routes: Routes = [
     children: [     
       {
         path: ':unitId/meters',
-        loadComponent: () => import('./features/units/unit-form/unit-meters/unit-meters.component').then(m => m.UnitMetersComponent)
+        loadComponent: () => import('./features/meters/meter-list/meter-list.component').then(m => m.MeterListComponent)
+      }
+    ]
+  },
+  {
+    path: 'meters',
+    canActivate: [AuthGuard],
+    children: [
+      {
+        path: 'new',
+        loadComponent: () => import('./features/meters/meter-form/meter-form.component').then(m => m.MeterFormComponent)
       },
       {
-        path: ':unitId/meters/new',
-        loadComponent: () => import('./features/units/unit-form/unit-meters/meter-form.component').then(m => m.MeterFormComponent)
-      },
-      {
-        path: ':unitId/meters/:id/edit',
-        loadComponent: () => import('./features/units/unit-form/unit-meters/meter-form.component').then(m => m.MeterFormComponent)
+        path: ':id/edit',
+        loadComponent: () => import('./features/meters/meter-form/meter-form.component').then(m => m.MeterFormComponent)
       }
     ]
   },  {

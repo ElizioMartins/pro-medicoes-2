@@ -1,0 +1,261 @@
+.unit-meters-container {
+  padding: 1.5rem;
+}
+
+.unit-meters-title {
+  margin-bottom: 1.5rem;
+  font-size: 1.875rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.unit-meters-subtitle {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+
+.dashboard-actions {
+  margin-bottom: 2rem;
+}
+
+.header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.header-info {
+  flex: 1;
+}
+
+.loading-state,
+.error-state {
+  margin-bottom: 2rem;
+}
+
+.loading-content,
+.error-content {
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.loading-spinner {
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  border: 4px solid #e5e7eb;
+  border-top: 4px solid #2563eb;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-content {
+  color: #dc2626;
+
+  p {
+    margin-bottom: 1rem;
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+  
+  .empty-icon {
+    width: 3rem;
+    height: 3rem;
+    margin: 0 auto 1rem;
+    color: #9ca3af;
+  }
+  
+  h3 {
+    font-size: 1.125rem;
+    font-weight: 500;
+    color: #111827;
+    margin-bottom: 0.5rem;
+  }
+  
+  p {
+    color: #6b7280;
+    margin-bottom: 1.5rem;
+  }
+}
+
+.meters-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+}
+
+.meters-table th, .meters-table td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.meters-table th {
+  font-weight: 600;
+  color: #374151;
+  background-color: #f9fafb;
+}
+
+.meters-table tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 9999px;
+  text-align: center;
+
+  &.bg-green-100 {
+    background-color: #d1fae5;
+    color: #059669;
+  }
+
+  &.text-green-800 {
+    color: #059669;
+  }
+
+  &.bg-red-100 {
+    background-color: #fee2e2;
+    color: #dc2626;
+  }
+
+  &.text-red-800 {
+    color: #dc2626;
+  }
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.serial-number {
+  font-family: 'Courier New', monospace;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+// Mobile Cards (caso seja implementado no futuro)
+.mobile-cards {
+  display: none;
+}
+
+.meter-card {
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 0.75rem;
+
+    .card-title {
+      font-weight: 600;
+      color: #111827;
+    }
+
+    .card-id {
+      font-size: 0.875rem;
+      color: #6b7280;
+    }
+  }
+
+  .card-info {
+    margin-bottom: 0.75rem;
+
+    .info-label {
+      font-size: 0.875rem;
+      color: #6b7280;
+    }
+
+    .info-value {
+      margin-left: 0.25rem;
+      font-size: 0.875rem;
+      font-family: 'Courier New', monospace;
+    }
+  }
+
+  .card-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    .action-row {
+      display: flex;
+      gap: 0.5rem;
+
+      .flex-1 {
+        flex: 1;
+      }
+    }
+  }
+}
+
+// Responsividade
+@media (max-width: 768px) {
+  .unit-meters-container {
+    padding: 1rem;
+  }
+
+  .header-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .meters-table {
+    font-size: 0.875rem;
+  }
+
+  .meters-table th,
+  .meters-table td {
+    padding: 0.5rem;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+  }
+
+  // Mostrar cards em mobile se implementado
+  .mobile-cards {
+    display: block;
+  }
+
+  .desktop-table {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .unit-meters-title {
+    font-size: 1.5rem;
+  }
+
+  .action-buttons {
+    gap: 0.25rem;
+  }
+}
