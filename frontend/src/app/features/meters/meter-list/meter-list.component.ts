@@ -160,4 +160,26 @@ export class MeterListComponent implements OnInit, OnDestroy {
     console.log('[DEBUG] Navegando para leituras com contexto completo:', queryParams);
     this.router.navigate(['/readings'], { queryParams });
   }
+
+  // Navegar para adicionar nova leitura com contexto completo
+  addReading(meter: Meter): void {
+    const unit = this.unit();
+    
+    if (!unit) {
+      console.warn('[DEBUG] Unidade não encontrada para adicionar leitura');
+      // Fallback para navegação básica apenas com medidor
+      this.router.navigate(['/readings/new'], { queryParams: { meterId: meter.id } });
+      return;
+    }
+
+    const queryParams = {
+      meterId: meter.id,
+      unitId: unit.id,
+      condominiumId: unit.condominium_id,
+      measurementTypeId: meter.measurement_type_id
+    };
+
+    console.log('[DEBUG] Navegando para nova leitura com contexto completo:', queryParams);
+    this.router.navigate(['/readings/new'], { queryParams });
+  }
 }

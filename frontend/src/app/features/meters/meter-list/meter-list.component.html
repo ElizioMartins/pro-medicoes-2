@@ -87,11 +87,15 @@
                     <div class="action-buttons">
                       <app-button [routerLink]="['/meters', meter.id, 'edit']" 
                                   size="sm" variant="outline">
-                        Editar
+                        Editar Medidor
                       </app-button>
                       <app-button (click)="goToReadings(meter.id)"
                                   size="sm" variant="outline">
                         Leituras
+                      </app-button>
+                      <app-button (click)="addReading(meter)"
+                                  size="sm" variant="primary">
+                        Nova Leitura
                       </app-button>
                       <app-button (click)="confirmDeleteMeter(meter)" 
                                   size="sm" variant="danger">

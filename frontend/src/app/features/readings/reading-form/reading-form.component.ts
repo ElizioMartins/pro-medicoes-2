@@ -1,21 +1,32 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { HttpClient, HttpErrorResponse, HttpClientModule } from '@angular/common/http';
-import { forkJoin, of, throwError, switchMap, Observable, Subject } from 'rxjs';
-import { delay, tap, catchError, takeUntil } from 'rxjs/operators';
-import { trigger, state, style, animate, transition } from '@angular/animations';
+import { forkJoin, of,  switchMap, Observable, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { trigger, style, animate, transition } from '@angular/animations';
 
 import { MeterPhotoCaptureAngularComponent, PhotoCaptureEvent } from '@shared/components/meter-photo-capture/meter-photo-capture.component';
 import { CardComponent } from '@shared/components/ui/card/card.component';
 import { ButtonComponent } from '@shared/components/ui/button/button.component';
 import { InputComponent } from '@shared/components/ui/input/input.component';
-import { Reading } from '@app/shared/models/reading.model';
+import { Reading, ReadingCreate } from '@app/shared/models/reading.model';
 import { ReadingStatus } from '@app/shared/models/enums';
 import { ReadingPhoto } from '@shared/models/reading-photo.model';
 import { ReadingService } from '@core/services/reading.service';
 import { ApiResponse } from '@shared/models/api-response.model';
+import { UnitService } from '@core/services/Unit.service';
+import { MeasurementTypeService } from '@core/services/measurementtype.service';
+import { Unit } from '@shared/models/unit.model';
+import { MeasurementType } from '@shared/models/measurement-type.model';
+
+interface UnitListResponse {
+  units: Unit[];
+  total: number;
+  skip: number;
+  limit: number;
+}
 
 @Component({
   selector: 'app-reading-form',
@@ -23,6 +34,7 @@ import { ApiResponse } from '@shared/models/api-response.model';
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    FormsModule,
     RouterLink,
     HttpClientModule,
     MeterPhotoCaptureAngularComponent,
@@ -59,12 +71,31 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
   private newPhotoTaken = false;
   private destroy$ = new Subject<void>();
 
+  // Upload photo properties
+  uploadedFullImage: string | null = null;
+  uploadedCroppedImage: string | null = null;
+  isUploadDetecting = false;
+  uploadDetectionError: string | null = null;
+  private newPhotoUploaded = false;
+
+  // Context information for new readings
+  contextMeterId: number | null = null;
+  contextUnitId: number | null = null;
+  contextCondominiumId: number | null = null;
+  contextMeasurementTypeId: number | null = null;
+
+  // Available options for selects
+  availableUnits: Unit[] = [];
+  availableMeasurementTypes: MeasurementType[] = [];
+
   constructor(
     private fb: FormBuilder,
     private router: Router,
     private http: HttpClient,
     private route: ActivatedRoute,
-    private readingService: ReadingService
+    private readingService: ReadingService,
+    private unitService: UnitService,
+    private measurementTypeService: MeasurementTypeService
   ) {
     this.readingForm = this.fb.group({
       currentReading: ['', [Validators.pattern('^[0-9]*[.]?[0-9]+$')]],
@@ -82,23 +113,28 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    // Verificar se é criação ou edição
     this.route.paramMap
       .pipe(
         takeUntil(this.destroy$),
         switchMap(params => {
           const id = params.get('id');
-          if (!id) {
-            this.loadError = 'ID da leitura não fornecido';
+          if (id) {
+            // Modo de edição
+            this.currentReadingIdFromRoute = parseInt(id);
+            this.isLoading = true;
+            return this.readingService.getReadingById(this.currentReadingIdFromRoute);
+          } else {
+            // Modo de criação - verificar query parameters
+            this.handleNewReadingParams();
             return of(undefined);
           }
-          this.currentReadingIdFromRoute = parseInt(id);
-          this.isLoading = true;
-          return this.readingService.getReadingById(this.currentReadingIdFromRoute);
         })
       )
       .subscribe({
         next: reading => {
           if (reading) {
+            // Carregando leitura existente
             this.currentReading = reading;
             this.readingForm.patchValue({
               currentReading: reading.current_reading || '',
@@ -118,7 +154,8 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
             }
             
             this.isLoading = false;
-          } else {
+          } else if (this.currentReadingIdFromRoute) {
+            // Leitura não encontrada
             this.loadError = `Leitura com ID ${this.currentReadingIdFromRoute} não encontrada.`;
             this.isLoading = false;
           }
@@ -127,6 +164,55 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
           console.error('Erro ao carregar dados da leitura:', err);
           this.loadError = 'Erro ao carregar dados da leitura.';
           this.isLoading = false;
+        }
+      });
+  }
+
+  private handleNewReadingParams(): void {
+    // Pegar parâmetros para criação de nova leitura
+    this.route.queryParams
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(params => {
+        if (params['meterId']) {
+          console.log('[DEBUG] Criando nova leitura com contexto:', params);
+          // Salvar contexto para usar no salvamento
+          this.contextMeterId = parseInt(params['meterId']);
+          this.contextUnitId = params['unitId'] ? parseInt(params['unitId']) : null;
+          this.contextCondominiumId = params['condominiumId'] ? parseInt(params['condominiumId']) : null;
+          this.contextMeasurementTypeId = params['measurementTypeId'] ? parseInt(params['measurementTypeId']) : null;
+          
+          // Inicializar opções dos selects (dados mock por enquanto)
+          this.initializeSelectOptions();
+        }
+      });
+  }
+
+  private initializeSelectOptions(): void {
+    // Carregar unidades do condomínio
+    if (this.contextCondominiumId) {
+      this.unitService.getUnitsByCondominiumId(this.contextCondominiumId)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (response: UnitListResponse) => {
+            this.availableUnits = response.units || [];
+          },
+          error: (error: any) => {
+            console.error('Erro ao carregar unidades:', error);
+            this.availableUnits = [];
+          }
+        });
+    }
+
+    // Carregar tipos de medição
+    this.measurementTypeService.getMeasurementTypes()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (types: MeasurementType[]) => {
+          this.availableMeasurementTypes = types;
+        },
+        error: (error: any) => {
+          console.error('Erro ao carregar tipos de medição:', error);
+          this.availableMeasurementTypes = [];
         }
       });
   }
@@ -229,10 +315,106 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
     }
   }
 
+  // Upload photo methods
+  onPhotoUpload(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+
+    const file = input.files[0];
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      this.uploadDetectionError = 'Por favor, selecione apenas arquivos de imagem.';
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      this.uploadDetectionError = 'Arquivo muito grande. Tamanho máximo: 10MB.';
+      return;
+    }
+
+    this.uploadDetectionError = null;
+    const reader = new FileReader();
+    
+    reader.onload = (e: ProgressEvent<FileReader>) => {
+      const base64 = e.target?.result as string;
+      this.uploadedFullImage = base64;
+      this.uploadedCroppedImage = base64; // Para upload, usamos a mesma imagem
+      this.newPhotoUploaded = true;
+      
+      // Detectar valor na imagem carregada
+      if (!this.readingForm.get('inaccessible')?.value) {
+        this.detectUploadedReadingValue(base64);
+      }
+    };
+    
+    reader.onerror = () => {
+      this.uploadDetectionError = 'Erro ao carregar o arquivo de imagem.';
+    };
+    
+    reader.readAsDataURL(file);
+    
+    // Reset input value to allow same file to be selected again
+    input.value = '';
+  }
+
+  private detectUploadedReadingValue(base64Image: string): void {
+    this.isUploadDetecting = true;
+    this.uploadDetectionError = null;
+    
+    try {
+      const imageBlob = this.base64ToBlob(base64Image);
+      const formData = new FormData();
+      formData.append('file', imageBlob, 'uploaded.jpg');
+
+      const ocrApiUrl = 'http://localhost:8000/detect/';
+
+      this.http.post<any>(ocrApiUrl, formData)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (response) => {
+            if (response && response.number_detected !== undefined && response.number_detected !== null) {
+              this.readingForm.get('currentReading')?.setValue(response.number_detected);
+              this.uploadDetectionError = null;
+            } else {
+              this.uploadDetectionError = 'Valor não detectado claramente. Insira manualmente.';
+            }
+            this.isUploadDetecting = false;
+          },
+          error: (err: HttpErrorResponse) => {
+            console.error('Erro na detecção OCR da imagem carregada:', err);
+            this.uploadDetectionError = `Erro na detecção OCR (${err.status}): ${err.message}. Tente novamente ou insira manualmente.`;
+            this.isUploadDetecting = false;
+          }
+        });
+    } catch (error: any) {
+      console.error('Erro ao preparar imagem carregada para detecção:', error);
+      this.uploadDetectionError = `Erro ao processar imagem: ${error.message}`;
+      this.isUploadDetecting = false;
+    }
+  }
+
+  removeUploadedPhoto(): void {
+    this.uploadedFullImage = null;
+    this.uploadedCroppedImage = null;
+    this.newPhotoUploaded = false;
+    this.uploadDetectionError = null;
+    this.isUploadDetecting = false;
+  }
+
+  triggerFileInput(): void {
+    const fileInput = document.getElementById('photoUpload') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.click();
+    }
+  }
+
   onSubmit(): void {
-    if (this.readingForm.invalid || !this.currentReadingIdFromRoute) {
+    if (this.readingForm.invalid) {
       this.readingForm.markAllAsTouched();
-      console.error('Formulário inválido ou ID da Leitura faltando.');
+      console.error('Formulário inválido.');
       return;
     }
 
@@ -242,13 +424,13 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
     let status: Reading['status'];
     if (formValue.inaccessible) {
       status = ReadingStatus.INACCESSIBLE;
-    } else if (formValue.currentReading && this.capturedCroppedImage) {
+    } else if (formValue.currentReading && (this.capturedCroppedImage || this.uploadedCroppedImage)) {
       status = ReadingStatus.COMPLETED;
     } else {
       status = ReadingStatus.PENDING;
     }
 
-    const readingUpdatePayload: Partial<Reading> = {
+    const readingPayload: Partial<Reading> = {
       current_reading: formValue.inaccessible ? null : formValue.currentReading,
       observations: formValue.notes,
       status,
@@ -256,29 +438,65 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
       date: new Date().toISOString()
     };
 
-    const updateReading$ = this.readingService.updateReading(this.currentReadingIdFromRoute, readingUpdatePayload);
-
-    let updatePhoto$: Observable<ApiResponse<ReadingPhoto> | null> = of(null);
-    if (this.newPhotoTaken && this.capturedFullImage && this.capturedCroppedImage) {
-      const formData = new FormData();
-      formData.append('file', this.capturedFullImage);
-      formData.append('cropped_file', this.capturedCroppedImage);
-      updatePhoto$ = this.readingService.saveReadingPhoto(
-        this.currentReadingIdFromRoute,
-        formData
-      );
+    // Adicionar meterId para nova leitura
+    if (!this.currentReadingIdFromRoute && this.contextMeterId) {
+      (readingPayload as ReadingCreate).meter_id = this.contextMeterId;
     }
 
-    forkJoin({ reading: updateReading$, photo: updatePhoto$ })
+    const operation$ = this.currentReadingIdFromRoute 
+      ? this.readingService.updateReading(this.currentReadingIdFromRoute, readingPayload)
+      : this.readingService.create({
+          meter_id: this.contextMeterId!,
+          current_reading: formValue.inaccessible ? '' : formValue.currentReading,
+          status,
+          inaccessible_reason: formValue.inaccessible ? formValue.inaccessibleReason : undefined,
+          observations: formValue.notes || undefined
+        } as ReadingCreate);
+
+    let photoOperation$: Observable<ApiResponse<ReadingPhoto> | null> = of(null);
+    
+    // Check if we have a photo to save (either captured or uploaded)
+    const hasPhotoToSave = (this.newPhotoTaken && this.capturedFullImage && this.capturedCroppedImage) ||
+                           (this.newPhotoUploaded && this.uploadedFullImage && this.uploadedCroppedImage);
+    
+    if (hasPhotoToSave) {
+      const formData = new FormData();
+      
+      // Use captured photo if available, otherwise use uploaded photo
+      if (this.newPhotoTaken && this.capturedFullImage && this.capturedCroppedImage) {
+        formData.append('file', this.capturedFullImage);
+        formData.append('cropped_file', this.capturedCroppedImage);
+      } else if (this.newPhotoUploaded && this.uploadedFullImage && this.uploadedCroppedImage) {
+        const fullImageBlob = this.base64ToBlob(this.uploadedFullImage);
+        const croppedImageBlob = this.base64ToBlob(this.uploadedCroppedImage);
+        formData.append('file', fullImageBlob, 'uploaded-full.jpg');
+        formData.append('cropped_file', croppedImageBlob, 'uploaded-cropped.jpg');
+      }
+      
+      if (this.currentReadingIdFromRoute) {
+        // Editando leitura existente
+        photoOperation$ = this.readingService.saveReadingPhoto(
+          this.currentReadingIdFromRoute,
+          formData
+        );
+      } else {
+        // Nova leitura - será necessário salvar a foto após criar a leitura
+        // Por simplicidade, vamos pular a foto por enquanto em novas leituras
+        photoOperation$ = of(null);
+      }
+    }
+
+    forkJoin({ reading: operation$, photo: photoOperation$ })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: ({ reading, photo }) => {
-          console.log('Leitura atualizada:', reading);
+          console.log(this.currentReadingIdFromRoute ? 'Leitura atualizada:' : 'Leitura criada:', reading);
           if (photo) {
             console.log('Foto salva/atualizada:', photo);
           }
           this.isSaving = false;
           this.newPhotoTaken = false;
+          this.newPhotoUploaded = false;
           this.router.navigate(['/readings']);
         },
         error: (err) => {

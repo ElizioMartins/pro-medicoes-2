@@ -1,119 +1,397 @@
-<div class="container mx-auto p-4 md:p-6">
-  <app-card>
-    <div class="p-6">
-      <h1 class="text-2xl font-bold mb-6 text-gray-800">{{ currentReadingIdFromRoute ? 'Editar Leitura' : 'Registrar Nova Leitura' }}</h1>
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="mb-8">
+      <nav class="flex items-center space-x-2 text-sm text-gray-500 mb-4">
+        <a routerLink="/readings" class="hover:text-gray-700">Leituras</a>
+        <span>›</span>
+        <span class="text-gray-900 font-medium">
+          {{ currentReadingIdFromRoute ? 'Editar Leitura' : 'Nova Leitura' }}
+        </span>
+      </nav>
+      
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">
+        {{ currentReadingIdFromRoute ? 'Editar Leitura' : 'Registrar Nova Leitura' }}
+      </h1>
+      <p class="text-gray-600">
+        {{ currentReadingIdFromRoute ? 'Atualize as informações da leitura abaixo' : 'Preencha os dados para registrar uma nova leitura do medidor' }}
+      </p>
+    </div>
 
-      <!-- Loading State -->
-      <div *ngIf="isLoading" class="text-center p-6">
-        <div class="animate-spin inline-block w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full" role="status" aria-hidden="true"></div>
-        <p class="mt-3 text-gray-600">Carregando dados da leitura...</p>
-      </div>
-
-      <!-- Error State -->
-      <div *ngIf="loadError" class="my-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-md shadow-sm">
-        <strong class="font-semibold">Erro ao carregar:</strong>
-        <p class="mt-1">{{ loadError }}</p>
-        <div *ngIf="!currentReadingIdFromRoute" class="mt-2 text-sm">
-          Este formulário requer um ID de leitura na rota para carregar os dados.
-        </div>
-      </div>
-
-      <!-- Form Content -->
-      <form [formGroup]="readingForm" (ngSubmit)="onSubmit()" *ngIf="!isLoading && currentReadingIdFromRoute" class="space-y-6">
-
-        <!-- Inaccessible Section -->
-        <fieldset class="border p-4 rounded-md border-gray-200">
-          <legend class="text-lg font-medium text-gray-700 px-2">Status da Unidade</legend>
-          <div class="mt-4 space-y-4">
-            <div class="flex items-center">
-              <input type="checkbox" id="inaccessible" formControlName="inaccessible" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-offset-1">
-              <label for="inaccessible" class="ml-3 block text-sm font-medium text-gray-700">Marcar como Unidade Inacessível</label>
-            </div>
-
-            <div *ngIf="readingForm.get('inaccessible')?.value" class="transition-all duration-300 ease-in-out">
-              <label for="inaccessibleReason" class="block text-sm font-medium text-gray-700 mb-1">Motivo da Inacessibilidade <span class="text-red-500">*</span></label>
-              <select formControlName="inaccessibleReason" id="inaccessibleReason" class="block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white disabled:bg-gray-50 disabled:cursor-not-allowed">
-                <option value="" disabled>Selecione um motivo</option>
-                <option value="Unidade fechada">Unidade fechada</option>
-                <option value="Morador negou acesso">Morador negou acesso</option>
-                <option value="Medidor inacessível/danificado">Medidor inacessível/danificado</option>
-                <option value="outro">Outro (especifique nas observações)</option>
+    <!-- Context Information for New Reading -->
+    <div *ngIf="!currentReadingIdFromRoute && contextMeterId" >
+      <app-card [elevated]="true">
+        
+          <div class="quick-filters">
+            <div class="filter-group">
+              <label for="unit-select">Unidade</label>
+              <select
+                id="unit-select"
+                [(ngModel)]="contextUnitId"
+                class="filter-select">
+                <option *ngFor="let unit of availableUnits" [value]="unit.id">
+                  Unidade {{ unit.number }}
+                </option>
               </select>
-              <div *ngIf="readingForm.get('inaccessibleReason')?.touched && readingForm.get('inaccessibleReason')?.errors?.['required']" class="text-xs text-red-600 mt-1">Motivo é obrigatório.</div>
+            </div>
+            
+            <div class="filter-group">
+              <label for="measurement-type-select">Tipo de Medição</label>
+              <select
+                id="measurement-type-select"
+                [(ngModel)]="contextMeasurementTypeId"
+                class="filter-select">
+                <option *ngFor="let type of availableMeasurementTypes" [value]="type.id">
+                  {{ type.name }}
+                </option>
+              </select>
             </div>
           </div>
-        </fieldset>
+        
+      </app-card>
+    </div>
 
-        <!-- Reading Value Section -->
-        <fieldset class="border p-4 rounded-md border-gray-200" [class.opacity-50]="readingForm.get('inaccessible')?.value">
-          <legend class="text-lg font-medium text-gray-700 px-2">Leitura do Medidor</legend>
-          <div class="mt-4 space-y-4">
-            <div>
-              <label for="currentReading" class="block text-sm font-medium text-gray-700 mb-1">Leitura Atual</label>
-              <app-input type="number" formControlName="currentReading" id="currentReading" placeholder="Digite o valor ou use a foto" [disabled]="readingForm.get('inaccessible')?.value"></app-input>
-              <div *ngIf="isDetecting" class="flex items-center text-sm text-blue-600 mt-2">
-                <div class="animate-spin inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full mr-2" role="status" aria-hidden="true"></div>
-                Detectando valor na imagem...
-              </div>
-              <div *ngIf="detectionError" class="mt-2 p-3 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-md text-sm">
-                <strong class="font-semibold">Aviso:</strong> {{ detectionError }}
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="flex justify-center items-center py-12">
+      <app-card class="w-full max-w-md">
+        <div class="text-center p-8">
+          <div class="animate-spin inline-block w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full mb-4"></div>
+          <p class="text-gray-600 font-medium">Carregando dados da leitura...</p>
+        </div>
+      </app-card>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="loadError" class="mb-8">
+      <app-card>
+        <div class="p-6 bg-red-50 border border-red-200 rounded-lg">
+          <div class="flex items-start">
+            <div class="flex-shrink-0">
+              <svg class="h-4 w-4 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div class="ml-3">
+              <h3 class="text-sm font-medium text-red-800">Erro ao carregar</h3>
+              <div class="mt-2 text-sm text-red-700">
+                <p>{{ loadError }}</p>
               </div>
             </div>
+          </div>
+        </div>
+      </app-card>
+    </div>
 
-            <!-- Meter Photo Section -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Foto do Medidor</label>
-              <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                <app-button type="button" variant="outline" (click)="triggerPhotoCaptureModal()" [disabled]="readingForm.get('inaccessible')?.value" class="w-full sm:w-auto">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 inline-block" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586l-.707-.707A2 2 0 0012.414 4H7.586a2 2 0 00-1.414.586L5.586 5H4zm6 8a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
-                  </svg>
-                  {{ (capturedFullImage || (currentReading && currentReading.photos && currentReading.photos.length > 0)) ? 'Ver / Alterar Foto' : 'Capturar Foto' }}
-                </app-button>
-
-                <div *ngIf="capturedFullImage || (currentReading && currentReading.photos && currentReading.photos.length > 0)" class="mt-2 sm:mt-0 p-2 border rounded-md bg-gray-50 w-full sm:w-auto">
-                  <p class="text-xs font-medium text-gray-500 mb-1">Prévia:</p>
-                  <div class="flex space-x-2">
-                    <img [src]="capturedFullImage || currentReading?.photos?.[0]?.filePath" alt="Foto completa" class="h-20 w-auto object-contain border rounded bg-white cursor-pointer" (click)="triggerPhotoCaptureModal()">
-                    <img *ngIf="capturedCroppedImage || currentReading?.photos?.[0]?.croppedFilePath" [src]="capturedCroppedImage || currentReading?.photos?.[0]?.croppedFilePath" alt="Foto recortada (OCR)" class="h-20 w-auto object-contain border rounded bg-white cursor-pointer" (click)="triggerPhotoCaptureModal()">
+    <!-- Form Content -->
+    <div *ngIf="!isLoading && !loadError">
+      <form [formGroup]="readingForm" (ngSubmit)="onSubmit()" class="">
+        
+        <!-- Status and Notes Section - Two Columns -->
+        <app-card [elevated]="true">
+            <div class="quick-filters">
+              
+              <!-- Status Column -->
+              <div class="flex-1">
+                <div class="">
+                  <h2 class="text-lg font-semibold text-gray-900 mb-2">Status da Unidade</h2>
+                  <p class="text-sm text-gray-600">Informe se a unidade está acessível para leitura</p>
+                </div>
+                
+                <div class="space-y-4">
+                  <div class="flex items-start">
+                    <div class="flex items-center h-5">
+                      <input 
+                        type="checkbox" 
+                        id="inaccessible" 
+                        formControlName="inaccessible" 
+                        class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-offset-2">
+                    </div>
+                    <div class="ml-3 text-sm">
+                      <label for="inaccessible" class="font-medium text-gray-700">
+                        Marcar como Unidade Inacessível
+                      </label>
+                      <p class="text-gray-500">Marque esta opção se não foi possível realizar a leitura</p>
+                    </div>
                   </div>
+
+                  <div *ngIf="readingForm.get('inaccessible')?.value" 
+                       class="transition-all duration-300 ease-in-out bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                    <label for="inaccessibleReason" class="block text-sm font-medium text-gray-700 mb-2">
+                      Motivo da Inacessibilidade <span class="text-red-500">*</span>
+                    </label>
+                    <select 
+                      formControlName="inaccessibleReason" 
+                      id="inaccessibleReason" 
+                      class="block w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm bg-white">
+                      <option value="" disabled>Selecione um motivo</option>
+                      <option value="Unidade fechada">Unidade fechada</option>
+                      <option value="Morador negou acesso">Morador negou acesso</option>
+                      <option value="Medidor inacessível/danificado">Medidor inacessível/danificado</option>
+                      <option value="outro">Outro (especifique nas observações)</option>
+                    </select>
+                    <div *ngIf="readingForm.get('inaccessibleReason')?.touched && readingForm.get('inaccessibleReason')?.errors?.['required']" 
+                         class="text-xs text-red-600 mt-1 flex items-center">
+                      Motivo é obrigatório
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Notes Column -->
+              <div class="flex-1">
+                <div >
+                  <h2 class="text-lg font-semibold text-gray-900 mb-2">Observações</h2>
+                  <p class="text-sm text-gray-600">Adicione informações adicionais sobre a leitura</p>
+                </div>
+                
+                <div>
+                  <label for="notes" class="block text-sm font-medium text-gray-700 mb-2 sr-only">
+                    Observações
+                  </label>
+                  <textarea 
+                    formControlName="notes" 
+                    id="notes"
+                    cols="70" 
+                    rows="6" 
+                    class="block w-full p-4 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm bg-white resize-none" 
+                    placeholder="Digite aqui qualquer observação relevante sobre esta leitura, condições especiais do medidor, dificuldades encontradas, etc.">
+                  </textarea>
+                </div>
+              </div>
+
+            </div>
+        </app-card>
+
+        <!-- Reading Value Section -->
+        <app-card [elevated]="true" [class.opacity-75]="readingForm.get('inaccessible')?.value">
+          <div class="quick-filters">        
+            
+            <div class="space-y-6">
+              <!-- Reading Input -->
+              <div>
+                <h2 class="text-lg font-semibold text-gray-900 mb-2">Leitura do Medidor</h2>
+                <p class="text-sm text-gray-600">Digite o valor ou capture uma foto para detecção automática</p>
+                <label for="currentReading" class="block text-sm font-medium text-gray-700 mb-2">
+                  Valor da Leitura Atual
+                </label>
+                <app-input 
+                  type="number" 
+                  formControlName="currentReading" 
+                  id="currentReading" 
+                  placeholder="Ex: 1234.56" 
+                  [disabled]="readingForm.get('inaccessible')?.value"
+                  class="text-lg">
+                </app-input>
+                
+                <div *ngIf="isDetecting" class="flex items-center text-sm text-blue-600 mt-3 bg-blue-50 p-3 rounded-lg">
+                  <div class="animate-spin inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full mr-2"></div>
+                  Detectando valor na imagem...
+                </div>
+                
+                <div *ngIf="detectionError" class="mt-3 p-3 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg text-sm">
+                  <div class="flex">
+                    <svg class="w-4 h-4 text-yellow-400 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                    </svg>
+                    <div>
+                      <strong class="font-semibold">Atenção:</strong> {{ detectionError }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Photo Options - Two Columns -->
+              <div class="border-t pt-6">
+                <div class="quick-filters">
+                  
+                  <!-- Photo Capture Column -->
+                  <div class="flex-1">
+                    <div class="flex items-center justify-between mb-4">
+                      <div>
+                        <h3 class="text-base font-medium text-gray-900">Foto do Medidor</h3>
+                        <p class="text-sm text-gray-600 mt-1">Capture uma foto para detecção automática</p>
+                      </div>
+                      <app-button 
+                        type="button" 
+                        variant="outline" 
+                        (click)="triggerPhotoCaptureModal()" 
+                        [disabled]="readingForm.get('inaccessible')?.value"
+                        size="sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                          <path fill-rule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586l-.707-.707A2 2 0 0012.414 4H7.586a2 2 0 00-1.414.586L5.586 5H4zm6 8a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+                        </svg>
+                        {{ (capturedFullImage || (currentReading && currentReading.photos && currentReading.photos.length > 0)) ? 'Alterar Foto' : 'Capturar Foto' }}
+                      </app-button>
+                    </div>
+
+                    <!-- Photo Preview -->
+                    <div *ngIf="capturedFullImage || (currentReading && currentReading.photos && currentReading.photos.length > 0)" 
+                         class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                      <div class="flex items-start space-x-4">
+                        <div class="text-center">
+                          <p class="text-xs font-medium text-gray-500 mb-2">Foto Original</p>
+                          <button 
+                            type="button"
+                            (click)="triggerPhotoCaptureModal()" 
+                            class="block focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded">
+                            <img 
+                              [src]="capturedFullImage || currentReading?.photos?.[0]?.filePath" 
+                              alt="Foto completa do medidor - clique para alterar" 
+                              class="h-24 w-auto object-contain border rounded bg-white shadow-sm hover:shadow-md transition-shadow">
+                          </button>
+                        </div>
+                        <div *ngIf="capturedCroppedImage || currentReading?.photos?.[0]?.croppedFilePath" class="text-center">
+                          <p class="text-xs font-medium text-gray-500 mb-2">Área Detectada</p>
+                          <button 
+                            type="button"
+                            (click)="triggerPhotoCaptureModal()" 
+                            class="block focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded">
+                            <img 
+                              [src]="capturedCroppedImage || currentReading?.photos?.[0]?.croppedFilePath" 
+                              alt="Área recortada do medidor - clique para alterar" 
+                              class="h-24 w-auto object-contain border rounded bg-white shadow-sm hover:shadow-md transition-shadow">
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Upload Photo Column -->
+                  <div class="flex-1">
+                    <div class="flex items-center justify-between mb-4">
+                      <div>
+                        <h3 class="text-base font-medium text-gray-900">Upload de Foto</h3>
+                        <p class="text-sm text-gray-600 mt-1">Carregue uma foto existente do medidor</p>
+                      </div>
+                      <app-button 
+                        type="button" 
+                        variant="outline" 
+                        (click)="triggerFileInput()" 
+                        [disabled]="readingForm.get('inaccessible')?.value"
+                        size="sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                          <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                        </svg>
+                        {{ uploadedFullImage ? 'Alterar Foto' : 'Selecionar Foto' }}
+                      </app-button>
+                    </div>
+                    
+                    <!-- Hidden file input -->
+                    <input 
+                      type="file" 
+                      id="photoUpload" 
+                      accept="image/*" 
+                      (change)="onPhotoUpload($event)"
+                      style="visibility: hidden;">
+
+                    <!-- Upload Detection Status -->
+                    <div *ngIf="isUploadDetecting" class="flex items-center text-sm text-blue-600 mb-4 bg-blue-50 p-3 rounded-lg">
+                      <div class="animate-spin inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full mr-2"></div>
+                      Detectando valor na imagem carregada...
+                    </div>
+                    
+                    <div *ngIf="uploadDetectionError" class="mb-4 p-3 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg text-sm">
+                      <div class="flex">
+                        <svg class="w-4 h-4 text-yellow-400 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                          <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                        </svg>
+                        <div>
+                          <strong class="font-semibold">Atenção:</strong> {{ uploadDetectionError }}
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Upload Photo Preview -->
+                    <div *ngIf="uploadedFullImage" 
+                         class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                      <div class="flex items-start justify-between">
+                        <div class="flex items-start space-x-4">
+                          <div class="text-center">
+                            <p class="text-xs font-medium text-gray-500 mb-2">Foto Carregada</p>
+                            <button 
+                              type="button"
+                              (click)="triggerFileInput()" 
+                              class="block focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded">
+                              <img 
+                                [src]="uploadedFullImage" 
+                                alt="Foto carregada do medidor - clique para alterar" 
+                                class="h-24 w-auto object-contain border rounded bg-white shadow-sm hover:shadow-md transition-shadow">
+                            </button>
+                          </div>
+                          <div *ngIf="uploadedCroppedImage" class="text-center">
+                            <p class="text-xs font-medium text-gray-500 mb-2">Área Detectada</p>
+                            <img 
+                              [src]="uploadedCroppedImage" 
+                              alt="Área detectada na foto carregada" 
+                              class="h-24 w-auto object-contain border rounded bg-white shadow-sm">
+                          </div>
+                        </div>
+                        <app-button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          (click)="removeUploadedPhoto()"
+                          class="ml-4">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                          </svg>
+                          Remover
+                        </app-button>
+                      </div>
+                    </div>
+                  </div>
+
                 </div>
               </div>
             </div>
           </div>
-        </fieldset>
-
-        <!-- Notes Section -->
-        <fieldset class="border p-4 rounded-md border-gray-200">
-          <legend class="text-lg font-medium text-gray-700 px-2">Observações</legend>
-          <div class="mt-4">
-            <textarea formControlName="notes" id="notes" rows="4" class="block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white" placeholder="Adicione qualquer observação relevante sobre esta leitura..."></textarea>
-          </div>
-        </fieldset>
+        </app-card>
 
         <!-- Action Buttons -->
-        <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-          <app-button type="button" variant="outline" routerLink="/readings" [disabled]="isSaving">Cancelar</app-button>
-          <app-button type="submit" [disabled]="readingForm.invalid || isDetecting || isSaving || !currentReadingIdFromRoute" [loading]="isSaving">
-            Salvar Leitura
-          </app-button>
+        <div class="bg-white border-t border-gray-200 px-6 py-4 rounded-lg shadow-sm">
+          <div class="flex justify-end space-x-4">
+            <app-button 
+              type="button" 
+              variant="outline" 
+              routerLink="/readings" 
+              [disabled]="isSaving"
+              size="lg">
+              Cancelar
+            </app-button>
+            <app-button 
+              type="submit" 
+              [disabled]="readingForm.invalid || isDetecting || isSaving" 
+              [loading]="isSaving"
+              size="lg">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" *ngIf="!isSaving">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              {{ currentReadingIdFromRoute ? 'Atualizar Leitura' : 'Salvar Leitura' }}
+            </app-button>
+          </div>
         </div>
       </form>
     </div>
-  </app-card>
-
-  <!-- Photo Capture Modal -->
-  <div *ngIf="showPhotoCaptureModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4 transition-opacity duration-300 ease-in-out" @fade>
-    <div class="bg-white p-0 rounded-lg shadow-xl max-w-xl w-full relative overflow-hidden">
-      <button (click)="onClosePhotoCaptureModal()" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 z-10 bg-white rounded-full p-1">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-      <app-meter-photo-capture
-        (photoCaptured)="onPhotoSuccessfullyCaptured($event)"
-        (closeCapture)="onClosePhotoCaptureModal()">
-      </app-meter-photo-capture>
+    <!-- Photo Capture Modal -->
+    <div *ngIf="showPhotoCaptureModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4 transition-opacity duration-300 ease-in-out" @fade>
+      <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full relative overflow-hidden">
+        <div class="flex items-center justify-between p-4 border-b border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-900">Capturar Foto do Medidor</h3>
+          <button 
+            (click)="onClosePhotoCaptureModal()" 
+            class="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-lg">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="max-h-[calc(90vh-8rem)] overflow-y-auto">
+          <app-meter-photo-capture
+            (photoCaptured)="onPhotoSuccessfullyCaptured($event)"
+            (closeCapture)="onClosePhotoCaptureModal()">
+          </app-meter-photo-capture>
+        </div>
+      </div>
     </div>
   </div>
 </div>

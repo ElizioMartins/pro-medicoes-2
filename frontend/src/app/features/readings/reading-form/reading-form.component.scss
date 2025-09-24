@@ -1,29 +1,288 @@
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
-
 /* Estilos específicos para o ReadingFormComponent */
 
 :host {
   display: block;
 }
 
-/* Ajustes finos ou overrides para Tailwind, se necessário */
-/* Exemplo: Estilo para o spinner dentro do botão, se o componente app-button não o fizer */
-app-button[loading] .animate-spin {
-  /* Se o app-button já não lida com isso, adicione estilos aqui */
+/* Container principal com fundo suave */
+.min-h-screen {
+  min-height: 100vh;
 }
 
-/* Estilo para legendas de fieldset */
-legend {
-  padding-left: 0.5rem; /* Equivalente a px-2 */
-  padding-right: 0.5rem; /* Equivalente a px-2 */
-  font-size: 1.125rem; /* Equivalente a text-lg */
-  font-weight: 500; /* Equivalente a font-medium */
-  color: #374151; /* Equivalente a text-gray-700 */
+/* Navegação breadcrumb personalizada */
+nav a:hover {
+  color: #2563eb;
+  transition: color 0.2s ease-in-out;
 }
 
-/* Garante que o input numérico não mostre spinners padrão em alguns navegadores */
+/* Cards com elevação suave */
+app-card {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+app-card[elevated] {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Seções com headers limpos */
+.section-header {
+  margin-bottom: 1.5rem;
+}
+
+.section-header h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+.section-header p {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* Input personalizado para leitura */
+app-input[type="number"] input {
+  font-size: 1.125rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Estilos para os selects de contexto */
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+  }
+}
+
+.filter-select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  background-color: white;
+  font-size: 0.875rem;
+  color: #111827;
+
+  &:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  }
+
+  &:disabled {
+    background-color: #f9fafb;
+    color: #6b7280;
+    cursor: not-allowed;
+  }
+}
+
+/* Estados de feedback melhorados */
+.feedback-message {
+  display: flex;
+  align-items: flex-start;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.feedback-message.detecting {
+  background-color: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
+}
+
+.feedback-message.warning {
+  background-color: #fffbeb;
+  color: #92400e;
+  border: 1px solid #fed7aa;
+}
+
+.feedback-message.error {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+/* Seção de foto melhorada */
+.photo-section .photo-preview {
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+}
+
+.photo-section .photo-preview img {
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+.photo-section .photo-preview img:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  transform: scale(1.05);
+}
+
+/* Modal melhorado */
+.photo-modal {
+  backdrop-filter: blur(4px);
+}
+
+.photo-modal .modal-content {
+  background-color: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  max-width: 42rem;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  max-height: 90vh;
+}
+
+.photo-modal .modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+}
+
+.photo-modal .modal-body {
+  max-height: calc(90vh - 4rem);
+  overflow-y: auto;
+}
+
+/* Botões de ação */
+.action-bar {
+  background-color: white;
+  border-top: 1px solid #e5e7eb;
+  padding: 1rem 1.5rem;
+  border-bottom-left-radius: 0.75rem;
+  border-bottom-right-radius: 0.75rem;
+  background: linear-gradient(to bottom, rgba(249,250,251,0.8), rgba(249,250,251,1));
+}
+
+/* Estados disabled melhorados */
+.opacity-75 {
+  opacity: 0.75;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.opacity-75 * {
+  pointer-events: none;
+}
+
+/* Animações de entrada */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form-section {
+  animation: slideUp 0.3s ease-out;
+}
+
+/* Loading states personalizados */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem 0;
+}
+
+.loading-card {
+  background-color: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  border: 1px solid #e5e7eb;
+  padding: 2rem;
+  text-align: center;
+}
+
+.loading-spinner {
+  animation: spin 1s linear infinite;
+  display: inline-block;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 4px solid #3b82f6;
+  border-top-color: transparent;
+  border-radius: 50%;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Error states melhorados */
+.error-card .error-content {
+  display: flex;
+  align-items: flex-start;
+}
+
+.error-card .error-content .error-icon {
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #f87171;
+  margin-top: 0.125rem;
+}
+
+.error-card .error-content .error-text {
+  margin-left: 0.75rem;
+}
+
+.error-card .error-content .error-text h3 {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #991b1b;
+  margin-bottom: 0.25rem;
+}
+
+.error-card .error-content .error-text p {
+  font-size: 0.875rem;
+  color: #b91c1c;
+}
+
+/* Responsividade melhorada */
+@media (max-width: 640px) {
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    text-align: center;
+  }
+  
+  .action-bar {
+    padding: 0.75rem 1rem;
+  }
+  
+  .action-bar .button-group {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .photo-preview img {
+    height: 5rem;
+    width: auto;
+  }
+}
+
+/* Garante que o input numérico não mostre spinners padrão */
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
@@ -31,16 +290,92 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 input[type="number"] {
-  -moz-appearance: textfield; /* Firefox */
+  appearance: textfield;
+  -moz-appearance: textfield;
 }
 
-/* Estilo para o modal de captura de foto (fundo e posicionamento já no HTML com Tailwind) */
-.fixed.inset-0 {
-  /* O Tailwind já aplica o posicionamento e fundo */
+/* Transições suaves para todos os elementos interativos */
+button, input, select, textarea {
+  transition: all 0.2s ease-in-out;
 }
 
-.bg-white.p-0.rounded-lg {
-  /* O Tailwind já aplica o estilo do container do modal */
-  max-height: 90vh; /* Evita que o modal seja muito alto em telas menores */
-  overflow-y: auto; /* Permite scroll se o conteúdo for maior */
+/* Focus states melhorados */
+button:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #3b82f6;
+  border-color: #3b82f6;
+}
+
+/* Estados hover para melhor UX */
+.hover-lift:hover {
+  transform: translateY(-0.25rem);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease-in-out;
+}
+
+.quick-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  align-items: end;
+}
+
+/* Estilos para os filtros/selects */
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  
+  label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.25rem;
+  }
+}
+
+.filter-select {
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  font-size: 0.875rem;
+  background-color: white;
+  color: #374151;
+  
+  &:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+  }
+  
+  &:disabled {
+    background-color: #f9fafb;
+    color: #9ca3af;
+    cursor: not-allowed;
+  }
+
+  // Responsividade
+@media (max-width: 768px) {
+  .quick-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-actions {
+    grid-column: 1 / -1;
+    justify-content: center;
+  }
+
+  .readings-table {
+    font-size: 0.875rem;
+  }
+
+  .readings-table th,
+  .readings-table td {
+    padding: 0.5rem;
+  }
+}
 }
