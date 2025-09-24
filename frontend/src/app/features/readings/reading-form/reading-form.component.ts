@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
@@ -26,6 +26,12 @@ interface UnitListResponse {
   total: number;
   skip: number;
   limit: number;
+}
+
+interface OCRDetectionResponse {
+  number_detected?: number;
+  confidence?: number;
+  message?: string;
 }
 
 @Component({
@@ -88,15 +94,16 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
   availableUnits: Unit[] = [];
   availableMeasurementTypes: MeasurementType[] = [];
 
-  constructor(
-    private fb: FormBuilder,
-    private router: Router,
-    private http: HttpClient,
-    private route: ActivatedRoute,
-    private readingService: ReadingService,
-    private unitService: UnitService,
-    private measurementTypeService: MeasurementTypeService
-  ) {
+  // Injeção moderna de dependências
+  private fb = inject(FormBuilder);
+  private router = inject(Router);
+  private http = inject(HttpClient);
+  private route = inject(ActivatedRoute);
+  private readingService = inject(ReadingService);
+  private unitService = inject(UnitService);
+  private measurementTypeService = inject(MeasurementTypeService);
+
+  constructor() {
     this.readingForm = this.fb.group({
       currentReading: ['', [Validators.pattern('^[0-9]*[.]?[0-9]+$')]],
       inaccessible: [false],
@@ -196,7 +203,7 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
           next: (response: UnitListResponse) => {
             this.availableUnits = response.units || [];
           },
-          error: (error: any) => {
+          error: (error: HttpErrorResponse) => {
             console.error('Erro ao carregar unidades:', error);
             this.availableUnits = [];
           }
@@ -210,7 +217,7 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
         next: (types: MeasurementType[]) => {
           this.availableMeasurementTypes = types;
         },
-        error: (error: any) => {
+        error: (error: HttpErrorResponse) => {
           console.error('Erro ao carregar tipos de medição:', error);
           this.availableMeasurementTypes = [];
         }
@@ -265,7 +272,7 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
     }
   }
 
-  private base64ToBlob(base64: string, contentType: string = 'image/jpeg'): Blob {
+  private base64ToBlob(base64: string, contentType = 'image/jpeg'): Blob {
     try {
       const byteCharacters = atob(base64.split(',')[1]);
       const byteNumbers = new Array(byteCharacters.length);
@@ -290,7 +297,7 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
 
       const ocrApiUrl = 'http://localhost:8000/detect/';
 
-      this.http.post<any>(ocrApiUrl, formData)
+      this.http.post<OCRDetectionResponse>(ocrApiUrl, formData)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (response) => {
@@ -308,9 +315,9 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
             this.isDetecting = false;
           }
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erro ao preparar imagem para detecção:', error);
-      this.detectionError = `Erro ao processar imagem: ${error.message}`;
+      this.detectionError = `Erro ao processar imagem: ${error instanceof Error ? error.message : 'Erro desconhecido'}`;
       this.isDetecting = false;
     }
   }
@@ -371,7 +378,7 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
 
       const ocrApiUrl = 'http://localhost:8000/detect/';
 
-      this.http.post<any>(ocrApiUrl, formData)
+      this.http.post<OCRDetectionResponse>(ocrApiUrl, formData)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (response) => {
@@ -389,9 +396,9 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
             this.isUploadDetecting = false;
           }
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erro ao preparar imagem carregada para detecção:', error);
-      this.uploadDetectionError = `Erro ao processar imagem: ${error.message}`;
+      this.uploadDetectionError = `Erro ao processar imagem: ${error instanceof Error ? error.message : 'Erro desconhecido'}`;
       this.isUploadDetecting = false;
     }
   }
@@ -412,9 +419,22 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
   }
 
   onSubmit(): void {
+    console.log('[DEBUG] onSubmit iniciado');
+    console.log('[DEBUG] Form valid:', this.readingForm.valid);
+    console.log('[DEBUG] Form value:', this.readingForm.getRawValue());
+    console.log('[DEBUG] Context meterId:', this.contextMeterId);
+    console.log('[DEBUG] Current reading ID:', this.currentReadingIdFromRoute);
+    
     if (this.readingForm.invalid) {
       this.readingForm.markAllAsTouched();
       console.error('Formulário inválido.');
+      return;
+    }
+
+    // Validar se é nova leitura e não tem meterId
+    if (!this.currentReadingIdFromRoute && !this.contextMeterId) {
+      alert('Erro: ID do medidor não encontrado. Retorne à lista de leituras e tente novamente.');
+      console.error('MeterId é obrigatório para criar nova leitura');
       return;
     }
 
@@ -430,81 +450,108 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
       status = ReadingStatus.PENDING;
     }
 
-    const readingPayload: Partial<Reading> = {
-      current_reading: formValue.inaccessible ? null : formValue.currentReading,
-      observations: formValue.notes,
-      status,
-      inaccessible_reason: formValue.inaccessible ? formValue.inaccessibleReason : null,
-      date: new Date().toISOString()
-    };
+    console.log('[DEBUG] Status determinado:', status);
 
-    // Adicionar meterId para nova leitura
-    if (!this.currentReadingIdFromRoute && this.contextMeterId) {
-      (readingPayload as ReadingCreate).meter_id = this.contextMeterId;
-    }
+    try {
+      let operation$: Observable<ApiResponse<Reading>>;
 
-    const operation$ = this.currentReadingIdFromRoute 
-      ? this.readingService.updateReading(this.currentReadingIdFromRoute, readingPayload)
-      : this.readingService.create({
+      if (this.currentReadingIdFromRoute) {
+        // Atualizando leitura existente
+        const readingPayload: Partial<Reading> = {
+          current_reading: formValue.inaccessible ? null : formValue.currentReading,
+          observations: formValue.notes,
+          status,
+          inaccessible_reason: formValue.inaccessible ? formValue.inaccessibleReason : null,
+          date: new Date().toISOString()
+        };
+        console.log('[DEBUG] Update payload:', readingPayload);
+        operation$ = this.readingService.updateReading(this.currentReadingIdFromRoute, readingPayload);
+      } else {
+        // Criando nova leitura
+        const createPayload: ReadingCreate = {
           meter_id: this.contextMeterId!,
           current_reading: formValue.inaccessible ? '' : formValue.currentReading,
           status,
           inaccessible_reason: formValue.inaccessible ? formValue.inaccessibleReason : undefined,
           observations: formValue.notes || undefined
-        } as ReadingCreate);
-
-    let photoOperation$: Observable<ApiResponse<ReadingPhoto> | null> = of(null);
-    
-    // Check if we have a photo to save (either captured or uploaded)
-    const hasPhotoToSave = (this.newPhotoTaken && this.capturedFullImage && this.capturedCroppedImage) ||
-                           (this.newPhotoUploaded && this.uploadedFullImage && this.uploadedCroppedImage);
-    
-    if (hasPhotoToSave) {
-      const formData = new FormData();
-      
-      // Use captured photo if available, otherwise use uploaded photo
-      if (this.newPhotoTaken && this.capturedFullImage && this.capturedCroppedImage) {
-        formData.append('file', this.capturedFullImage);
-        formData.append('cropped_file', this.capturedCroppedImage);
-      } else if (this.newPhotoUploaded && this.uploadedFullImage && this.uploadedCroppedImage) {
-        const fullImageBlob = this.base64ToBlob(this.uploadedFullImage);
-        const croppedImageBlob = this.base64ToBlob(this.uploadedCroppedImage);
-        formData.append('file', fullImageBlob, 'uploaded-full.jpg');
-        formData.append('cropped_file', croppedImageBlob, 'uploaded-cropped.jpg');
+        };
+        console.log('[DEBUG] Create payload:', createPayload);
+        operation$ = this.readingService.create(createPayload);
       }
-      
-      if (this.currentReadingIdFromRoute) {
-        // Editando leitura existente
-        photoOperation$ = this.readingService.saveReadingPhoto(
-          this.currentReadingIdFromRoute,
-          formData
-        );
-      } else {
-        // Nova leitura - será necessário salvar a foto após criar a leitura
-        // Por simplicidade, vamos pular a foto por enquanto em novas leituras
-        photoOperation$ = of(null);
-      }
-    }
 
-    forkJoin({ reading: operation$, photo: photoOperation$ })
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: ({ reading, photo }) => {
-          console.log(this.currentReadingIdFromRoute ? 'Leitura atualizada:' : 'Leitura criada:', reading);
-          if (photo) {
-            console.log('Foto salva/atualizada:', photo);
-          }
-          this.isSaving = false;
-          this.newPhotoTaken = false;
-          this.newPhotoUploaded = false;
-          this.router.navigate(['/readings']);
-        },
-        error: (err) => {
-          console.error('Erro ao salvar leitura:', err);
-          this.isSaving = false;
-          // Mostrar mensagem de erro para o usuário
+      console.log('[DEBUG] Operação definida:', this.currentReadingIdFromRoute ? 'update' : 'create');
+
+      let photoOperation$: Observable<ApiResponse<ReadingPhoto> | null> = of(null);
+      
+      // Check if we have a photo to save (either captured or uploaded)
+      const hasPhotoToSave = (this.newPhotoTaken && this.capturedFullImage && this.capturedCroppedImage) ||
+                             (this.newPhotoUploaded && this.uploadedFullImage && this.uploadedCroppedImage);
+      
+      console.log('[DEBUG] Has photo to save:', hasPhotoToSave);
+      
+      if (hasPhotoToSave) {
+        const formData = new FormData();
+        
+        // Use captured photo if available, otherwise use uploaded photo
+        if (this.newPhotoTaken && this.capturedFullImage && this.capturedCroppedImage) {
+          formData.append('file', this.capturedFullImage);
+          formData.append('cropped_file', this.capturedCroppedImage);
+        } else if (this.newPhotoUploaded && this.uploadedFullImage && this.uploadedCroppedImage) {
+          const fullImageBlob = this.base64ToBlob(this.uploadedFullImage);
+          const croppedImageBlob = this.base64ToBlob(this.uploadedCroppedImage);
+          formData.append('file', fullImageBlob, 'uploaded-full.jpg');
+          formData.append('cropped_file', croppedImageBlob, 'uploaded-cropped.jpg');
         }
-      });
+        
+        if (this.currentReadingIdFromRoute) {
+          // Editando leitura existente
+          photoOperation$ = this.readingService.saveReadingPhoto(
+            this.currentReadingIdFromRoute,
+            formData
+          );
+        } else {
+          // Nova leitura - será necessário salvar a foto após criar a leitura
+          // Por simplicidade, vamos pular a foto por enquanto em novas leituras
+          photoOperation$ = of(null);
+        }
+      }
+
+      console.log('[DEBUG] Iniciando forkJoin...');
+
+      forkJoin({ reading: operation$, photo: photoOperation$ })
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: ({ reading, photo }) => {
+            console.log('[DEBUG] Sucesso:', this.currentReadingIdFromRoute ? 'Leitura atualizada:' : 'Leitura criada:', reading);
+            if (photo) {
+              console.log('[DEBUG] Foto salva/atualizada:', photo);
+            }
+            this.isSaving = false;
+            this.newPhotoTaken = false;
+            this.newPhotoUploaded = false;
+            this.router.navigate(['/readings']);
+          },
+          error: (err) => {
+            console.error('[DEBUG] Erro ao salvar leitura:', err);
+            this.isSaving = false;
+            
+            let errorMessage = 'Erro desconhecido';
+            if (err.error?.detail) {
+              errorMessage = err.error.detail;
+            } else if (err.error?.message) {
+              errorMessage = err.error.message;
+            } else if (err.message) {
+              errorMessage = err.message;
+            }
+            
+            alert(`Erro ao salvar leitura: ${errorMessage}`);
+          }
+        });
+    } catch (error) {
+      console.error('[DEBUG] Erro na preparação do onSubmit:', error);
+      this.isSaving = false;
+      alert('Erro inesperado ao preparar o salvamento da leitura');
+    }
   }
 }
 

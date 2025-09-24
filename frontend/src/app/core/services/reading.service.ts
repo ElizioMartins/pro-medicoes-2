@@ -50,6 +50,12 @@ export class ReadingService extends BaseApiService<Reading, ReadingCreate, Readi
     return this.http.post<DetectionResponse>('/api/detect', formData);
   }
 
+  override create(reading: ReadingCreate): Observable<ApiResponse<Reading>> {
+    // Use URL absoluta temporariamente para debug
+    console.log('[DEBUG] Creating reading with URL: http://localhost:8000/api/meters/' + reading.meter_id + '/readings');
+    return this.http.post<ApiResponse<Reading>>(`http://localhost:8000/api/meters/${reading.meter_id}/readings`, reading);
+  }
+
   getByMeter(meterId: number, params?: Record<string, string | number>): Observable<PaginatedResponse<Reading>> {
     return this.http.get<PaginatedResponse<Reading>>(`/api/meters/${meterId}/readings`, { params });
   }

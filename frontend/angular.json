@@ -73,7 +73,8 @@
               "buildTarget": "pro-medicoes-angular:build:production"
             },
             "development": {
-              "buildTarget": "pro-medicoes-angular:build:development"
+              "buildTarget": "pro-medicoes-angular:build:development",
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"
