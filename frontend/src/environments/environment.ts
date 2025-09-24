@@ -13,7 +13,8 @@ export const environment: Environment = {
   ai: {
     confidenceThreshold: 0.7,
     maxImageSize: 5 * 1024 * 1024, // 5MB
-    supportedFormats: ['image/jpeg', 'image/png', 'image/webp']
+    supportedFormats: ['image/jpeg', 'image/png', 'image/webp'],
+    detectionEndpoint: '/detect/'
   }
 };
 

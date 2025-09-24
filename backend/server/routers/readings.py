@@ -4,11 +4,9 @@ from typing import List
 from datetime import datetime
 
 from dbmodels.database import get_db
-from dbmodels.readings import Reading, ReadingResponse, ReadingCreate, ReadingUpdate
+from dbmodels.readings import Reading, ReadingResponse, ReadingUpdate, ReadingCreate
 from dbmodels.meters import Meter
 from dbmodels.readings import ReadingPhoto
-from dbmodels.users import User
-from dependencies import get_current_user, get_reader_or_above, get_any_authenticated_user
 
 router = APIRouter()
 
@@ -20,8 +18,7 @@ def get_readings(
     condominium_id: int = Query(None, description="Filtrar por ID do condomínio"),
     unit_id: int = Query(None, description="Filtrar por ID da unidade"),
     measurement_type_id: int = Query(None, description="Filtrar por tipo de medição"),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_any_authenticated_user)  # Qualquer usuário autenticado pode ver
+    db: Session = Depends(get_db)
 ):
     from sqlalchemy.orm import joinedload
     from dbmodels.units import Unit
@@ -56,47 +53,12 @@ def get_readings(
 @router.get("/{reading_id}", response_model=ReadingResponse)
 def get_reading(
     reading_id: int, 
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_any_authenticated_user)  # Qualquer usuário autenticado pode ver
+    db: Session = Depends(get_db)
 ):
     reading = db.query(Reading).filter(Reading.id == reading_id).first()
     if reading is None:
         raise HTTPException(status_code=404, detail="Leitura não encontrada")
     return reading
-
-@router.post("/meters/{meter_id}/readings", response_model=ReadingResponse)
-def create_reading(
-    meter_id: int,
-    reading: ReadingCreate,
-    db: Session = Depends(get_db)
-):
-    # Verifica se o medidor existe
-    meter = db.query(Meter).filter(Meter.id == meter_id).first()
-    if not meter:
-        raise HTTPException(status_code=404, detail="Medidor não encontrado")
-    
-    try:
-        db_reading = Reading(**reading.dict(exclude={'photos'}))
-        db.add(db_reading)
-        
-        # Se foram enviadas fotos, cria os registros
-        if reading.photos:
-            for photo in reading.photos:
-                db_photo = ReadingPhoto(
-                    reading=db_reading,
-                    **photo.dict()
-                )
-                db.add(db_photo)
-        
-        # Atualiza a data da última leitura do medidor
-        meter.last_reading_date = datetime.utcnow()
-        
-        db.commit()
-        db.refresh(db_reading)
-        return db_reading
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=400, detail=str(e))
 
 @router.put("/{reading_id}", response_model=ReadingResponse)
 def update_reading(
@@ -134,3 +96,69 @@ def delete_reading(reading_id: int, db: Session = Depends(get_db)):
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/meters/{meter_id}/readings", response_model=ReadingResponse)
+def create_reading_for_meter(
+    meter_id: int,
+    reading: ReadingCreate,
+    db: Session = Depends(get_db)
+):
+    """
+    Cria uma nova leitura para um medidor específico.
+    """
+    # Verifica se o medidor existe
+    meter = db.query(Meter).filter(Meter.id == meter_id).first()
+    if not meter:
+        raise HTTPException(status_code=404, detail="Medidor não encontrado")
+    
+    try:
+        # Criar a leitura
+        reading_dict = reading.dict(exclude={'photos'})
+        reading_dict['meter_id'] = meter_id  # Garantir que o meter_id está correto
+        
+        db_reading = Reading(**reading_dict)
+        db.add(db_reading)
+        
+        # Se foram enviadas fotos, cria os registros
+        if reading.photos:
+            for photo in reading.photos:
+                db_photo = ReadingPhoto(
+                    reading=db_reading,
+                    **photo.dict()
+                )
+                db.add(db_photo)
+        
+        # Atualiza a data da última leitura do medidor
+        meter.last_reading_date = datetime.utcnow()
+        
+        db.commit()
+        db.refresh(db_reading)
+        return db_reading
+        
+    except Exception as e:
+        db.rollback()
+        print(f"Erro ao criar leitura: {str(e)}")  # Para debug
+        raise HTTPException(status_code=400, detail=f"Erro ao criar leitura: {str(e)}")
+
+@router.get("/meters/{meter_id}/readings", response_model=List[ReadingResponse])
+def get_meter_readings(
+    meter_id: int,
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db)
+):
+    """
+    Obtém todas as leituras de um medidor específico.
+    """
+    # Verifica se o medidor existe
+    meter = db.query(Meter).filter(Meter.id == meter_id).first()
+    if not meter:
+        raise HTTPException(status_code=404, detail="Medidor não encontrado")
+    
+    readings = (db.query(Reading)
+                .filter(Reading.meter_id == meter_id)
+                .offset(skip)
+                .limit(limit)
+                .all())
+    
+    return readings

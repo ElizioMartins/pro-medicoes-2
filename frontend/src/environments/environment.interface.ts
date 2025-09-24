@@ -12,6 +12,7 @@ export interface Environment {
     confidenceThreshold: number;
     maxImageSize: number;
     supportedFormats: string[];
+    detectionEndpoint: string;
   };
 }
 

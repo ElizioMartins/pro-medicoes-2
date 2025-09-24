@@ -1,3 +1,4 @@
+import { Injectable, inject } from '@angular/core';
 import { Reading, ReadingCreate, ReadingUpdate } from '../../shared/models/reading.model';
 import { BaseApiService } from './base-api.service';
 import { HttpClient } from '@angular/common/http';
@@ -5,7 +6,26 @@ import { Observable } from 'rxjs';
 import { DetectionResponse } from '../../shared/models/detection.model';
 import { PaginatedResponse, ApiResponse } from '../../shared/models/api-response.model';
 import { ReadingPhoto } from '../../shared/models/reading-photo.model';
-import { Injectable, inject } from '@angular/core';
+import { environment } from '@environments/environment';
+
+export interface PhotoUploadResponse {
+  data: {
+    id: number;
+    reading_id: number;
+    file_path: string;
+    cropped_file_path?: string;
+    is_cropped: boolean;
+    created_at: string;
+  };
+  message: string;
+  main_file: string;
+  cropped_file?: string;
+  detection?: {
+    number_detected: string;
+    confidence: number;
+    box: [number, number, number, number];
+  };
+}
 
 @Injectable({
   providedIn: 'root'
@@ -14,6 +34,7 @@ export class ReadingService extends BaseApiService<Reading, ReadingCreate, Readi
   protected endpoint = '/api/readings';
 
   override readonly http = inject(HttpClient);
+  
   constructor() {
     super(inject(HttpClient));
   }
@@ -41,6 +62,12 @@ export class ReadingService extends BaseApiService<Reading, ReadingCreate, Readi
     return this.http.get<Reading[]>(this.baseUrl, { params: cleanParams });
   }
 
+  override create(reading: ReadingCreate): Observable<ApiResponse<Reading>> {
+    console.log('[DEBUG] Creating reading for meter:', reading.meter_id);
+    // Usar a URL correta no router de readings
+    return this.http.post<ApiResponse<Reading>>(`${environment.apiUrl}/api/readings/meters/${reading.meter_id}/readings`, reading);
+  }
+
   detectFromImage(file: File, meterId?: number): Observable<DetectionResponse> {
     const formData = new FormData();
     formData.append('file', file);
@@ -50,20 +77,14 @@ export class ReadingService extends BaseApiService<Reading, ReadingCreate, Readi
     return this.http.post<DetectionResponse>('/api/detect', formData);
   }
 
-  override create(reading: ReadingCreate): Observable<ApiResponse<Reading>> {
-    // Use URL absoluta temporariamente para debug
-    console.log('[DEBUG] Creating reading with URL: http://localhost:8000/api/meters/' + reading.meter_id + '/readings');
-    return this.http.post<ApiResponse<Reading>>(`http://localhost:8000/api/meters/${reading.meter_id}/readings`, reading);
-  }
-
   getByMeter(meterId: number, params?: Record<string, string | number>): Observable<PaginatedResponse<Reading>> {
-    return this.http.get<PaginatedResponse<Reading>>(`/api/meters/${meterId}/readings`, { params });
+    return this.http.get<PaginatedResponse<Reading>>(`${environment.apiUrl}/api/readings/meters/${meterId}/readings`, { params });
   }
 
   uploadPhoto(readingId: number, file: File): Observable<ApiResponse<ReadingPhoto>> {
     const formData = new FormData();
     formData.append('file', file);
-    return this.http.post<ApiResponse<ReadingPhoto>>(`${this.baseUrl}/${readingId}/photos`, formData);
+    return this.http.post<ApiResponse<ReadingPhoto>>(`${environment.apiUrl}/api/readings/${readingId}/photos/upload`, formData);
   }
 
   getReadingById(id: number): Observable<Reading> {
@@ -74,8 +95,8 @@ export class ReadingService extends BaseApiService<Reading, ReadingCreate, Readi
     return this.http.put<ApiResponse<Reading>>(`${this.baseUrl}/${id}`, reading);
   }
 
-  saveReadingPhoto(readingId: number, photoData: FormData): Observable<ApiResponse<ReadingPhoto>> {
-    return this.http.post<ApiResponse<ReadingPhoto>>(`${this.baseUrl}/${readingId}/photos`, photoData);
+  saveReadingPhoto(readingId: number, photoData: FormData): Observable<PhotoUploadResponse> {
+    return this.http.post<PhotoUploadResponse>(`${environment.apiUrl}/api/readings/${readingId}/photos/upload`, photoData);
   }
 
   override getAll(): Observable<PaginatedResponse<Reading>> {

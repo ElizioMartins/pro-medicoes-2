@@ -10,4 +10,5 @@ python-jose[cryptography]
 passlib[bcrypt]
 ultralytics
 pydantic[email]
+python-dotenv
 

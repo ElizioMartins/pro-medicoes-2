@@ -243,7 +243,23 @@ export class ReadingsComponent implements OnInit, OnDestroy {
   }
 
   applyFilters(): void {
-    console.log('[DEBUG] Aplicando filtros manualmente');
+    console.log('[DEBUG] === APLICANDO FILTROS ===');
+    console.log('[DEBUG] Estado atual dos filtros:', this.filters());
+    console.log('[DEBUG] selectedCondominiumId:', this.selectedCondominiumId);
+    console.log('[DEBUG] selectedUnitId:', this.selectedUnitId);
+    console.log('[DEBUG] selectedMeasurementTypeId:', this.selectedMeasurementTypeId);
+    console.log('[DEBUG] selectedPeriod:', this.selectedPeriod);
+    
+    // Atualizar filtros com valores selecionados
+    this.filters.update(f => ({
+      ...f,
+      condominiumId: this.selectedCondominiumId || undefined,
+      unitId: this.selectedUnitId || undefined,
+      measurementTypeId: this.selectedMeasurementTypeId || undefined,
+      meterId: undefined, // Limpar meterId quando aplicando filtros manualmente
+      period: this.selectedPeriod
+    }));
+    
     this.loadReadings();
   }
 
@@ -283,7 +299,7 @@ export class ReadingsComponent implements OnInit, OnDestroy {
         finalize(() => this.isLoading.set(false))
       )
       .subscribe({
-        next: (readings) => {
+        next: (readings: Reading[]) => {
           console.log('[DEBUG] Leituras recebidas:', readings);
           let filteredReadings = readings;
 
@@ -293,14 +309,14 @@ export class ReadingsComponent implements OnInit, OnDestroy {
             const cutoffDate = new Date();
             cutoffDate.setDate(cutoffDate.getDate() - days);
             
-            filteredReadings = readings.filter(reading => 
+            filteredReadings = readings.filter((reading: Reading) => 
               new Date(reading.date) >= cutoffDate
             );
           }
 
           this.readings.set(filteredReadings);
         },
-        error: (error) => {
+        error: (error: unknown) => {
           console.error('Erro ao carregar leituras:', error);
           this.error.set('Erro ao carregar leituras. Tente novamente.');
           this.notificationService.showError('Erro ao carregar leituras');

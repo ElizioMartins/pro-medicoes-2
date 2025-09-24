@@ -6,6 +6,10 @@ from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from datetime import datetime
+from dotenv import load_dotenv
+
+# Carregar variáveis de ambiente do arquivo .env
+load_dotenv()
 
 from dbmodels import Base, engine
 from dbmodels.database import get_db
@@ -49,12 +53,6 @@ app.include_router(meters_router, prefix="/api/meters", tags=["meters"])
 app.include_router(measurement_types_router, prefix="/api/measurement-types", tags=["measurement-types"])
 app.include_router(reading_photos_router, prefix="/api", tags=["reading-photos"])
 
-# Criar pasta para salvar imagens se não existir
-UPLOAD_DIR = "uploads"
-if not os.path.exists(UPLOAD_DIR):
-    os.makedirs(UPLOAD_DIR)
-
-
 
 @app.get("/health")
 async def health_check():
@@ -62,7 +60,7 @@ async def health_check():
     Endpoint para verificar a saúde da API.
     
     Returns:
-        dict: Status da API
+        dict: Status da API  
     """
     return {"status": "ok"}
 
@@ -90,9 +88,12 @@ def extract_number_from_results(results):
 
 @app.post("/detect/")
 async def detect_image(
-    file: UploadFile = File(...),
-    db: Session = Depends(get_db)
+    file: UploadFile = File(...)
 ):
+    """
+    Endpoint para detectar números em imagens usando YOLOv8.
+    Apenas detecta o valor, não salva no banco de dados.
+    """
     try:
         if not file.content_type.startswith('image/'):
             raise HTTPException(status_code=400, detail="Arquivo deve ser uma imagem")
@@ -110,33 +111,17 @@ async def detect_image(
 
         # Usar apenas YOLOv8 results
         best_result = yolov8_results
+        print(f"[DEBUG] Resultado YOLOv8: {yolov8_results}")
         # best_result = yolov8_results if yolov8_results["confidence"] > yolov5_results["confidence"] else yolov5_results
         
-        # Salvar imagem
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        image_filename = f"reading_{timestamp}.jpg"
-        image_path = os.path.join(UPLOAD_DIR, image_filename)
-        image.save(image_path)
-        
-        # Salvar leitura no banco
-        reading = Reading(
-            meter_id=1,  # Temporário - será fornecido pelo frontend
-            current_reading=best_result["number_detected"],
-            status=ReadingStatus.COMPLETED,
-            observations=f"Detecção automática com confiança: {best_result['confidence']:.2f}",
-            # user_id será adicionado quando implementarmos autenticação
-        )
-        db.add(reading)
-        db.commit()
-        db.refresh(reading)
-
+        # Apenas retornar o resultado da detecção, sem salvar no banco
         return {
-            "id": reading.id,
-            "number_detected": reading.current_reading,
-            "confidence": best_result["confidence"],
-            "timestamp": reading.created_at,
+            "number_detected": best_result.get("number_detected"),
+            "confidence": best_result.get("confidence", 0),
+            "success": True,
+            "message": "Detecção realizada com sucesso"
         }
-
+  
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Erro na detecção: {str(e)}")
 

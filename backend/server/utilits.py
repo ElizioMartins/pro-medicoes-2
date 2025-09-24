@@ -178,6 +178,7 @@ def run_yolov8_obb(image_np: np.ndarray):
             x2 = x_c + w / 2
             y2 = y_c + h / 2
             box_coords = [x1, y1, x2, y2]
+            print(f"[DEBUG YOLOv8] Bounding box encontrado: centro=({x_c}, {y_c}), tamanho=({w}, {h}), coords=({x1}, {y1}, {x2}, {y2})")
         else:
             digits.append((x_c, str(class_id)))
             all_confidences.append(conf)

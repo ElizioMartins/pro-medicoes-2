@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { HttpClient, HttpErrorResponse, HttpClientModule } from '@angular/common/http';
-import { forkJoin, of,  switchMap, Observable, Subject } from 'rxjs';
+import { of, switchMap, Observable, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { trigger, style, animate, transition } from '@angular/animations';
 
@@ -13,8 +13,8 @@ import { ButtonComponent } from '@shared/components/ui/button/button.component';
 import { InputComponent } from '@shared/components/ui/input/input.component';
 import { Reading, ReadingCreate } from '@app/shared/models/reading.model';
 import { ReadingStatus } from '@app/shared/models/enums';
-import { ReadingPhoto } from '@shared/models/reading-photo.model';
-import { ReadingService } from '@core/services/reading.service';
+import { ReadingService } from '@app/core/services/reading.service';
+import { DetectionService, DetectionResponse } from '@core/services/detection.service';
 import { ApiResponse } from '@shared/models/api-response.model';
 import { UnitService } from '@core/services/Unit.service';
 import { MeasurementTypeService } from '@core/services/measurementtype.service';
@@ -26,12 +26,6 @@ interface UnitListResponse {
   total: number;
   skip: number;
   limit: number;
-}
-
-interface OCRDetectionResponse {
-  number_detected?: number;
-  confidence?: number;
-  message?: string;
 }
 
 @Component({
@@ -100,6 +94,7 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
   private http = inject(HttpClient);
   private route = inject(ActivatedRoute);
   private readingService = inject(ReadingService);
+  private detectionService = inject(DetectionService);
   private unitService = inject(UnitService);
   private measurementTypeService = inject(MeasurementTypeService);
 
@@ -272,6 +267,103 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Detecta o valor da leitura usando o serviço de detecção
+   * @param base64Image Imagem em base64
+   */
+  private detectReadingValue(base64Image: string): void {
+    this.isDetecting = true;
+    this.detectionError = null;
+
+    this.detectionService.detectFromBase64Image(base64Image)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: DetectionResponse) => {
+          if (response && response.number_detected !== undefined && response.number_detected !== null) {
+            this.readingForm.get('currentReading')?.setValue(response.number_detected);
+            this.detectionError = null;
+          } else {
+            this.detectionError = 'Valor não detectado claramente. Insira manualmente.';
+          }
+          this.isDetecting = false;
+        },
+        error: (error: Error) => {
+          console.error('Erro na detecção OCR:', error);
+          this.detectionError = error.message || 'Erro na detecção OCR. Tente novamente ou insira manualmente.';
+          this.isDetecting = false;
+        }
+      });
+  }
+
+  // Upload photo methods
+  onPhotoUpload(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+
+    const file = input.files[0];
+    
+    // Usar o serviço de detecção para validar e detectar
+    this.isUploadDetecting = true;
+    this.uploadDetectionError = null;
+
+    // Primeiro, ler o arquivo como base64 para exibir
+    const reader = new FileReader();
+    reader.onload = (e: ProgressEvent<FileReader>) => {
+      const base64 = e.target?.result as string;
+      this.uploadedFullImage = base64;
+      this.uploadedCroppedImage = base64; // Para upload, usamos a mesma imagem
+      this.newPhotoUploaded = true;
+      
+      // Detectar valor na imagem carregada usando o serviço
+      if (!this.readingForm.get('inaccessible')?.value) {
+        this.detectFromUploadedFile(file);
+      } else {
+        this.isUploadDetecting = false;
+      }
+    };
+    
+    reader.onerror = () => {
+      this.uploadDetectionError = 'Erro ao carregar o arquivo de imagem.';
+      this.isUploadDetecting = false;
+    };
+    
+    reader.readAsDataURL(file);
+    
+    // Reset input value to allow same file to be selected again
+    input.value = '';
+  }
+
+  /**
+   * Detecta valor da leitura a partir de arquivo enviado
+   * @param file Arquivo de imagem
+   */
+  private detectFromUploadedFile(file: File): void {
+    this.detectionService.detectFromFile(file)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: DetectionResponse) => {
+          if (response && response.number_detected !== undefined && response.number_detected !== null) {
+            this.readingForm.get('currentReading')?.setValue(response.number_detected);
+            this.uploadDetectionError = null;
+          } else {
+            this.uploadDetectionError = 'Valor não detectado claramente. Insira manualmente.';
+          }
+          this.isUploadDetecting = false;
+        },
+        error: (error: Error) => {
+          console.error('Erro na detecção OCR da imagem carregada:', error);
+          this.uploadDetectionError = error.message || 'Erro na detecção OCR. Tente novamente ou insira manualmente.';
+          this.isUploadDetecting = false;
+        }
+      });
+  }
+
+  /**
+   * Converte string base64 para Blob (método auxiliar)
+   * @param base64 String base64
+   * @param contentType Tipo do conteúdo
+   * @returns Blob
+   */
   private base64ToBlob(base64: string, contentType = 'image/jpeg'): Blob {
     try {
       const byteCharacters = atob(base64.split(',')[1]);
@@ -284,122 +376,6 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
     } catch (e) {
       console.error('Erro ao converter base64 para Blob:', e);
       throw new Error('String base64 inválida para conversão de imagem.');
-    }
-  }
-
-  private detectReadingValue(base64Image: string): void {
-    this.isDetecting = true;
-    this.detectionError = null;
-    try {
-      const imageBlob = this.base64ToBlob(base64Image);
-      const formData = new FormData();
-      formData.append('file', imageBlob, 'cropped.jpg');
-
-      const ocrApiUrl = 'http://localhost:8000/detect/';
-
-      this.http.post<OCRDetectionResponse>(ocrApiUrl, formData)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (response) => {
-            if (response && response.number_detected !== undefined && response.number_detected !== null) {
-              this.readingForm.get('currentReading')?.setValue(response.number_detected);
-              this.detectionError = null;
-            } else {
-              this.detectionError = 'Valor não detectado claramente. Insira manualmente.';
-            }
-            this.isDetecting = false;
-          },
-          error: (err: HttpErrorResponse) => {
-            console.error('Erro na detecção OCR:', err);
-            this.detectionError = `Erro na detecção OCR (${err.status}): ${err.message}. Tente novamente ou insira manualmente.`;
-            this.isDetecting = false;
-          }
-        });
-    } catch (error: unknown) {
-      console.error('Erro ao preparar imagem para detecção:', error);
-      this.detectionError = `Erro ao processar imagem: ${error instanceof Error ? error.message : 'Erro desconhecido'}`;
-      this.isDetecting = false;
-    }
-  }
-
-  // Upload photo methods
-  onPhotoUpload(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (!input.files || input.files.length === 0) return;
-
-    const file = input.files[0];
-    
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      this.uploadDetectionError = 'Por favor, selecione apenas arquivos de imagem.';
-      return;
-    }
-
-    // Validate file size (max 10MB)
-    const maxSize = 10 * 1024 * 1024; // 10MB
-    if (file.size > maxSize) {
-      this.uploadDetectionError = 'Arquivo muito grande. Tamanho máximo: 10MB.';
-      return;
-    }
-
-    this.uploadDetectionError = null;
-    const reader = new FileReader();
-    
-    reader.onload = (e: ProgressEvent<FileReader>) => {
-      const base64 = e.target?.result as string;
-      this.uploadedFullImage = base64;
-      this.uploadedCroppedImage = base64; // Para upload, usamos a mesma imagem
-      this.newPhotoUploaded = true;
-      
-      // Detectar valor na imagem carregada
-      if (!this.readingForm.get('inaccessible')?.value) {
-        this.detectUploadedReadingValue(base64);
-      }
-    };
-    
-    reader.onerror = () => {
-      this.uploadDetectionError = 'Erro ao carregar o arquivo de imagem.';
-    };
-    
-    reader.readAsDataURL(file);
-    
-    // Reset input value to allow same file to be selected again
-    input.value = '';
-  }
-
-  private detectUploadedReadingValue(base64Image: string): void {
-    this.isUploadDetecting = true;
-    this.uploadDetectionError = null;
-    
-    try {
-      const imageBlob = this.base64ToBlob(base64Image);
-      const formData = new FormData();
-      formData.append('file', imageBlob, 'uploaded.jpg');
-
-      const ocrApiUrl = 'http://localhost:8000/detect/';
-
-      this.http.post<OCRDetectionResponse>(ocrApiUrl, formData)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (response) => {
-            if (response && response.number_detected !== undefined && response.number_detected !== null) {
-              this.readingForm.get('currentReading')?.setValue(response.number_detected);
-              this.uploadDetectionError = null;
-            } else {
-              this.uploadDetectionError = 'Valor não detectado claramente. Insira manualmente.';
-            }
-            this.isUploadDetecting = false;
-          },
-          error: (err: HttpErrorResponse) => {
-            console.error('Erro na detecção OCR da imagem carregada:', err);
-            this.uploadDetectionError = `Erro na detecção OCR (${err.status}): ${err.message}. Tente novamente ou insira manualmente.`;
-            this.isUploadDetecting = false;
-          }
-        });
-    } catch (error: unknown) {
-      console.error('Erro ao preparar imagem carregada para detecção:', error);
-      this.uploadDetectionError = `Erro ao processar imagem: ${error instanceof Error ? error.message : 'Erro desconhecido'}`;
-      this.isUploadDetecting = false;
     }
   }
 
@@ -481,55 +457,43 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
 
       console.log('[DEBUG] Operação definida:', this.currentReadingIdFromRoute ? 'update' : 'create');
 
-      let photoOperation$: Observable<ApiResponse<ReadingPhoto> | null> = of(null);
-      
-      // Check if we have a photo to save (either captured or uploaded)
-      const hasPhotoToSave = (this.newPhotoTaken && this.capturedFullImage && this.capturedCroppedImage) ||
-                             (this.newPhotoUploaded && this.uploadedFullImage && this.uploadedCroppedImage);
-      
-      console.log('[DEBUG] Has photo to save:', hasPhotoToSave);
-      
-      if (hasPhotoToSave) {
-        const formData = new FormData();
-        
-        // Use captured photo if available, otherwise use uploaded photo
-        if (this.newPhotoTaken && this.capturedFullImage && this.capturedCroppedImage) {
-          formData.append('file', this.capturedFullImage);
-          formData.append('cropped_file', this.capturedCroppedImage);
-        } else if (this.newPhotoUploaded && this.uploadedFullImage && this.uploadedCroppedImage) {
-          const fullImageBlob = this.base64ToBlob(this.uploadedFullImage);
-          const croppedImageBlob = this.base64ToBlob(this.uploadedCroppedImage);
-          formData.append('file', fullImageBlob, 'uploaded-full.jpg');
-          formData.append('cropped_file', croppedImageBlob, 'uploaded-cropped.jpg');
-        }
-        
-        if (this.currentReadingIdFromRoute) {
-          // Editando leitura existente
-          photoOperation$ = this.readingService.saveReadingPhoto(
-            this.currentReadingIdFromRoute,
-            formData
-          );
-        } else {
-          // Nova leitura - será necessário salvar a foto após criar a leitura
-          // Por simplicidade, vamos pular a foto por enquanto em novas leituras
-          photoOperation$ = of(null);
-        }
-      }
-
-      console.log('[DEBUG] Iniciando forkJoin...');
-
-      forkJoin({ reading: operation$, photo: photoOperation$ })
+      // Executar a operação principal primeiro
+      operation$
         .pipe(takeUntil(this.destroy$))
         .subscribe({
-          next: ({ reading, photo }) => {
+          next: (reading) => {
             console.log('[DEBUG] Sucesso:', this.currentReadingIdFromRoute ? 'Leitura atualizada:' : 'Leitura criada:', reading);
-            if (photo) {
-              console.log('[DEBUG] Foto salva/atualizada:', photo);
+            
+            // Debug das variáveis de foto
+            console.log('[DEBUG] Estado das fotos:');
+            console.log('[DEBUG] - newPhotoTaken:', this.newPhotoTaken);
+            console.log('[DEBUG] - capturedFullImage:', !!this.capturedFullImage);
+            console.log('[DEBUG] - capturedCroppedImage:', !!this.capturedCroppedImage);
+            console.log('[DEBUG] - newPhotoUploaded:', this.newPhotoUploaded);
+            console.log('[DEBUG] - uploadedFullImage:', !!this.uploadedFullImage);
+            console.log('[DEBUG] - uploadedCroppedImage:', !!this.uploadedCroppedImage);
+            
+            // Se temos foto para salvar, salvar agora que temos o ID da leitura
+            const hasPhotoToSave = (this.newPhotoTaken && this.capturedFullImage && this.capturedCroppedImage) ||
+                                   (this.newPhotoUploaded && this.uploadedFullImage && this.uploadedCroppedImage);
+            
+            console.log('[DEBUG] - hasPhotoToSave:', hasPhotoToSave);
+            console.log('[DEBUG] - reading:', reading);
+            console.log('[DEBUG] - reading.data:', reading.data);
+            console.log('[DEBUG] - reading.id (direct):', (reading as any).id);
+            
+            // Tentar acessar o ID de diferentes formas
+            const readingId = reading.data?.id || (reading as any).id;
+            console.log('[DEBUG] - readingId final:', readingId);
+            
+            if (hasPhotoToSave && readingId) {
+              console.log('[DEBUG] Salvando foto para leitura ID:', readingId);
+              this.savePhotoForReading(readingId);
+            } else {
+              console.log('[DEBUG] Sem foto para salvar, finalizando processo');
+              // Sem foto para salvar, finalizar processo
+              this.finalizeSaveProcess();
             }
-            this.isSaving = false;
-            this.newPhotoTaken = false;
-            this.newPhotoUploaded = false;
-            this.router.navigate(['/readings']);
           },
           error: (err) => {
             console.error('[DEBUG] Erro ao salvar leitura:', err);
@@ -552,6 +516,161 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
       this.isSaving = false;
       alert('Erro inesperado ao preparar o salvamento da leitura');
     }
+  }
+
+  /**
+   * Salva a foto para uma leitura específica
+   */
+  private savePhotoForReading(readingId: number): void {
+    console.log('[DEBUG] savePhotoForReading iniciado para ID:', readingId);
+    
+    const formData = new FormData();
+    
+    // Use captured photo if available, otherwise use uploaded photo
+    if (this.newPhotoTaken && this.capturedFullImage && this.capturedCroppedImage) {
+      console.log('[DEBUG] Usando fotos capturadas');
+      try {
+        const fullImageBlob = this.base64ToBlob(this.capturedFullImage);
+        const croppedImageBlob = this.base64ToBlob(this.capturedCroppedImage);
+        console.log('[DEBUG] Blobs criados - Full:', fullImageBlob.size, 'bytes, Cropped:', croppedImageBlob.size, 'bytes');
+        formData.append('file', fullImageBlob, 'captured-full.jpg');
+        formData.append('cropped_file', croppedImageBlob, 'captured-cropped.jpg');
+      } catch (error) {
+        console.error('[DEBUG] Erro ao criar blobs das fotos capturadas:', error);
+        this.finalizeSaveProcess();
+        return;
+      }
+    } else if (this.newPhotoUploaded && this.uploadedFullImage && this.uploadedCroppedImage) {
+      console.log('[DEBUG] Usando fotos carregadas');
+      try {
+        const fullImageBlob = this.base64ToBlob(this.uploadedFullImage);
+        const croppedImageBlob = this.base64ToBlob(this.uploadedCroppedImage);
+        console.log('[DEBUG] Blobs criados - Full:', fullImageBlob.size, 'bytes, Cropped:', croppedImageBlob.size, 'bytes');
+        formData.append('file', fullImageBlob, 'uploaded-full.jpg');
+        formData.append('cropped_file', croppedImageBlob, 'uploaded-cropped.jpg');
+      } catch (error) {
+        console.error('[DEBUG] Erro ao criar blobs das fotos carregadas:', error);
+        this.finalizeSaveProcess();
+        return;
+      }
+    } else {
+      console.log('[DEBUG] Nenhuma foto encontrada para salvar');
+      this.finalizeSaveProcess();
+      return;
+    }
+    
+    console.log('[DEBUG] FormData criado, enviando requisição...');
+    
+    this.readingService.saveReadingPhoto(readingId, formData)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (photoResponse) => {
+          console.log('[DEBUG] Foto salva:', photoResponse);
+          
+          // Se houve detecção automática, atualizar o campo de leitura
+          if (photoResponse.detection?.number_detected) {
+            console.log('[DEBUG] Detecção automática:', photoResponse.detection);
+            
+            // Atualizar o campo de leitura atual se ainda não foi preenchido
+            const currentReadingValue = this.readingForm.get('currentReading')?.value;
+            if (!currentReadingValue || currentReadingValue === '') {
+              this.readingForm.get('currentReading')?.setValue(photoResponse.detection.number_detected);
+              console.log('[DEBUG] Campo de leitura atualizado automaticamente:', photoResponse.detection.number_detected);
+            }
+            
+            // Mostrar informação da detecção para o usuário
+            const confidence = Math.round(photoResponse.detection.confidence * 100);
+            alert(`Foto salva com sucesso! Número detectado automaticamente: ${photoResponse.detection.number_detected} (confiança: ${confidence}%)`);
+          } else {
+            alert('Foto salva com sucesso!');
+          }
+          
+          this.finalizeSaveProcess();
+        },
+        error: (err) => {
+          console.error('[DEBUG] Erro ao salvar foto:', err);
+          console.error('[DEBUG] Status do erro:', err.status);
+          console.error('[DEBUG] Mensagem do erro:', err.error);
+          console.error('[DEBUG] Detalhes completos do erro:', err);
+          
+          let errorMessage = 'Erro desconhecido ao salvar foto';
+          if (err.error?.detail) {
+            errorMessage = err.error.detail;
+          } else if (err.error?.message) {
+            errorMessage = err.error.message;
+          } else if (err.message) {
+            errorMessage = err.message;
+          }
+          
+          // Mesmo com erro na foto, continuar o processo pois a leitura já foi salva
+          alert(`Leitura salva, mas houve erro ao salvar a foto: ${errorMessage}`);
+          this.finalizeSaveProcess();
+        }
+      });
+  }
+
+  /**
+   * Finaliza o processo de salvamento
+   */
+  private finalizeSaveProcess(): void {
+    this.isSaving = false;
+    this.newPhotoTaken = false;
+    this.newPhotoUploaded = false;
+    
+    if (this.currentReadingIdFromRoute) {
+      // Se está editando uma leitura existente, volta para a lista
+      this.router.navigate(['/readings']);
+    } else {
+      // Se está criando uma nova leitura, limpa o formulário e permanece na tela
+      this.resetFormForNewReading();
+      // Mostrar mensagem de sucesso
+      alert('Leitura salva com sucesso! Você pode registrar uma nova leitura.');
+    }
+  }
+
+  /**
+   * Reseta o formulário para uma nova leitura, mantendo apenas os dados de contexto
+   */
+  private resetFormForNewReading(): void {
+    // Limpar dados do formulário
+    this.readingForm.patchValue({
+      currentReading: '',
+      inaccessible: false,
+      inaccessibleReason: '',
+      notes: ''
+    });
+
+    // Limpar fotos
+    this.capturedFullImage = null;
+    this.capturedCroppedImage = null;
+    this.uploadedFullImage = null;
+    this.uploadedCroppedImage = null;
+    
+    // Resetar estados de detecção e foto
+    this.newPhotoTaken = false;
+    this.newPhotoUploaded = false;
+    this.isDetecting = false;
+    this.isUploadDetecting = false;
+    this.detectionError = null;
+    this.uploadDetectionError = null;
+    
+    // Limpar dados da leitura atual (para que seja tratado como nova leitura)
+    this.currentReading = null;
+    this.currentReadingIdFromRoute = null;
+    
+    // Reabilitar campos se necessário
+    this.toggleInaccessibleFields(false);
+    
+    // Marcar formulário como pristine
+    this.readingForm.markAsUntouched();
+    this.readingForm.markAsPristine();
+    
+    console.log('[DEBUG] Formulário resetado para nova leitura. Contexto mantido:', {
+      meterId: this.contextMeterId,
+      unitId: this.contextUnitId,
+      condominiumId: this.contextCondominiumId,
+      measurementTypeId: this.contextMeasurementTypeId
+    });
   }
 }
 
