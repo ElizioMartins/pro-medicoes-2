@@ -46,6 +46,15 @@
         </div>
 
         <div class="filter-group">
+          <label for="reference-month-select">Mês de Referência</label>
+          <input
+            type="month"
+            id="reference-month-select"
+            [(ngModel)]="selectedReferenceMonth"
+            class="filter-select">
+        </div>
+
+        <div class="filter-group">
           <label for="period-select">Período</label>
           <select
             id="period-select"
@@ -94,6 +103,7 @@
           <thead>
             <tr>
               <th>Data</th>
+              <th>Mês de Referência</th>
               <th>Condomínio</th>
               <th>Unidade</th>
               <th>Tipo</th>
@@ -104,6 +114,7 @@
           <tbody>
             <tr *ngFor="let reading of readings(); trackBy: trackByReadingId">
               <td>{{ reading.date | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td>{{ formatReferenceMonth(reading.reference_month) }}</td>
               <td>{{ getCondominiumName(reading) }}</td>
               <td>{{ getUnitNumber(reading) }}</td>
               <td>{{ getMeasurementTypeName(reading) }}</td>

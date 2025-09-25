@@ -28,6 +28,7 @@ interface ReadingFilters {
   unitId?: number;
   measurementTypeId?: number;
   meterId?: number;
+  referenceMonth?: string; // Formato YYYY-MM
   period?: string;
 }
 
@@ -248,6 +249,7 @@ export class ReadingsComponent implements OnInit, OnDestroy {
     console.log('[DEBUG] selectedCondominiumId:', this.selectedCondominiumId);
     console.log('[DEBUG] selectedUnitId:', this.selectedUnitId);
     console.log('[DEBUG] selectedMeasurementTypeId:', this.selectedMeasurementTypeId);
+    console.log('[DEBUG] selectedReferenceMonth:', this.selectedReferenceMonth);
     console.log('[DEBUG] selectedPeriod:', this.selectedPeriod);
     
     // Atualizar filtros com valores selecionados
@@ -256,6 +258,7 @@ export class ReadingsComponent implements OnInit, OnDestroy {
       condominiumId: this.selectedCondominiumId || undefined,
       unitId: this.selectedUnitId || undefined,
       measurementTypeId: this.selectedMeasurementTypeId || undefined,
+      referenceMonth: this.selectedReferenceMonth || undefined,
       meterId: undefined, // Limpar meterId quando aplicando filtros manualmente
       period: this.selectedPeriod
     }));
@@ -264,7 +267,7 @@ export class ReadingsComponent implements OnInit, OnDestroy {
   }
 
   clearFilters(): void {
-    this.filters.set({ period: 'all' });
+    this.filters.set({ period: 'all', referenceMonth: undefined });
     this.filteredUnits.set([]);
     this.loadReadings();
   }
@@ -288,6 +291,9 @@ export class ReadingsComponent implements OnInit, OnDestroy {
     }
     if (currentFilters.measurementTypeId && currentFilters.measurementTypeId > 0) {
       params.measurement_type_id = currentFilters.measurementTypeId;
+    }
+    if (currentFilters.referenceMonth && currentFilters.referenceMonth.trim()) {
+      params.reference_month = currentFilters.referenceMonth;
     }
 
     console.log('[DEBUG] Filtros atuais:', currentFilters);
@@ -367,6 +373,24 @@ export class ReadingsComponent implements OnInit, OnDestroy {
     return classMap[status] || 'bg-gray-100 text-gray-800';
   }
 
+  formatReferenceMonth(referenceMonth: string): string {
+    if (!referenceMonth) return 'N/A';
+    
+    try {
+      // Formato esperado: YYYY-MM
+      const [year, month] = referenceMonth.split('-');
+      const date = new Date(parseInt(year), parseInt(month) - 1);
+      
+      // Formatação em português
+      return date.toLocaleDateString('pt-BR', { 
+        year: 'numeric', 
+        month: 'long' 
+      });
+    } catch {
+      return referenceMonth; // Retorna o valor original se houver erro
+    }
+  }
+
   // Getters para os filtros (necessário para ngModel funcionar corretamente com signals)
   get selectedCondominiumId(): number | null {
     return this.filters().condominiumId || null;
@@ -399,6 +423,15 @@ export class ReadingsComponent implements OnInit, OnDestroy {
 
   set selectedPeriod(value: string) {
     this.filters.update(f => ({ ...f, period: value }));
+    // Não chama onFilterChange() - só filtra ao clicar em aplicar
+  }
+
+  get selectedReferenceMonth(): string | null {
+    return this.filters().referenceMonth || null;
+  }
+
+  set selectedReferenceMonth(value: string | null) {
+    this.filters.update(f => ({ ...f, referenceMonth: value || undefined }));
     // Não chama onFilterChange() - só filtra ao clicar em aplicar
   }
 }
