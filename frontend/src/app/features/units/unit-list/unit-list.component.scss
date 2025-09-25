@@ -1,0 +1,378 @@
+/* Estilos específicos para o UnitListComponent */
+
+:host {
+  display: block;
+}
+
+/* Container principal */
+.units-container {
+  min-height: 100vh;
+  padding: 1rem;
+  background-color: #f8fafc;
+}
+
+.units-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+/* Header das unidades */
+.units-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.units-header p {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* Filtros rápidos */
+.dashboard-actions {
+  margin-bottom: 2rem;
+}
+
+.quick-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  align-items: end;
+
+  &.items-start {
+    align-items: start;
+  }
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  
+  label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.25rem;
+  }
+}
+
+.filter-select {
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  font-size: 0.875rem;
+  background-color: white;
+  color: #374151;
+  
+  &:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+  }
+  
+  &:disabled {
+    background-color: #f9fafb;
+    color: #9ca3af;
+    cursor: not-allowed;
+  }
+}
+
+.filter-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: end;
+  
+  app-button {
+    min-width: 80px;
+  }
+}
+
+/* Tabela de unidades */
+.units-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.units-table th {
+  background-color: #f9fafb;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.units-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 0.875rem;
+  color: #1f2937;
+  vertical-align: middle;
+}
+
+.units-table tr:hover {
+  background-color: #f9fafb;
+  transition: background-color 0.15s ease-in-out;
+}
+
+.units-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Elementos específicos da tabela */
+.unit-number {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.meters-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #ddd6fe;
+  color: #5b21b6;
+  font-weight: 500;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  min-width: 2rem;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.bg-green-100 {
+  background-color: #dcfce7;
+}
+
+.text-green-800 {
+  color: #166534;
+}
+
+.bg-red-100 {
+  background-color: #fee2e2;
+}
+
+.text-red-800 {
+  color: #991b1b;
+}
+
+/* Botões de ação */
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.action-buttons app-button {
+  min-width: 70px;
+}
+
+/* Paginação */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border-top: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+  border-bottom-left-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
+}
+
+.pagination-info {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* Estados de loading e erro */
+.loading-state,
+.error-state {
+  margin: 2rem 0;
+}
+
+.loading-content,
+.error-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  text-align: center;
+}
+
+.loading-spinner {
+  animation: spin 1s linear infinite;
+  display: inline-block;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 4px solid #3b82f6;
+  border-top-color: transparent;
+  border-radius: 50%;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to { 
+    transform: rotate(360deg); 
+  }
+}
+
+/* Estado vazio */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.empty-icon {
+  width: 4rem;
+  height: 4rem;
+  color: #9ca3af;
+  margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 0.5rem 0;
+}
+
+.empty-state p {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0 0 1.5rem 0;
+}
+
+.no-data-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .units-container {
+    padding: 0.5rem;
+  }
+
+  .units-title {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .quick-filters {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .filter-actions {
+    grid-column: 1 / -1;
+    justify-content: center;
+  }
+
+  .units-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .units-table {
+    font-size: 0.75rem;
+  }
+
+  .units-table th,
+  .units-table td {
+    padding: 0.5rem;
+  }
+
+  .action-buttons {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .action-buttons app-button {
+    min-width: 60px;
+    font-size: 0.75rem;
+  }
+
+  .pagination {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+}
+
+/* Transições suaves */
+.units-table tr,
+.filter-select,
+app-button {
+  transition: all 0.15s ease-in-out;
+}
+
+/* Focus states melhorados */
+.filter-select:focus,
+app-button:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Cards com elevação */
+app-card {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: white;
+}
+
+app-card[elevated] {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Animação de entrada */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dashboard-actions,
+.dashboard-recent {
+  animation: fadeIn 0.3s ease-out;
+}

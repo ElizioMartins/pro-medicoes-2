@@ -62,7 +62,11 @@ export const routes: Routes = [
   {
     path: 'units',
     canActivate: [AuthGuard],
-    children: [     
+    children: [
+      {
+        path: '',
+        loadComponent: () => import('./features/units/unit-list/unit-list.component').then(m => m.UnitListComponent)
+      },     
       {
         path: ':unitId/meters',
         loadComponent: () => import('./features/meters/meter-list/meter-list.component').then(m => m.MeterListComponent)

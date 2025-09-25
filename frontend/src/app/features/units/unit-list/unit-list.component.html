@@ -1,0 +1,197 @@
+<div class="units-container">
+  <h1 class="units-title">Unidades</h1>
+  
+  <!-- Filtros Rápidos -->
+  <div class="dashboard-actions">
+    <app-card title="Filtros" [elevated]="true">
+      <div class="quick-filters items-start">
+        <div class="filter-group">
+          <label for="search-input">Buscar</label>
+          <input
+            id="search-input"
+            type="text"
+            [value]="searchTerm()"
+            (input)="onSearchChange($event)"
+            placeholder="Buscar por número ou proprietário..."
+            class="filter-select">
+        </div>
+
+        <div class="filter-group">
+          <label for="condominium-select">Condomínio</label>
+          <select
+            id="condominium-select"
+            [value]="selectedCondominiumId() || ''"
+            (change)="onCondominiumChange($event)"
+            class="filter-select">
+            <option value="">Todos os condomínios</option>
+            <option *ngFor="let condo of condominiums()" [value]="condo.id">
+              {{ condo.name }}
+            </option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="status-select">Status</label>
+          <select
+            id="status-select"
+            [value]="selectedStatus()"
+            (change)="onStatusChange($event)"
+            class="filter-select">
+            <option value="all">Todos</option>
+            <option value="active">Ativas</option>
+            <option value="inactive">Inativas</option>
+          </select>
+        </div>
+
+        <div class="filter-actions">
+          <app-button (click)="applyFilters()">Aplicar</app-button>
+          <app-button (click)="clearFilters()" variant="outline">Limpar</app-button>
+        </div>
+      </div>
+    </app-card>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading()" class="loading-state">
+    <app-card [elevated]="true">
+      <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <p>Carregando unidades...</p>
+      </div>
+    </app-card>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error()" class="error-state">
+    <app-card [elevated]="true">
+      <div class="error-content">
+        <p><strong>Erro:</strong> {{ error() }}</p>
+        <app-button (click)="loadUnits()" variant="outline">Tentar Novamente</app-button>
+      </div>
+    </app-card>
+  </div>
+
+  <!-- Units List -->
+  <div class="dashboard-recent">
+    <app-card title="Lista de Unidades" [elevated]="true">
+      <div class="units-header">
+        <p>Total de {{ filteredUnits().length }} unidades{{ totalUnits() > filteredUnits().length ? ` (${totalUnits()} total)` : '' }}</p>
+        <app-button [routerLink]="['/condominiums']" variant="outline" size="sm">
+          Gerenciar Condomínios
+        </app-button>
+      </div>
+
+      <div *ngIf="!isLoading() && !error() && filteredUnits().length > 0; else noUnits">
+        <table class="units-table">
+          <thead>
+            <tr>
+              <th>Unidade</th>
+              <th>Condomínio</th>
+              <th>Proprietário</th>
+              <th>Medidores</th>
+              <th>Última Leitura</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let unit of filteredUnits(); trackBy: trackByUnitId">
+              <td>
+                <span class="unit-number">{{ unit.number }}</span>
+              </td>
+              <td>{{ getCondominiumName(unit.condominium_id) }}</td>
+              <td>{{ unit.owner }}</td>
+              <td>
+                <span class="meters-count">{{ unit.meters_count || 0 }}</span>
+              </td>
+              <td>{{ unit.last_reading ? (unit.last_reading | date:'dd/MM/yyyy') : 'Nenhuma' }}</td>
+              <td>
+                <span class="status-badge" 
+                      [class.bg-green-100]="unit.active"
+                      [class.text-green-800]="unit.active"
+                      [class.bg-red-100]="!unit.active"
+                      [class.text-red-800]="!unit.active">
+                  {{ unit.active ? 'Ativa' : 'Inativa' }}
+                </span>
+              </td>
+              <td>
+                <div class="action-buttons">
+                  <app-button 
+                    (click)="editUnit(unit)"
+                    size="sm" 
+                    variant="outline"
+                    title="Editar unidade">
+                    Editar
+                  </app-button>
+                  <app-button 
+                    (click)="goToUnitMeters(unit)"
+                    size="sm" 
+                    variant="primary"
+                    title="Ver medidores da unidade">
+                    Medidores
+                  </app-button>
+                  <app-button 
+                    (click)="confirmDeleteUnit(unit)"
+                    size="sm" 
+                    variant="danger"
+                    title="Excluir unidade">
+                    Excluir
+                  </app-button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Paginação -->
+        <div class="pagination" *ngIf="totalUnits() > pageSize()">
+          <app-button 
+            (click)="previousPage()" 
+            [disabled]="!hasPreviousPage()"
+            variant="outline" 
+            size="sm">
+            Anterior
+          </app-button>
+          <span class="pagination-info">
+            Página {{ currentPage() + 1 }} de {{ Math.ceil(totalUnits() / pageSize()) }}
+          </span>
+          <app-button 
+            (click)="nextPage()" 
+            [disabled]="!hasNextPage()"
+            variant="outline" 
+            size="sm">
+            Próxima
+          </app-button>
+        </div>
+      </div>
+
+      <ng-template #noUnits>
+        <div class="no-data-message" *ngIf="!isLoading() && !error()">
+          <div class="empty-state">
+            <svg class="empty-icon" xmlns="http://www.w3.org/2000/svg" 
+                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+            <h3>Nenhuma unidade encontrada</h3>
+            <p>{{ selectedCondominiumId() || searchTerm() || selectedStatus() !== 'all' ? 
+                  'Tente ajustar os filtros de busca.' : 
+                  'Nenhuma unidade cadastrada no sistema.' }}</p>
+            <app-button 
+              *ngIf="selectedCondominiumId() || searchTerm() || selectedStatus() !== 'all'"
+              (click)="clearFilters()" 
+              variant="outline">
+              Limpar Filtros
+            </app-button>
+            <app-button 
+              *ngIf="!selectedCondominiumId() && !searchTerm() && selectedStatus() === 'all'"
+              [routerLink]="['/condominiums']" 
+              variant="primary">
+              Gerenciar Condomínios
+            </app-button>
+          </div>
+        </div>
+      </ng-template>
+    </app-card>
+  </div>
+</div>

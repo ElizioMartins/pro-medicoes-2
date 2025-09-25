@@ -27,6 +27,15 @@ export class UnitService {
     return this.getUnits(condominiumId, 0, 1000); // Get all units for the condominium
   }
 
+  // Método para buscar todas as unidades do sistema
+  getAllUnits(skip = 0, limit = 100, search?: string): Observable<UnitListResponse> {
+    let params = `skip=${skip}&limit=${limit}`;
+    if (search) {
+      params += `&search=${search}`;
+    }
+    return this.http.get<UnitListResponse>(`${this.apiUrl}/units?${params}`);
+  }
+
   getUnitById(unitId: number): Observable<Unit> {
     return this.http.get<Unit>(`${this.apiUrl}/units/${unitId}`);
   }

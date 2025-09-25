@@ -12,6 +12,40 @@ from dependencies import get_current_user, get_manager_or_admin, get_any_authent
 
 router = APIRouter()
 
+@router.get("/units", response_model=dict)
+def get_all_units(
+    skip: int = 0,
+    limit: int = 100,
+    search: str = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_any_authenticated_user)
+):
+    """Buscar todas as unidades do sistema com filtros opcionais"""
+    
+    # Query base
+    query = db.query(Unit)
+    
+    # Filtro de busca por número da unidade ou nome do proprietário
+    if search:
+        search_filter = f"%{search}%"
+        query = query.filter(
+            (Unit.number.ilike(search_filter)) |
+            (Unit.owner.ilike(search_filter))
+        )
+    
+    # Contar total
+    total = query.count()
+    
+    # Buscar unidades com paginação
+    units = query.offset(skip).limit(limit).all()
+    
+    return {
+        "units": units,
+        "total": total,
+        "skip": skip,
+        "limit": limit
+    }
+
 @router.get("/condominiums/{condominium_id}/units", response_model=dict)
 def get_units(
     condominium_id: int, 
@@ -30,6 +64,8 @@ def get_units(
     
     # Buscar unidades com paginação
     units = db.query(Unit).filter(Unit.condominium_id == condominium_id).offset(skip).limit(limit).all()
+    
+    
     
     return {
         "units": units,
