@@ -100,7 +100,7 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
 
   constructor() {
     this.readingForm = this.fb.group({
-      currentReading: ['', [Validators.pattern('^[0-9]*[.]?[0-9]+$')]],
+      currentReading: [''],
       referenceMonth: ['', Validators.required], // Formato YYYY-MM
       inaccessible: [false],
       inaccessibleReason: [{ value: '', disabled: true }],
@@ -114,12 +114,106 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
       referenceMonth: currentMonth
     });
 
+    // Configurar validações condicionais
+    this.setupConditionalValidations();
+
     // Monitora mudanças no campo inaccessible
     this.readingForm.get('inaccessible')?.valueChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe(isInaccessible => {
         this.toggleInaccessibleFields(isInaccessible);
+        this.updateValidations();
       });
+  }
+
+  private setupConditionalValidations(): void {
+    // Configurar validações iniciais
+    this.updateValidations();
+  }
+
+  private updateValidations(): void {
+    const currentReadingControl = this.readingForm.get('currentReading');
+    const inaccessibleReasonControl = this.readingForm.get('inaccessibleReason');
+    const isInaccessible = this.readingForm.get('inaccessible')?.value;
+
+    if (isInaccessible) {
+      // Se inacessível, não precisa de leitura atual, mas precisa de motivo
+      currentReadingControl?.clearValidators();
+      inaccessibleReasonControl?.setValidators([Validators.required]);
+    } else {
+      // Se acessível, precisa de leitura atual válida
+      currentReadingControl?.setValidators([
+        Validators.required,
+        Validators.pattern('^[0-9]*[.]?[0-9]+$')
+      ]);
+      inaccessibleReasonControl?.clearValidators();
+    }
+
+    // Atualizar validade dos controles
+    currentReadingControl?.updateValueAndValidity();
+    inaccessibleReasonControl?.updateValueAndValidity();
+  }
+
+  private isFormValid(): boolean {
+    const formValue = this.readingForm.getRawValue();
+    const isInaccessible = formValue.inaccessible;
+
+    // Validações obrigatórias
+    if (!formValue.referenceMonth) {
+      return false;
+    }
+
+    if (isInaccessible) {
+      // Se inacessível, deve ter motivo
+      return !!formValue.inaccessibleReason?.trim();
+    } else {
+      // Se acessível, deve ter leitura atual válida
+      const reading = formValue.currentReading?.trim();
+      if (!reading) {
+        return false;
+      }
+      
+      // Validar formato numérico
+      const numberRegex = /^[0-9]*[.]?[0-9]+$/;
+      return numberRegex.test(reading);
+    }
+  }
+
+  private showValidationErrors(): void {
+    const formValue = this.readingForm.getRawValue();
+    const isInaccessible = formValue.inaccessible;
+    const errors: string[] = [];
+
+    // Verificar mês de referência
+    if (!formValue.referenceMonth) {
+      errors.push('Mês de referência é obrigatório');
+    }
+
+    if (isInaccessible) {
+      // Validações para leitura inacessível
+      if (!formValue.inaccessibleReason?.trim()) {
+        errors.push('Motivo da inacessibilidade é obrigatório');
+      }
+    } else {
+      // Validações para leitura normal
+      if (!formValue.currentReading?.trim()) {
+        errors.push('Valor da leitura atual é obrigatório');
+      } else {
+        const numberRegex = /^[0-9]*[.]?[0-9]+$/;
+        if (!numberRegex.test(formValue.currentReading)) {
+          errors.push('Valor da leitura deve ser um número válido (ex: 123.45)');
+        }
+      }
+    }
+
+    if (errors.length > 0) {
+      const errorMessage = 'Erro de validação:\n\n' + errors.join('\n');
+      alert(errorMessage);
+    }
+  }
+
+  get canSubmitForm(): boolean {
+    return this.readingForm.valid && this.isFormValid() && !this.isDetecting && !this.isSaving;
   }
 
   ngOnInit(): void {
@@ -410,9 +504,20 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
     console.log('[DEBUG] Context meterId:', this.contextMeterId);
     console.log('[DEBUG] Current reading ID:', this.currentReadingIdFromRoute);
     
+    // Marcar todos os campos como tocados para exibir erros
+    this.readingForm.markAllAsTouched();
+    
+    // Validações personalizadas
+    if (!this.isFormValid()) {
+      console.error('Formulário inválido - validações personalizadas falharam');
+      this.showValidationErrors();
+      return;
+    }
+    
+    // Validação do Angular Forms
     if (this.readingForm.invalid) {
-      this.readingForm.markAllAsTouched();
-      console.error('Formulário inválido.');
+      console.error('Formulário inválido - validações do Angular falharam');
+      this.showValidationErrors();
       return;
     }
 

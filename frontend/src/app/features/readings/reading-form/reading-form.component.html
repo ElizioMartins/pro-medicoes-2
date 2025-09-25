@@ -180,10 +180,22 @@
                 <p class="text-sm text-gray-600">Digite o valor ou capture uma foto para detecção automática</p>
                 <label for="currentReading" class="block text-sm font-medium text-gray-700 mb-2">
                   Valor da Leitura Atual
+                  <span *ngIf="!readingForm.get('inaccessible')?.value" class="text-red-500">*</span>
                 </label>
                 <app-input type="number" formControlName="currentReading" id="currentReading" placeholder="Ex: 1234.56"
                   [disabled]="readingForm.get('inaccessible')?.value" class="text-lg">
                 </app-input>
+
+                <!-- Mensagens de erro de validação -->
+                <div *ngIf="readingForm.get('currentReading')?.touched && readingForm.get('currentReading')?.errors && !readingForm.get('inaccessible')?.value"
+                  class="text-xs text-red-600 mt-1">
+                  <div *ngIf="readingForm.get('currentReading')?.errors?.['required']">
+                    Valor da leitura atual é obrigatório
+                  </div>
+                  <div *ngIf="readingForm.get('currentReading')?.errors?.['pattern']">
+                    Valor deve ser um número válido (ex: 123.45)
+                  </div>
+                </div>
 
                 <div *ngIf="isDetecting" class="flex items-center text-sm text-blue-600 mt-3 bg-blue-50 p-3 rounded-lg">
                   <div
@@ -341,7 +353,7 @@
               size="lg" class="w-48 h-12 flex items-center justify-center">
               Cancelar
             </app-button>
-            <app-button type="submit" [disabled]="readingForm.invalid || isDetecting || isSaving" [loading]="isSaving"
+            <app-button type="submit" [disabled]="!canSubmitForm" [loading]="isSaving"
               size="lg" class="w-48 h-12 flex items-center justify-center">
               {{ currentReadingIdFromRoute ? 'Atualizar Leitura' : 'Salvar Leitura' }}
             </app-button>
