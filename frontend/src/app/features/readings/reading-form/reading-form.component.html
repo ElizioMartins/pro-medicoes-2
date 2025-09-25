@@ -158,6 +158,22 @@
           <div class="quick-filters">
 
             <div class="space-y-6">
+              <!-- Reference Month -->
+              <div>
+                <h2 class="text-lg font-semibold text-gray-900 mb-2">Mês de Referência</h2>
+                <p class="text-sm text-gray-600 mb-3">Selecione o mês de competência desta leitura</p>
+                <label for="referenceMonth" class="block text-sm font-medium text-gray-700 mb-2">
+                  Mês de Referência <span class="text-red-500">*</span>
+                </label>
+                <input type="month" formControlName="referenceMonth" id="referenceMonth"
+                  class="block w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm bg-white">
+                
+                <div *ngIf="readingForm.get('referenceMonth')?.touched && readingForm.get('referenceMonth')?.errors?.['required']"
+                  class="text-xs text-red-600 mt-1 flex items-center">
+                  Mês de referência é obrigatório
+                </div>
+              </div>
+
               <!-- Reading Input -->
               <div>
                 <h2 class="text-lg font-semibold text-gray-900 mb-2">Leitura do Medidor</h2>

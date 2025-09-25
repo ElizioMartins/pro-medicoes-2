@@ -28,6 +28,7 @@ export interface Reading extends BaseEntity {
   meter_id: number;
   current_reading: string;
   date: string;
+  reference_month: string; // Formato YYYY-MM
   registered_by?: number;
   status: ReadingStatus;
   inaccessible_reason?: string;
@@ -39,6 +40,7 @@ export interface Reading extends BaseEntity {
 export interface ReadingCreate {
   meter_id: number;
   current_reading: string;
+  reference_month: string; // Formato YYYY-MM
   status: ReadingStatus;
   inaccessible_reason?: string;
   observations?: string;
@@ -47,6 +49,7 @@ export interface ReadingCreate {
 
 export interface ReadingUpdate {
   current_reading?: string;
+  reference_month?: string; // Formato YYYY-MM
   status?: ReadingStatus;
   inaccessible_reason?: string;
   observations?: string;

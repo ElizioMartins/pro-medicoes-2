@@ -44,6 +44,7 @@ export class ReadingService extends BaseApiService<Reading, ReadingCreate, Readi
     condominium_id?: number;
     unit_id?: number;
     measurement_type_id?: number;
+    reference_month?: string;
     skip?: number;
     limit?: number;
   }): Observable<Reading[]> {

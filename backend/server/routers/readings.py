@@ -18,6 +18,7 @@ def get_readings(
     condominium_id: int = Query(None, description="Filtrar por ID do condomínio"),
     unit_id: int = Query(None, description="Filtrar por ID da unidade"),
     measurement_type_id: int = Query(None, description="Filtrar por tipo de medição"),
+    reference_month: str = Query(None, description="Filtrar por mês de referência (formato YYYY-MM)"),
     db: Session = Depends(get_db)
 ):
     from sqlalchemy.orm import joinedload
@@ -46,6 +47,8 @@ def get_readings(
         query = query.filter(Meter.unit_id == unit_id)
     if measurement_type_id is not None:
         query = query.filter(Meter.measurement_type_id == measurement_type_id)
+    if reference_month is not None:
+        query = query.filter(Reading.reference_month == reference_month)
     
     readings = query.offset(skip).limit(limit).all()
     return readings

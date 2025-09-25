@@ -21,6 +21,7 @@ class Reading(Base):
     meter_id = Column(Integer, ForeignKey("meters.id", ondelete="CASCADE"))
     current_reading = Column(String)  # Valor lido do medidor
     date = Column(DateTime, default=datetime.utcnow)
+    reference_month = Column(String, nullable=False)  # Mês de referência no formato YYYY-MM
     registered_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     
     status = Column(Enum(ReadingStatus), default=ReadingStatus.PENDING)
@@ -38,6 +39,7 @@ class Reading(Base):
 class ReadingBase(BaseModel):
     meter_id: int
     current_reading: str
+    reference_month: str  # Formato YYYY-MM
     status: ReadingStatus
     inaccessible_reason: Optional[str] = None
     observations: Optional[str] = None
@@ -50,6 +52,7 @@ class ReadingCreate(ReadingBase):
 
 class ReadingUpdate(BaseModel):
     current_reading: Optional[str] = None
+    reference_month: Optional[str] = None  # Formato YYYY-MM
     status: Optional[ReadingStatus] = None
     inaccessible_reason: Optional[str] = None
     observations: Optional[str] = None
@@ -57,6 +60,7 @@ class ReadingUpdate(BaseModel):
 class ReadingResponse(ReadingBase):
     id: int
     date: datetime
+    reference_month: str  # Mês de referência no formato YYYY-MM
     created_at: datetime
     updated_at: datetime
     photos: List[ReadingPhotoResponse] = []

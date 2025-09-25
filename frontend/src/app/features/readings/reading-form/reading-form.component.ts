@@ -101,9 +101,17 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
   constructor() {
     this.readingForm = this.fb.group({
       currentReading: ['', [Validators.pattern('^[0-9]*[.]?[0-9]+$')]],
+      referenceMonth: ['', Validators.required], // Formato YYYY-MM
       inaccessible: [false],
       inaccessibleReason: [{ value: '', disabled: true }],
       notes: ['']
+    });
+
+    // Inicializar com o mês atual por padrão
+    const currentDate = new Date();
+    const currentMonth = currentDate.toISOString().slice(0, 7); // YYYY-MM
+    this.readingForm.patchValue({
+      referenceMonth: currentMonth
     });
 
     // Monitora mudanças no campo inaccessible
@@ -140,6 +148,7 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
             this.currentReading = reading;
             this.readingForm.patchValue({
               currentReading: reading.current_reading || '',
+              referenceMonth: reading.reference_month || '',
               inaccessible: reading.status === 'INACCESSIBLE',
               inaccessibleReason: reading.inaccessible_reason || '',
               notes: reading.observations || ''
@@ -435,6 +444,7 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
         // Atualizando leitura existente
         const readingPayload: Partial<Reading> = {
           current_reading: formValue.inaccessible ? null : formValue.currentReading,
+          reference_month: formValue.referenceMonth,
           observations: formValue.notes,
           status,
           inaccessible_reason: formValue.inaccessible ? formValue.inaccessibleReason : null,
@@ -447,6 +457,7 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
         const createPayload: ReadingCreate = {
           meter_id: this.contextMeterId!,
           current_reading: formValue.inaccessible ? '' : formValue.currentReading,
+          reference_month: formValue.referenceMonth,
           status,
           inaccessible_reason: formValue.inaccessible ? formValue.inaccessibleReason : undefined,
           observations: formValue.notes || undefined
@@ -480,10 +491,10 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
             console.log('[DEBUG] - hasPhotoToSave:', hasPhotoToSave);
             console.log('[DEBUG] - reading:', reading);
             console.log('[DEBUG] - reading.data:', reading.data);
-            console.log('[DEBUG] - reading.id (direct):', (reading as any).id);
+            console.log('[DEBUG] - reading.id (direct):', (reading as unknown as Reading).id);
             
             // Tentar acessar o ID de diferentes formas
-            const readingId = reading.data?.id || (reading as any).id;
+            const readingId = reading.data?.id || (reading as unknown as Reading).id;
             console.log('[DEBUG] - readingId final:', readingId);
             
             if (hasPhotoToSave && readingId) {
