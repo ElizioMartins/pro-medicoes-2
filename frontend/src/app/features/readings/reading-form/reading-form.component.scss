@@ -435,6 +435,10 @@ textarea:focus {
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1rem;
   align-items: end;
+
+  &.items-start {
+    align-items: start;
+  }
 }
 
 /* Estilos para os filtros/selects */
