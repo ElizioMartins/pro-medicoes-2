@@ -1,16 +1,32 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from typing import List
 from datetime import datetime
 
 from dbmodels.database import get_db
 from dbmodels.units import Unit, UnitBase, UnitCreate, UnitUpdate, UnitResponse
 from dbmodels.meters import Meter, MeterResponse
+from dbmodels.readings import Reading
 from dbmodels.condominiums import Condominium
 from dbmodels.users import User
 from dependencies import get_current_user, get_manager_or_admin, get_any_authenticated_user
 
 router = APIRouter()
+
+def update_unit_last_reading(unit: Unit, db: Session):
+    """Atualiza o last_reading da unidade baseado na última leitura dos seus medidores"""
+    # Buscar a data da última leitura de todos os medidores da unidade
+    last_reading = db.query(func.max(Reading.date)).join(Meter).filter(
+        Meter.unit_id == unit.id
+    ).scalar()
+    
+    if last_reading:
+        unit.last_reading = last_reading
+    else:
+        unit.last_reading = None
+    
+    return unit
 
 @router.get("/units", response_model=dict)
 def get_all_units(
@@ -39,6 +55,10 @@ def get_all_units(
     # Buscar unidades com paginação
     units = query.offset(skip).limit(limit).all()
     
+    # Atualizar o last_reading de cada unidade dinamicamente
+    for unit in units:
+        update_unit_last_reading(unit, db)
+    
     return {
         "units": units,
         "total": total,
@@ -65,7 +85,9 @@ def get_units(
     # Buscar unidades com paginação
     units = db.query(Unit).filter(Unit.condominium_id == condominium_id).offset(skip).limit(limit).all()
     
-    
+    # Atualizar o last_reading de cada unidade dinamicamente
+    for unit in units:
+        update_unit_last_reading(unit, db)
     
     return {
         "units": units,

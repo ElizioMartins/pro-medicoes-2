@@ -134,6 +134,11 @@ def create_reading_for_meter(
         # Atualiza a data da última leitura do medidor
         meter.last_reading_date = datetime.utcnow()
         
+        # Atualiza a data da última leitura da unidade
+        unit = meter.unit
+        if unit:
+            unit.last_reading = db_reading.date
+        
         db.commit()
         db.refresh(db_reading)
         return db_reading
