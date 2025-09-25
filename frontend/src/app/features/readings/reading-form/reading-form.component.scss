@@ -130,34 +130,148 @@ app-input[type="number"] input {
   transform: scale(1.05);
 }
 
-/* Modal melhorado */
-.photo-modal {
+/* Modal melhorado - Atualizado para resolver problemas de overlay */
+.photo-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  z-index: 999999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
   backdrop-filter: blur(4px);
+  animation: modalFadeIn 0.2s ease-out;
+
+  // Garantir que o overlay seja clicável para fechar
+  &:focus {
+    outline: none;
+  }
+
+  // Responsividade para telas menores
+  @media (max-width: 768px) {
+    padding: 10px;
+    align-items: flex-start;
+    padding-top: 20px;
+  }
 }
 
-.photo-modal .modal-content {
-  background-color: white;
-  border-radius: 0.75rem;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  max-width: 42rem;
+.photo-modal {
+  background: white;
+  border-radius: 12px;
   width: 100%;
-  position: relative;
-  overflow: hidden;
+  max-width: 800px;
   max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  position: relative;
+  animation: modalSlideIn 0.3s ease-out;
+  transform: translateY(0);
+
+  // Prevenir que cliques no modal fechem ele
+  &:focus {
+    outline: none;
+  }
+
+  // Responsividade para telas menores
+  @media (max-width: 768px) {
+    max-height: calc(100vh - 40px);
+    border-radius: 8px;
+  }
 }
 
-.photo-modal .modal-header {
+.photo-modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem;
+  padding: 20px;
   border-bottom: 1px solid #e5e7eb;
   background-color: #f9fafb;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+
+  h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .close-button {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #666;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    min-height: 32px;
+
+    &:hover {
+      background-color: #f0f0f0;
+      color: #333;
+    }
+
+    &:focus {
+      outline: 2px solid #3b82f6;
+      outline-offset: 2px;
+    }
+
+    &:active {
+      background-color: #e5e7eb;
+    }
+  }
+
+  // Responsividade
+  @media (max-width: 768px) {
+    padding: 15px;
+
+    h3 {
+      font-size: 1.1rem;
+    }
+  }
 }
 
-.photo-modal .modal-body {
-  max-height: calc(90vh - 4rem);
+.photo-modal-content {
+  padding: 20px;
+  max-height: calc(90vh - 100px);
   overflow-y: auto;
+
+  // Responsividade
+  @media (max-width: 768px) {
+    padding: 15px;
+    max-height: calc(100vh - 100px);
+  }
+}
+
+// Animações do modal
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* Botões de ação */

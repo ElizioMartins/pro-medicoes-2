@@ -323,6 +323,11 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    // Restaurar overflow do body se o modal estiver aberto
+    if (this.showPhotoCaptureModal) {
+      this.forceRestoreBodyOverflow();
+    }
+    
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -351,22 +356,85 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
     inaccessibleReasonControl?.updateValueAndValidity();
   }
 
+  private originalBodyOverflow = '';
+
   triggerPhotoCaptureModal(): void {
+    console.log('[DEBUG] Abrindo modal de captura de foto');
     this.showPhotoCaptureModal = true;
+    console.log('[DEBUG] showPhotoCaptureModal:', this.showPhotoCaptureModal);
+    
+    // Guardar o valor original do overflow antes de alterar
+    this.originalBodyOverflow = document.body.style.overflow || '';
+    // Prevenir scroll do body quando modal estiver aberto
+    document.body.style.overflow = 'hidden';
+    
+    // Garantir que o modal seja focado quando aberto
+    setTimeout(() => {
+      const modalElement = document.querySelector('[role="dialog"]') as HTMLElement;
+      if (modalElement) {
+        console.log('[DEBUG] Modal encontrado e focado:', modalElement);
+        modalElement.focus();
+        
+        // Log para debug do posicionamento
+        const computedStyle = window.getComputedStyle(modalElement);
+        console.log('[DEBUG] Modal computed style:', {
+          position: computedStyle.position,
+          zIndex: computedStyle.zIndex,
+          display: computedStyle.display,
+          top: computedStyle.top,
+          left: computedStyle.left
+        });
+      } else {
+        console.error('[DEBUG] Modal não encontrado no DOM');
+      }
+    }, 100);
   }
 
   onClosePhotoCaptureModal(): void {
+    console.log('[DEBUG] Fechando modal de captura de foto');
+    console.log('[DEBUG] Body overflow antes da restauração:', document.body.style.overflow);
+    console.log('[DEBUG] Valor original salvo:', this.originalBodyOverflow);
+    
     this.showPhotoCaptureModal = false;
+    console.log('[DEBUG] showPhotoCaptureModal:', this.showPhotoCaptureModal);
+    
+    // Restaurar o valor original do overflow
+    document.body.style.overflow = this.originalBodyOverflow;
+    
+    console.log('[DEBUG] Body overflow após restauração:', document.body.style.overflow);
   }
 
   onPhotoSuccessfullyCaptured(event: PhotoCaptureEvent): void {
+    console.log('[DEBUG] Foto capturada com sucesso, fechando modal...');
     this.capturedFullImage = event.fullImage;
     this.capturedCroppedImage = event.croppedImage;
     this.newPhotoTaken = true;
-    this.showPhotoCaptureModal = false;
     this.detectionError = null;
+    
+    // Fechar o modal adequadamente (restaura o overflow do body)
+    this.onClosePhotoCaptureModal();
+    
+    // Garantia adicional: forçar restauração do overflow após um pequeno delay
+    setTimeout(() => {
+      this.forceRestoreBodyOverflow();
+    }, 100);
+    
     if (this.capturedCroppedImage && !this.readingForm.get('inaccessible')?.value) {
       this.detectReadingValue(this.capturedCroppedImage);
+    }
+  }
+
+  /**
+   * Força a restauração do overflow do body como medida de segurança
+   */
+  private forceRestoreBodyOverflow(): void {
+    if (!this.showPhotoCaptureModal) {
+      console.log('[DEBUG] Forçando restauração do overflow do body...');
+      const currentOverflow = document.body.style.overflow;
+      if (currentOverflow === 'hidden') {
+        document.body.style.overflow = this.originalBodyOverflow || '';
+        console.log('[DEBUG] Overflow forçadamente restaurado de "hidden" para:', document.body.style.overflow || 'padrão');
+      }
     }
   }
 

@@ -87,8 +87,6 @@ export class MeterPhotoCaptureAngularComponent implements OnInit, OnDestroy {
 
   private stream: MediaStream | null = null;
 
-  constructor() {}
-
   ngOnInit(): void {
     this.startCamera();
   }
@@ -127,7 +125,7 @@ export class MeterPhotoCaptureAngularComponent implements OnInit, OnDestroy {
     }
   }
 
-  private handleCameraError(err: any, defaultMessage = 'Não foi possível acessar a câmera. Verifique as permissões do navegador.'): void {
+  private handleCameraError(err: unknown, defaultMessage = 'Não foi possível acessar a câmera. Verifique as permissões do navegador.'): void {
     console.error('Erro ao acessar a câmera:', err);
     let message = defaultMessage;
     if (err instanceof Error) {
@@ -164,37 +162,50 @@ export class MeterPhotoCaptureAngularComponent implements OnInit, OnDestroy {
     const video = this.videoRef.nativeElement;
     const canvas = this.canvasRef.nativeElement;
     const cropCanvas = this.cropCanvasRef.nativeElement;
-    const overlay = this.overlayRef.nativeElement;
 
+    // Capturar imagem completa
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     const ctx = canvas.getContext('2d');
-    if (!ctx) { this.error = 'Erro ao obter contexto do canvas.'; return; }
+    if (!ctx) { 
+      this.error = 'Erro ao obter contexto do canvas.'; 
+      return; 
+    }
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const fullImageBase64 = canvas.toDataURL('image/jpeg');
+    const fullImageBase64 = canvas.toDataURL('image/jpeg', 0.8);
 
-    const videoRect = video.getBoundingClientRect();
-    const overlayRect = overlay.getBoundingClientRect();
+    // Usar coordenadas fixas baseadas no CSS do overlay
+    // O overlay está posicionado como: top: 25%; left: 20%; width: 60%; height: 50%;
+    const overlayLeft = 0.2;   // 20%
+    const overlayTop = 0.25;   // 25%
+    const overlayWidth = 0.6;  // 60%
+    const overlayHeight = 0.5; // 50%
 
-    const scaleX = video.videoWidth / videoRect.width;
-    const scaleY = video.videoHeight / videoRect.height;
+    // Calcular coordenadas do recorte nas dimensões reais do vídeo
+    const cropX = Math.max(0, Math.floor(video.videoWidth * overlayLeft));
+    const cropY = Math.max(0, Math.floor(video.videoHeight * overlayTop));
+    const cropWidth = Math.min(video.videoWidth - cropX, Math.floor(video.videoWidth * overlayWidth));
+    const cropHeight = Math.min(video.videoHeight - cropY, Math.floor(video.videoHeight * overlayHeight));
 
-    const cropX = (overlayRect.left - videoRect.left) * scaleX;
-    const cropY = (overlayRect.top - videoRect.top) * scaleY;
-    const cropWidth = overlayRect.width * scaleX;
-    const cropHeight = overlayRect.height * scaleY;
-    
+    console.log('Dimensões do vídeo:', video.videoWidth, 'x', video.videoHeight);
+    console.log('Recorte calculado:', { cropX, cropY, cropWidth, cropHeight });
+
     if (cropWidth <= 0 || cropHeight <= 0) {
-        this.error = "Dimensões de recorte inválidas. A sobreposição está fora da área do vídeo?";
-        return;
+      this.error = "Erro no cálculo das dimensões de recorte. Tente novamente.";
+      return;
     }
 
+    // Criar imagem recortada
     cropCanvas.width = cropWidth;
     cropCanvas.height = cropHeight;
     const cropCtx = cropCanvas.getContext('2d');
-    if (!cropCtx) { this.error = 'Erro ao obter contexto do canvas de recorte.'; return; }
+    if (!cropCtx) { 
+      this.error = 'Erro ao obter contexto do canvas de recorte.'; 
+      return; 
+    }
+    
     cropCtx.drawImage(video, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
-    const croppedImageBase64 = cropCanvas.toDataURL('image/jpeg');
+    const croppedImageBase64 = cropCanvas.toDataURL('image/jpeg', 0.9);
 
     this.capturedImage = fullImageBase64;
     this.croppedImage = croppedImageBase64;
