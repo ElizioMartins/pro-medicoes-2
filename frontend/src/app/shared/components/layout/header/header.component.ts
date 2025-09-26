@@ -148,8 +148,19 @@ import { User } from '@shared/models/user.model';
       border-radius: 0.375rem;
       box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
       min-width: 12rem;
-      margin-top: 0.5rem;
+      margin-top: 0.25rem;
       display: none;
+      z-index: 1000;
+    }
+    
+    .user-dropdown::before {
+      content: '';
+      position: absolute;
+      top: -0.5rem;
+      right: 0;
+      left: 0;
+      height: 0.5rem;
+      background: transparent;
     }
     
     .user-menu:hover .user-dropdown {

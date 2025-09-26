@@ -31,78 +31,7 @@ import { RouterLink } from '@angular/router';
           </div>
         </app-card>
         
-        <app-card title="Relatórios Recentes" [elevated]="true" class="recent-card">
-          <div class="recent-reports">
-            <table class="reports-table">
-              <thead>
-                <tr>
-                  <th>Tipo</th>
-                  <th>Condomínio</th>
-                  <th>Período</th>
-                  <th>Gerado em</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let report of recentReports">
-                  <td>{{ report.type }}</td>
-                  <td>{{ report.condominium }}</td>
-                  <td>{{ report.period }}</td>
-                  <td>{{ report.generatedAt | date:'dd/MM/yyyy HH:mm' }}</td>
-                  <td class="actions-cell">
-                    <app-button [routerLink]="['/reports', report.id]" size="sm" variant="outline">Visualizar</app-button>
-                    <app-button (click)="downloadReport(report.id)" size="sm" variant="outline">Download</app-button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-            
-            <div *ngIf="recentReports.length === 0" class="no-reports">
-              <p>Nenhum relatório gerado recentemente.</p>
-            </div>
-          </div>
-        </app-card>
-      </div>
-      
-      <app-card title="Relatórios Agendados" [elevated]="true" class="scheduled-card">
-        <div class="scheduled-header">
-          <p>Total de {{ scheduledReports.length }} relatórios agendados</p>
-          <app-button routerLink="/reports/schedule" size="sm">Agendar Novo</app-button>
-        </div>
-        
-        <div class="scheduled-reports">
-          <table class="reports-table">
-            <thead>
-              <tr>
-                <th>Tipo</th>
-                <th>Condomínio</th>
-                <th>Frequência</th>
-                <th>Próxima Geração</th>
-                <th>Destinatários</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let schedule of scheduledReports">
-                <td>{{ schedule.type }}</td>
-                <td>{{ schedule.condominium }}</td>
-                <td>{{ schedule.frequency }}</td>
-                <td>{{ schedule.nextGeneration | date:'dd/MM/yyyy' }}</td>
-                <td>{{ schedule.recipients }}</td>
-                <td class="actions-cell">
-                  <app-button [routerLink]="['/reports/schedule', schedule.id]" size="sm" variant="outline">Editar</app-button>
-                  <app-button (click)="deleteSchedule(schedule.id)" size="sm" variant="danger">Excluir</app-button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          
-          <div *ngIf="scheduledReports.length === 0" class="no-reports">
-            <p>Nenhum relatório agendado.</p>
-          </div>
-        </div>
-      </app-card>
-    </div>
+       
   `,
   styles: [`
     .reports-container {
