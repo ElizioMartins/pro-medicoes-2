@@ -108,7 +108,7 @@ export const routes: Routes = [
   {
     path: 'reports',
     canActivate: [AuthGuard],
-    loadComponent: () => import('./features/reports/reports.component').then(m => m.ReportsComponent)
+    loadChildren: () => import('./features/reports/reports.routes').then(m => m.default)
   },
   {
     path: 'users',
