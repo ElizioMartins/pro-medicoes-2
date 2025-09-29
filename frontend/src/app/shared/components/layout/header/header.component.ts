@@ -42,6 +42,12 @@ import { User } from '@shared/models/user.model';
               <li class="nav-item">
                 <a routerLink="/users" routerLinkActive="active" class="nav-link">Usuários</a>
               </li>
+              <li class="nav-item">
+                <a routerLink="/readings/flash" routerLinkActive="active" class="nav-link quick-reading">
+                  <span class="flash-icon">⚡</span>
+                  Leituras Rápidas
+                </a>
+              </li>
             </ul>
           </nav>
           
@@ -121,6 +127,35 @@ import { User } from '@shared/models/user.model';
     
     .nav-link:hover, .nav-link.active {
       color: #2563eb;
+    }
+    
+    .quick-reading {
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      color: white !important;
+      border-radius: 0.375rem;
+      padding: 0.5rem 0.75rem !important;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      transition: all 0.2s;
+    }
+    
+    .quick-reading:hover {
+      background: linear-gradient(135deg, #1d4ed8, #1e3a8a);
+      color: white !important;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+    }
+    
+    .flash-icon {
+      font-size: 1rem;
+      animation: flash 2s infinite;
+    }
+    
+    @keyframes flash {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
     }
     
     .user-menu {

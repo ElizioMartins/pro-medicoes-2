@@ -96,6 +96,10 @@ export const routes: Routes = [
           pathMatch: 'full' // Importante para rota filha padrão
         },
         {
+          path: 'flash',
+          loadComponent: () => import('./features/readings/reading-flash-form/reading-flash-form.component').then(m => m.ReadingFlashFormComponent)
+        },
+        {
           path: 'new', // For creating a new reading
           loadComponent: () => import('./features/readings/reading-form/reading-form.component').then(m => m.ReadingFormComponent)
         },
