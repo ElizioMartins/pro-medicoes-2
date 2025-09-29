@@ -106,7 +106,7 @@ interface RecentReport {
                   <td>{{ report.period }}</td>
                   <td class="generated-date">{{ report.generatedAt | date: 'dd/MM/yyyy HH:mm' }}</td>
                   <td class="actions-cell">
-                    <app-button size="small" variant="outline" (click)="downloadReport(report.id)">
+                    <app-button size="sm" variant="outline" (click)="downloadReport(report.id)">
                       Download
                     </app-button>
                   </td>

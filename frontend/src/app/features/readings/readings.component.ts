@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, takeUntil, finalize } from 'rxjs';
 
 // UI Components
@@ -63,6 +63,7 @@ export class ReadingsComponent implements OnInit, OnDestroy {
 
   // Injeção via inject()
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private readingService = inject(ReadingService);
   private condominiumService = inject(CondominiumService);
   private unitService = inject(UnitService);
@@ -433,5 +434,34 @@ export class ReadingsComponent implements OnInit, OnDestroy {
   set selectedReferenceMonth(value: string | null) {
     this.filters.update(f => ({ ...f, referenceMonth: value || undefined }));
     // Não chama onFilterChange() - só filtra ao clicar em aplicar
+  }
+
+  // Action methods
+  editReading(reading: Reading): void {
+    // Navegar para o formulário de edição
+    console.log('Navegando para edição da leitura:', reading);
+    this.router.navigate(['/readings', reading.id, 'form']);
+  }
+
+  deleteReading(reading: Reading): void {
+    if (confirm(`Tem certeza que deseja excluir a leitura de ${this.formatReferenceMonth(reading.reference_month)}?`)) {
+      this.isLoading.set(true);
+      
+      this.readingService.delete(reading.id)
+        .pipe(
+          takeUntil(this.destroy$),
+          finalize(() => this.isLoading.set(false))
+        )
+        .subscribe({
+          next: () => {
+            this.notificationService.showSuccess('Leitura excluída com sucesso');
+            this.loadReadings(); // Recarregar a lista
+          },
+          error: (error: unknown) => {
+            console.error('Erro ao excluir leitura:', error);
+            this.notificationService.showError('Erro ao excluir leitura');
+          }
+        });
+    }
   }
 }

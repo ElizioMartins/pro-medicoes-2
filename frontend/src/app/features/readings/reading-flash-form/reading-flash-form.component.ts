@@ -128,14 +128,14 @@ interface FlashReadingSession {
           <div class="navigation-controls">
             <app-button 
               variant="secondary" 
-              size="small"
+              size="sm"
               (click)="previousReading()"
               [disabled]="isFirstReading() || isSessionComplete() || showFinalSummary">
               ← Anterior
             </app-button>
             <app-button 
               variant="secondary" 
-              size="small"
+              size="sm"
               (click)="skipReading()"
               [disabled]="isSaving() || isSessionComplete() || showFinalSummary">
               Pular

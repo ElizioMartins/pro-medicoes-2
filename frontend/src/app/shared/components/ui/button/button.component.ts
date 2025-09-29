@@ -104,12 +104,14 @@ import { CommonModule } from '@angular/common';
 export class ButtonComponent {
   @Input() type: 'button' | 'submit' | 'reset' = 'button';
   @Input() variant: 'primary' | 'secondary' | 'danger' | 'outline' = 'primary';
+  @Input() size: 'sm' | 'md' | 'lg' = 'md';
   @Input() disabled = false;
   @Input() loading = false;
   @Input() block = false;
 
   get buttonClasses(): string {
-    return `btn-${this.variant} ${this.block ? 'btn-block' : ''}`;
+    const sizeClass = this.size !== 'md' ? `btn-${this.size}` : '';
+    return `btn-${this.variant} ${sizeClass} ${this.block ? 'btn-block' : ''}`.trim();
   }
 
   onClick(event: Event): void {

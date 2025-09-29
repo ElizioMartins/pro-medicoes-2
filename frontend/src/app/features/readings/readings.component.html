@@ -109,6 +109,7 @@
               <th>Tipo</th>
               <th>Leitura</th>
               <th>Status</th>
+              <th>Ações</th>
             </tr>
           </thead>
           <tbody>
@@ -123,6 +124,32 @@
                 <span [class]="'status-badge ' + getStatusClass(reading.status)">
                   {{ getStatusText(reading.status) }}
                 </span>
+              </td>
+              <td>
+                <div class="action-buttons">
+                  <app-button 
+                    (click)="editReading(reading)" 
+                    variant="outline" 
+                    size="sm"
+                    title="Editar leitura">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="m18 2 4 4-14 14H4v-4z"/>
+                      <path d="m14.5 5.5 4 4"/>
+                    </svg>
+                  </app-button>
+                  <app-button 
+                    (click)="deleteReading(reading)" 
+                    variant="outline" 
+                    size="sm" 
+                    class="btn-danger"
+                    title="Excluir leitura">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M3 6h18"/>
+                      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                    </svg>
+                  </app-button>
+                </div>
               </td>
             </tr>
           </tbody>

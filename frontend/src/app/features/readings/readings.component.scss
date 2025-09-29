@@ -190,3 +190,29 @@
     padding: 0.5rem;
   }
 }
+
+// Action buttons
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  align-items: center;
+
+  app-button {
+    &.btn-danger {
+      --button-color: #dc2626;
+      --button-hover-color: #b91c1c;
+      
+      &:hover {
+        background-color: var(--button-hover-color);
+        border-color: var(--button-hover-color);
+        color: white;
+      }
+    }
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
