@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -8,15 +8,14 @@ import { ApiResponse, PaginatedResponse } from '../../shared/models/api-response
   providedIn: 'root'
 })
 export abstract class BaseApiService<T, TCreate, TUpdate> {
+  protected http = inject(HttpClient);
   protected abstract endpoint: string;
-
-  constructor(protected http: HttpClient) {}
 
   protected get baseUrl(): string {
     return `${environment.apiUrl}${this.endpoint}`;
   }
 
-  getAll(params?: any): Observable<PaginatedResponse<T>> {
+  getAll(params?: Record<string, string | number | boolean>): Observable<PaginatedResponse<T>> {
     let httpParams = new HttpParams();
     if (params) {
       Object.keys(params).forEach(key => {

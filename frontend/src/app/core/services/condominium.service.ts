@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Condominium, CondominiumCreate, CondominiumUpdate } from '../../shared/models/condominium.model';
 import { BaseApiService } from './base-api.service';
-import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { PaginatedResponse } from '../../shared/models/api-response.model';
 import { Unit } from '../../shared/models/unit.model';
@@ -20,10 +19,6 @@ interface CondominiumStatistics {
 export class CondominiumService extends BaseApiService<Condominium, CondominiumCreate, CondominiumUpdate> {
   protected endpoint = '/api/condominiums';
   private readonly apiUrl = `${environment.apiUrl}/api/condominiums`;
-
-  constructor(http: HttpClient) {
-    super(http);
-  }
 
   // Método para listar condomínios com paginação e filtros
   getCondominiums(skip = 0, limit = 100, search?: string): Observable<{condominiums: Condominium[], total: number, skip: number, limit: number}> {

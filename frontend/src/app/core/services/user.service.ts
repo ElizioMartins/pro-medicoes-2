@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -14,9 +14,8 @@ interface LoginResponse {
   providedIn: 'root'
 })
 export class UserService {
+  private readonly http = inject(HttpClient);
   private readonly apiUrl = `${environment.apiUrl}/api/users`;
-
-  constructor(private readonly http: HttpClient) {}
 
   login(credentials: UserLogin): Observable<LoginResponse> {
     const params = new URLSearchParams();

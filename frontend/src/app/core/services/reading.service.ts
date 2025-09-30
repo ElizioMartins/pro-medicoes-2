@@ -1,7 +1,6 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Reading, ReadingCreate, ReadingUpdate } from '../../shared/models/reading.model';
 import { BaseApiService } from './base-api.service';
-import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { DetectionResponse } from '../../shared/models/detection.model';
 import { PaginatedResponse, ApiResponse } from '../../shared/models/api-response.model';
@@ -32,12 +31,6 @@ export interface PhotoUploadResponse {
 })
 export class ReadingService extends BaseApiService<Reading, ReadingCreate, ReadingUpdate> {
   protected endpoint = '/api/readings';
-
-  override readonly http = inject(HttpClient);
-  
-  constructor() {
-    super(inject(HttpClient));
-  }
 
   getReadingsFiltered(params: {
     meter_id?: number;

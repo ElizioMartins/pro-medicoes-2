@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -20,10 +20,11 @@ export interface LoginResponse {
   providedIn: 'root'
 })
 export class AuthService {
+  private http = inject(HttpClient);
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor(private http: HttpClient) {
+  constructor() {
     // Verificar se há um usuário salvo no localStorage
     const savedUser = localStorage.getItem('currentUser');
     if (savedUser) {
