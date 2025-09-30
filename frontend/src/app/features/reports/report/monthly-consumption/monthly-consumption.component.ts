@@ -1,8 +1,12 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { CardComponent } from '@shared/components/ui/card/card.component';
 import { ButtonComponent } from '@shared/components/ui/button/button.component';
 import { Router } from '@angular/router';
+import { CondominiumService } from '@core/services/condominium.service';
+import { Condominium } from '@shared/models/condominium.model';
+import { Subject, takeUntil } from 'rxjs';
 
 interface MonthlyConsumptionData {
   period: string;
@@ -30,7 +34,7 @@ interface MonthlyConsumptionData {
 @Component({
   selector: 'app-monthly-consumption',
   standalone: true,
-  imports: [CommonModule, CardComponent, ButtonComponent],
+  imports: [CommonModule, ReactiveFormsModule, CardComponent, ButtonComponent],
   template: `
     <div class="monthly-consumption-report">
       <!-- Header com botão voltar -->
@@ -48,56 +52,135 @@ interface MonthlyConsumptionData {
         </div>
       </div>
 
-      <!-- Cabeçalho do Relatório -->
-      <app-card class="report-header-card">
-        <div class="report-info">
-          <h2>{{ data?.condominium?.name }}</h2>
-          <p class="period">Período: {{ data?.period }}</p>
-          <p class="generation-date">
-            Relatório gerado em {{ currentDate | date: 'dd/MM/yyyy HH:mm' }}
-          </p>
-        </div>
+      <!-- Filtros e Seleção -->
+      <app-card title="Filtros do Relatório" class="filters-card">
+        <form [formGroup]="filtersForm" class="filters-form">
+          <div class="filter-row">
+            <div class="filter-group">
+              <label for="condominium">Condomínio:</label>
+              <select 
+                id="condominium" 
+                formControlName="selectedCondominium" 
+                class="filter-select"
+                (change)="onCondominiumChange()">
+                <option value="">Selecione um condomínio...</option>
+                <option 
+                  *ngFor="let condominium of condominiums" 
+                  [value]="condominium.id">
+                  {{ condominium.name }}
+                </option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label for="period">Período:</label>
+              <input 
+                type="month" 
+                id="period" 
+                formControlName="selectedPeriod" 
+                class="filter-input"
+                (change)="onPeriodChange()">
+            </div>
+
+            <div class="filter-actions">
+              <app-button 
+                variant="primary" 
+                [disabled]="!canGenerateReport()"
+                (click)="generateReport()">
+                Gerar Relatório
+              </app-button>
+            </div>
+          </div>
+        </form>
       </app-card>
 
-      <!-- Resumo Executivo -->
-      <app-card title="Resumo Executivo" class="summary-card">
-        <div class="summary-grid" *ngIf="data?.summary">
-          <div class="summary-item">
-            <span class="label">Total de Unidades</span>
-            <span class="value">{{ data?.summary?.unitsCount }}</span>
+      <!-- Loading State -->
+      <div *ngIf="loading" class="loading-state">
+        <app-card>
+          <div class="loading-content">
+            <p>Carregando relatório...</p>
           </div>
-          <div class="summary-item">
-            <span class="label">Consumo Total</span>
-            <span class="value">{{ data?.summary?.totalConsumption | number:'1.2-2' }} m³</span>
-          </div>
-          <div class="summary-item">
-            <span class="label">Consumo Médio</span>
-            <span class="value">{{ data?.summary?.averageConsumption | number:'1.2-2' }} m³</span>
-          </div>
-          <div class="summary-item">
-            <span class="label">Custo Total</span>
-            <span class="value">{{ data?.summary?.totalCost | currency:'BRL':'symbol':'1.2-2' }}</span>
-          </div>
-        </div>
-      </app-card>
+        </app-card>
+      </div>
 
-      <!-- Detalhamento por Unidade -->
-      <app-card title="Consumo por Unidade" class="details-card">
-        <div class="table-container">
-          <table class="consumption-table" *ngIf="data?.units">
-            <thead>
-              <tr>
-                <th>Unidade</th>
-                <th>Morador</th>
-                <th>Leitura Anterior</th>
-                <th>Leitura Atual</th>
-                <th>Consumo (m³)</th>
-                <th>Custo (R$)</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let unit of data?.units" [class.high-consumption]="isHighConsumption(unit.consumption)">
-                <td class="unit-number">{{ unit.number }}</td>
+      <!-- Instructions State -->
+      <div *ngIf="!loading && !data && !hasTriedToGenerate && !filtersForm.value.selectedCondominium" class="instructions-state">
+        <app-card>
+          <div class="instructions-content">
+            <h3>📊 Relatório de Consumo Mensal</h3>
+            <p>Selecione um condomínio e período para gerar o relatório detalhado de consumo.</p>
+            <ul>
+              <li>Escolha o condomínio desejado</li>
+              <li>Defina o período de referência</li>
+              <li>Clique em "Gerar Relatório"</li>
+            </ul>
+          </div>
+        </app-card>
+      </div>
+
+      <!-- No Data State -->
+      <div *ngIf="!loading && !data && hasTriedToGenerate && filtersForm.value.selectedCondominium" class="no-data-state">
+        <app-card>
+          <div class="no-data-content">
+            <h3>Nenhum dado encontrado</h3>
+            <p>Não foram encontrados dados para o período selecionado.</p>
+            <p class="suggestion">Tente selecionar um período diferente ou verifique se há leituras registradas para este condomínio.</p>
+          </div>
+        </app-card>
+      </div>
+
+      <!-- Relatório -->
+      <div *ngIf="!loading && data" class="report-content">
+        <!-- Cabeçalho do Relatório -->
+        <app-card class="report-header-card">
+          <div class="report-info">
+            <h2>{{ data.condominium.name }}</h2>
+            <p class="period">Período: {{ data.period }}</p>
+            <p class="generation-date">
+              Relatório gerado em {{ currentDate | date: 'dd/MM/yyyy HH:mm' }}
+            </p>
+          </div>
+        </app-card>
+
+        <!-- Resumo Executivo -->
+        <app-card title="Resumo Executivo" class="summary-card">
+          <div class="summary-grid" *ngIf="data?.summary">
+            <div class="summary-item">
+              <span class="label">Total de Unidades</span>
+              <span class="value">{{ data.summary.unitsCount }}</span>
+            </div>
+            <div class="summary-item">
+              <span class="label">Consumo Total</span>
+              <span class="value">{{ data.summary.totalConsumption | number:'1.2-2' }} m³</span>
+            </div>
+            <div class="summary-item">
+              <span class="label">Consumo Médio</span>
+              <span class="value">{{ data.summary.averageConsumption | number:'1.2-2' }} m³</span>
+            </div>
+            <div class="summary-item">
+              <span class="label">Custo Total</span>
+              <span class="value">{{ data.summary.totalCost | currency:'BRL':'symbol':'1.2-2' }}</span>
+            </div>
+          </div>
+        </app-card>
+
+        <!-- Detalhamento por Unidade -->
+        <app-card title="Consumo por Unidade" class="details-card">
+          <div class="table-container">
+            <table class="consumption-table" *ngIf="data?.units">
+              <thead>
+                <tr>
+                  <th>Unidade</th>
+                  <th>Morador</th>
+                  <th>Leitura Anterior</th>
+                  <th>Leitura Atual</th>
+                  <th>Consumo (m³)</th>
+                  <th>Custo (R$)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let unit of data?.units" [class.high-consumption]="isHighConsumption(unit.consumption)">
+                  <td class="unit-number">{{ unit.number }}</td>
                 <td>{{ unit.resident }}</td>
                 <td class="reading">{{ unit.previousReading | number:'1.0-0' }}</td>
                 <td class="reading">{{ unit.currentReading | number:'1.0-0' }}</td>
@@ -174,6 +257,109 @@ interface MonthlyConsumptionData {
       color: #6b7280;
       font-size: 1.125rem;
       margin: 0;
+    }
+
+    /* Estilos do formulário de filtros */
+    .filters-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .filter-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 1.5rem;
+      align-items: end;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .filter-group label {
+      font-weight: 600;
+      color: #374151;
+      font-size: 0.875rem;
+    }
+
+    .filter-select,
+    .filter-input {
+      padding: 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.375rem;
+      font-size: 0.875rem;
+      background-color: white;
+      transition: border-color 0.2s;
+    }
+
+    .filter-select:focus,
+    .filter-input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .filter-actions {
+      display: flex;
+      align-items: center;
+    }
+
+    /* Estados de loading e sem dados */
+    .loading-state,
+    .no-data-state,
+    .instructions-state {
+      margin: 2rem 0;
+    }
+
+    .loading-content,
+    .no-data-content,
+    .instructions-content {
+      text-align: center;
+      padding: 2rem;
+    }
+
+    .loading-content p {
+      color: #6b7280;
+      margin: 0;
+    }
+
+    .no-data-content h3,
+    .instructions-content h3 {
+      margin: 0 0 0.5rem 0;
+      color: #111827;
+    }
+
+    .no-data-content p,
+    .instructions-content p {
+      color: #6b7280;
+      margin: 0 0 0.5rem 0;
+    }
+
+    .no-data-content .suggestion {
+      color: #3b82f6;
+      font-size: 0.875rem;
+      margin-top: 1rem;
+    }
+
+    .instructions-content ul {
+      text-align: left;
+      display: inline-block;
+      margin: 1rem 0 0 0;
+      padding-left: 1.5rem;
+    }
+
+    .instructions-content li {
+      color: #6b7280;
+      margin-bottom: 0.5rem;
+    }
+
+    .report-content {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
     }
 
     .report-header-card .report-info h2 {
@@ -314,6 +500,11 @@ interface MonthlyConsumptionData {
     }
 
     @media (max-width: 768px) {
+      .filter-row {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+      
       .summary-grid {
         grid-template-columns: repeat(2, 1fr);
       }
@@ -329,71 +520,124 @@ interface MonthlyConsumptionData {
     }
   `]
 })
-export class MonthlyConsumptionComponent implements OnInit {
+export class MonthlyConsumptionComponent implements OnInit, OnDestroy {
   private router = inject(Router);
+  private condominiumService = inject(CondominiumService);
+  private formBuilder = inject(FormBuilder);
+  private destroy$ = new Subject<void>();
   
   data: MonthlyConsumptionData | null = null;
   currentDate = new Date();
+  loading = false;
+  condominiums: Condominium[] = [];
+  hasTriedToGenerate = false; // Flag para controlar se já tentou gerar relatório
+  
+  filtersForm: FormGroup;
+
+  constructor() {
+    this.filtersForm = this.formBuilder.group({
+      selectedCondominium: [''],
+      selectedPeriod: [this.getCurrentMonth()]
+    });
+  }
 
   ngOnInit() {
-    this.loadReportData();
+    this.loadCondominiums();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private getCurrentMonth(): string {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    return `${year}-${month}`;
+  }
+
+  private loadCondominiums() {
+    this.condominiumService.getCondominiums(0, 100)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.condominiums = response.condominiums;
+        },
+        error: (error) => {
+          console.error('Erro ao carregar condomínios:', error);
+        }
+      });
+  }
+
+  onCondominiumChange() {
+    const selectedCondominiumId = this.filtersForm.value.selectedCondominium;
+    if (selectedCondominiumId && this.filtersForm.value.selectedPeriod) {
+      // Limpa dados anteriores quando muda o condomínio
+      this.data = null;
+      this.hasTriedToGenerate = false; // Reset da flag
+    }
+  }
+
+  onPeriodChange() {
+    const selectedPeriod = this.filtersForm.value.selectedPeriod;
+    if (this.filtersForm.value.selectedCondominium && selectedPeriod) {
+      // Limpa dados anteriores quando muda o período
+      this.data = null;
+      this.hasTriedToGenerate = false; // Reset da flag
+    }
+  }
+
+  canGenerateReport(): boolean {
+    return !!(this.filtersForm.value.selectedCondominium && 
+              this.filtersForm.value.selectedPeriod && 
+              !this.loading);
+  }
+
+  generateReport() {
+    if (!this.canGenerateReport()) return;
+
+    this.loading = true;
+    this.data = null;
+    this.hasTriedToGenerate = true; // Marca que tentou gerar relatório
+
+    // Simula chamada para o backend
+    setTimeout(() => {
+      this.loadReportData();
+      this.loading = false;
+    }, 1500);
   }
 
   private loadReportData() {
+    const selectedCondominiumId = this.filtersForm.value.selectedCondominium;
+    const selectedPeriod = this.filtersForm.value.selectedPeriod;
+    
+    if (!selectedCondominiumId || !selectedPeriod) {
+      return;
+    }
+
+    // Encontra o condomínio selecionado
+    const selectedCondominium = this.condominiums.find(c => c.id.toString() === selectedCondominiumId);
+    if (!selectedCondominium) {
+      return;
+    }
+
+    // Converte o período para formato legível
+    const [year, month] = selectedPeriod.split('-');
+    const monthNames = [
+      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ];
+    const formattedPeriod = `${monthNames[parseInt(month) - 1]} de ${year}`;
+
     // Simula dados do relatório (em produção viria do backend)
     this.data = {
-      period: 'Janeiro de 2025',
+      period: formattedPeriod,
       condominium: {
-        id: '1',
-        name: 'Residencial Parque das Flores'
+        id: selectedCondominium.id.toString(),
+        name: selectedCondominium.name
       },
-      units: [
-        {
-          id: '1',
-          number: '101',
-          resident: 'João Silva',
-          currentReading: 1245,
-          previousReading: 1220,
-          consumption: 25,
-          cost: 87.50
-        },
-        {
-          id: '2',
-          number: '102',
-          resident: 'Maria Santos',
-          currentReading: 987,
-          previousReading: 950,
-          consumption: 37,
-          cost: 129.50
-        },
-        {
-          id: '3',
-          number: '103',
-          resident: 'Pedro Costa',
-          currentReading: 1456,
-          previousReading: 1398,
-          consumption: 58,
-          cost: 203.00
-        },
-        {
-          id: '4',
-          number: '201',
-          resident: 'Ana Oliveira',
-          currentReading: 823,
-          previousReading: 798,
-          consumption: 25,
-          cost: 87.50
-        },
-        {
-          id: '5',
-          number: '202',
-          resident: 'Carlos Lima',
-          currentReading: 1123,
-          previousReading: 1089,
-          consumption: 34,
-          cost: 119.00
-        }
-      ],
+      units: this.generateMockUnitsData(selectedCondominium.name),
       summary: {
         totalConsumption: 0,
         totalCost: 0,
@@ -409,6 +653,39 @@ export class MonthlyConsumptionComponent implements OnInit {
       this.data.summary.totalCost = this.data.units.reduce((sum, unit) => sum + unit.cost, 0);
       this.data.summary.averageConsumption = this.data.summary.totalConsumption / this.data.summary.unitsCount;
     }
+  }
+
+  private generateMockUnitsData(condominiumName: string) {
+    // Gera dados mock baseados no condomínio selecionado
+    const baseUnits = [
+      { number: '101', resident: 'João Silva', baseConsumption: 25 },
+      { number: '102', resident: 'Maria Santos', baseConsumption: 37 },
+      { number: '103', resident: 'Pedro Costa', baseConsumption: 58 },
+      { number: '201', resident: 'Ana Oliveira', baseConsumption: 25 },
+      { number: '202', resident: 'Carlos Lima', baseConsumption: 34 },
+      { number: '203', resident: 'Lucia Ferreira', baseConsumption: 42 },
+      { number: '301', resident: 'Ricardo Alves', baseConsumption: 28 },
+      { number: '302', resident: 'Sandra Moura', baseConsumption: 31 }
+    ];
+
+    return baseUnits.map((unit, index) => {
+      // Adiciona variação baseada no hash do nome do condomínio para consistência
+      const variation = (condominiumName.length + index) % 20 - 10; // Variação de -10 a +10
+      const consumption = Math.max(5, unit.baseConsumption + variation);
+      const previousReading = 1000 + (index * 100) + Math.floor(Math.random() * 100);
+      const currentReading = previousReading + consumption;
+      const cost = consumption * 3.5; // R$ 3,50 por m³
+
+      return {
+        id: (index + 1).toString(),
+        number: unit.number,
+        resident: unit.resident,
+        currentReading,
+        previousReading,
+        consumption,
+        cost
+      };
+    });
   }
 
   isHighConsumption(consumption: number): boolean {
