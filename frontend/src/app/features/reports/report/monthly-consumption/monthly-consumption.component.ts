@@ -5,31 +5,11 @@ import { CardComponent } from '@shared/components/ui/card/card.component';
 import { ButtonComponent } from '@shared/components/ui/button/button.component';
 import { Router } from '@angular/router';
 import { CondominiumService } from '@core/services/condominium.service';
+import { ReportService, MonthlyConsumptionReport } from '@core/services/report.service';
 import { Condominium } from '@shared/models/condominium.model';
 import { Subject, takeUntil } from 'rxjs';
 
-interface MonthlyConsumptionData {
-  period: string;
-  condominium: {
-    id: string;
-    name: string;
-  };
-  units: {
-    id: string;
-    number: string;
-    resident: string;
-    currentReading: number;
-    previousReading: number;
-    consumption: number;
-    cost: number;
-  }[];
-  summary: {
-    totalConsumption: number;
-    totalCost: number;
-    averageConsumption: number;
-    unitsCount: number;
-  };
-}
+// Removendo interface local, usando a do serviço
 
 @Component({
   selector: 'app-monthly-consumption',
@@ -122,9 +102,9 @@ interface MonthlyConsumptionData {
       <div *ngIf="!loading && !data && hasTriedToGenerate && filtersForm.value.selectedCondominium" class="no-data-state">
         <app-card>
           <div class="no-data-content">
-            <h3>Nenhum dado encontrado</h3>
-            <p>Não foram encontrados dados para o período selecionado.</p>
-            <p class="suggestion">Tente selecionar um período diferente ou verifique se há leituras registradas para este condomínio.</p>
+            <h3>{{ errorMessage ? 'Erro ao gerar relatório' : 'Nenhum dado encontrado' }}</h3>
+            <p>{{ errorMessage || 'Não foram encontrados dados para o período selecionado.' }}</p>
+            <p *ngIf="!errorMessage" class="suggestion">Tente selecionar um período diferente ou verifique se há leituras registradas para este condomínio.</p>
           </div>
         </app-card>
       </div>
@@ -523,14 +503,16 @@ interface MonthlyConsumptionData {
 export class MonthlyConsumptionComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private condominiumService = inject(CondominiumService);
+  private reportService = inject(ReportService);
   private formBuilder = inject(FormBuilder);
   private destroy$ = new Subject<void>();
   
-  data: MonthlyConsumptionData | null = null;
+  data: MonthlyConsumptionReport | null = null;
   currentDate = new Date();
   loading = false;
   condominiums: Condominium[] = [];
   hasTriedToGenerate = false; // Flag para controlar se já tentou gerar relatório
+  errorMessage = ''; // Mensagem de erro específica
   
   filtersForm: FormGroup;
 
@@ -576,6 +558,7 @@ export class MonthlyConsumptionComponent implements OnInit, OnDestroy {
       // Limpa dados anteriores quando muda o condomínio
       this.data = null;
       this.hasTriedToGenerate = false; // Reset da flag
+      this.errorMessage = ''; // Reset da mensagem de erro
     }
   }
 
@@ -585,6 +568,7 @@ export class MonthlyConsumptionComponent implements OnInit, OnDestroy {
       // Limpa dados anteriores quando muda o período
       this.data = null;
       this.hasTriedToGenerate = false; // Reset da flag
+      this.errorMessage = ''; // Reset da mensagem de erro
     }
   }
 
@@ -600,92 +584,25 @@ export class MonthlyConsumptionComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.data = null;
     this.hasTriedToGenerate = true; // Marca que tentou gerar relatório
+    this.errorMessage = ''; // Reset da mensagem de erro
 
-    // Simula chamada para o backend
-    setTimeout(() => {
-      this.loadReportData();
-      this.loading = false;
-    }, 1500);
-  }
-
-  private loadReportData() {
-    const selectedCondominiumId = this.filtersForm.value.selectedCondominium;
+    const selectedCondominiumId = parseInt(this.filtersForm.value.selectedCondominium);
     const selectedPeriod = this.filtersForm.value.selectedPeriod;
-    
-    if (!selectedCondominiumId || !selectedPeriod) {
-      return;
-    }
 
-    // Encontra o condomínio selecionado
-    const selectedCondominium = this.condominiums.find(c => c.id.toString() === selectedCondominiumId);
-    if (!selectedCondominium) {
-      return;
-    }
-
-    // Converte o período para formato legível
-    const [year, month] = selectedPeriod.split('-');
-    const monthNames = [
-      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-    ];
-    const formattedPeriod = `${monthNames[parseInt(month) - 1]} de ${year}`;
-
-    // Simula dados do relatório (em produção viria do backend)
-    this.data = {
-      period: formattedPeriod,
-      condominium: {
-        id: selectedCondominium.id.toString(),
-        name: selectedCondominium.name
-      },
-      units: this.generateMockUnitsData(selectedCondominium.name),
-      summary: {
-        totalConsumption: 0,
-        totalCost: 0,
-        averageConsumption: 0,
-        unitsCount: 0
-      }
-    };
-
-    // Calcula o resumo
-    if (this.data.units) {
-      this.data.summary.unitsCount = this.data.units.length;
-      this.data.summary.totalConsumption = this.data.units.reduce((sum, unit) => sum + unit.consumption, 0);
-      this.data.summary.totalCost = this.data.units.reduce((sum, unit) => sum + unit.cost, 0);
-      this.data.summary.averageConsumption = this.data.summary.totalConsumption / this.data.summary.unitsCount;
-    }
-  }
-
-  private generateMockUnitsData(condominiumName: string) {
-    // Gera dados mock baseados no condomínio selecionado
-    const baseUnits = [
-      { number: '101', resident: 'João Silva', baseConsumption: 25 },
-      { number: '102', resident: 'Maria Santos', baseConsumption: 37 },
-      { number: '103', resident: 'Pedro Costa', baseConsumption: 58 },
-      { number: '201', resident: 'Ana Oliveira', baseConsumption: 25 },
-      { number: '202', resident: 'Carlos Lima', baseConsumption: 34 },
-      { number: '203', resident: 'Lucia Ferreira', baseConsumption: 42 },
-      { number: '301', resident: 'Ricardo Alves', baseConsumption: 28 },
-      { number: '302', resident: 'Sandra Moura', baseConsumption: 31 }
-    ];
-
-    return baseUnits.map((unit, index) => {
-      // Adiciona variação baseada no hash do nome do condomínio para consistência
-      const variation = (condominiumName.length + index) % 20 - 10; // Variação de -10 a +10
-      const consumption = Math.max(5, unit.baseConsumption + variation);
-      const previousReading = 1000 + (index * 100) + Math.floor(Math.random() * 100);
-      const currentReading = previousReading + consumption;
-      const cost = consumption * 3.5; // R$ 3,50 por m³
-
-      return {
-        id: (index + 1).toString(),
-        number: unit.number,
-        resident: unit.resident,
-        currentReading,
-        previousReading,
-        consumption,
-        cost
-      };
-    });
+    this.reportService.generateMonthlyConsumptionReport(selectedCondominiumId, selectedPeriod)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (report) => {
+          this.data = report;
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('Erro ao gerar relatório:', error);
+          this.loading = false;
+          this.errorMessage = error.message || 'Erro ao gerar o relatório. Tente novamente.';
+          // Mantém data como null para mostrar mensagem de "sem dados"
+        }
+      });
   }
 
   isHighConsumption(consumption: number): boolean {
@@ -695,7 +612,7 @@ export class MonthlyConsumptionComponent implements OnInit, OnDestroy {
 
   getHighConsumptionUnits() {
     if (!this.data?.units) return [];
-    return this.data.units.filter(unit => this.isHighConsumption(unit.consumption));
+    return this.data.units.filter((unit) => this.isHighConsumption(unit.consumption));
   }
 
   getConsumptionVariation(consumption: number): number {
