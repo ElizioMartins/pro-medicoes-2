@@ -16,7 +16,7 @@ import { ReadingStatus } from '@app/shared/models/enums';
 import { ReadingService } from '@app/core/services/reading.service';
 import { DetectionService, DetectionResponse } from '@core/services/detection.service';
 import { ApiResponse } from '@shared/models/api-response.model';
-import { UnitService } from '@core/services/Unit.service';
+import { UnitService } from '@core/services/unit.service';
 import { MeasurementTypeService } from '@core/services/measurementtype.service';
 import { Unit } from '@shared/models/unit.model';
 import { MeasurementType } from '@shared/models/measurement-type.model';

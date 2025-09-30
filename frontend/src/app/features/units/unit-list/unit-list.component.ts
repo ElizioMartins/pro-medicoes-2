@@ -13,7 +13,7 @@ import { Unit } from '@shared/models/unit.model';
 import { Condominium } from '@shared/models/condominium.model';
 
 // Services
-import { UnitService } from '@core/services/Unit.service';
+import { UnitService } from '@core/services/unit.service';
 import { CondominiumService } from '@core/services/condominium.service';
 import { ToastService } from '@core/services/toast.service';
 

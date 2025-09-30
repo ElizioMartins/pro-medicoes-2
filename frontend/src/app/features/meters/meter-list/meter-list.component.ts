@@ -13,7 +13,7 @@ import { MeasurementType } from "@shared/models/measurement-type.model";
 // Services
 import { MeterService } from '@core/services/meter.service';
 import { ToastService } from '@core/services/toast.service';
-import { UnitService } from '@core/services/Unit.service';
+import { UnitService } from '@core/services/unit.service';
 import { MeasurementTypeService } from '@core/services/measurementtype.service';
 import { Component, OnInit, OnDestroy, signal, inject } from '@angular/core';
 import { RouterLink, ActivatedRoute, Router, Params } from '@angular/router';

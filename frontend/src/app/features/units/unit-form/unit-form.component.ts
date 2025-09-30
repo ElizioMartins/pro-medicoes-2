@@ -4,7 +4,7 @@ import { finalize } from 'rxjs';
 import { CardComponent } from '@shared/components/ui/card/card.component';
 import { ButtonComponent } from '@shared/components/ui/button/button.component';
 import { Unit } from "@shared/models/unit.model";
-import { UnitService } from '@core/services/Unit.service';
+import { UnitService } from '@core/services/unit.service';
 import { Meter } from "@shared/models/meter.model";
 import { MeterService } from '@core/services/meter.service';
 import { ToastService } from '@app/core/services/toast.service';

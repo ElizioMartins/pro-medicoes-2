@@ -3,7 +3,7 @@ import { HeaderComponent } from '@shared/components/layout/header/header.compone
 import { FooterComponent } from '@shared/components/layout/footer/footer.component';
 import { ToastContainerComponent } from '@shared/components/ui/toast-container/toast-container.component';
 import { UserService } from '@core/services/user.service';
-import { UnitService } from '@core/services/Unit.service';
+import { UnitService } from '@core/services/unit.service';
 import { MeasurementTypeService } from '@core/services/measurementtype.service';
 import { CondominiumService } from './core/services/condominium.service';
 import { MeterService } from './core/services/meter.service';

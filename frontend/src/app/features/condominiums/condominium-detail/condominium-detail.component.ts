@@ -8,7 +8,7 @@ import { CondominiumService } from '@app/core/services/condominium.service';
 import { Subject, takeUntil } from 'rxjs';
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
-import { UnitService } from '@app/core/services/Unit.service';
+import { UnitService } from '@app/core/services/unit.service';
 
 @Component({
   selector: 'app-condominium-detail',

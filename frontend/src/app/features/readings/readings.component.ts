@@ -19,7 +19,7 @@ import { Meter } from '../../shared/models/meter.model';
 import { ReadingService } from '../../core/services/reading.service';
 import { CondominiumService } from '../../core/services/condominium.service';
 import { MeasurementTypeService } from '../../core/services/measurementtype.service';
-import { UnitService } from '../../core/services/Unit.service';
+import { UnitService } from '../../core/services/unit.service';
 import { MeterService } from '../../core/services/meter.service';
 import { ToastService } from '../../core/services/toast.service';
 
