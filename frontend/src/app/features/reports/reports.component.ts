@@ -342,9 +342,17 @@ export class ReportsComponent {
     {
       id: 'monthly-consumption',
       name: 'Consumo Mensal',
-      description: 'Relatório detalhado de consumo por unidade no período de um mês com análises e recomendações.',
+      description: 'Relatório detalhado de consumo por condomínio no período de um mês com análises e recomendações.',
       route: '/reports/monthly-consumption',
       icon: '📊',
+      status: 'available'
+    },
+    {
+      id: 'unit-consumption-period',
+      name: 'Consumo por Unidade',
+      description: 'Relatório detalhado de consumo de uma unidade específica em período customizado com histórico completo.',
+      route: '/reports/unit-consumption-period',
+      icon: '🏠',
       status: 'available'
     },
     {

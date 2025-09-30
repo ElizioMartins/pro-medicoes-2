@@ -10,6 +10,10 @@ export const reportsRoutes: Routes = [
     loadComponent: () => import('./report/monthly-consumption/monthly-consumption.component').then(m => m.MonthlyConsumptionComponent)
   },
   {
+    path: 'unit-consumption-period',
+    loadComponent: () => import('./report/unit-consumption-period/unit-consumption-period.component').then(m => m.UnitConsumptionPeriodComponent)
+  },
+  {
     path: 'quarterly-comparative',
     loadComponent: () => import('./report/quarterly-comparative/quarterly-comparative.component').then(m => m.QuarterlyComparativeComponent)
   },
