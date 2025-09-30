@@ -64,39 +64,31 @@ export class DashboardService {
   private readonly http = inject(HttpClient);
 
   getDashboardStats(): Observable<DashboardStats> {
-    // Usar endpoints que retornam apenas contagens, não os dados completos
-    const condominiums$ = this.http.get<{ total: number }>(`${this.apiUrl}/condominiums/count`).pipe(
-      catchError(() => this.http.get<{ condominiums: Condominium[], total: number }>(`${this.apiUrl}/condominiums?limit=1`).pipe(
-        map(data => ({ total: data.total }))
-      )),
+    // Usar endpoints existentes com paginação que retornam o total
+    const condominiums$ = this.http.get<{ condominiums: Condominium[], total: number }>(`${this.apiUrl}/condominiums?limit=1`).pipe(
+      map(data => ({ total: data.total })),
       catchError(() => of({ total: 0 }))
     );
     
-    const units$ = this.http.get<{ total: number }>(`${this.apiUrl}/units/count`).pipe(
-      catchError(() => this.http.get<{ units: Unit[], total: number }>(`${this.apiUrl}/units?limit=1`).pipe(
-        map(data => ({ total: data.total }))
-      )),
+    const units$ = this.http.get<{ units: Unit[], total: number }>(`${this.apiUrl}/units?limit=1`).pipe(
+      map(data => ({ total: data.total })),
       catchError(() => of({ total: 0 }))
     );
     
-    const readings$ = this.http.get<{ total: number }>(`${this.apiUrl}/readings/count`).pipe(
-      catchError(() => this.http.get<Reading[]>(`${this.apiUrl}/readings?limit=100`).pipe(
-        map(data => ({ total: data.length }))
-      )),
+    // Readings endpoint retorna apenas lista, então vamos buscar um número limitado e calcular
+    const readings$ = this.http.get<Reading[]>(`${this.apiUrl}/readings?limit=1000`).pipe(
+      map(data => ({ total: data.length })),
       catchError(() => of({ total: 0 }))
     );
     
-    const users$ = this.http.get<{ total: number }>(`${this.apiUrl}/users/count`).pipe(
-      catchError(() => this.http.get<{ users: User[], total: number }>(`${this.apiUrl}/users?page=1&pageSize=1`).pipe(
-        map(data => ({ total: data.total }))
-      )),
+    const users$ = this.http.get<{ users: User[], total: number }>(`${this.apiUrl}/users?page=1&pageSize=1`).pipe(
+      map(data => ({ total: data.total })),
       catchError(() => of({ total: 0 }))
     );
     
-    const meters$ = this.http.get<{ total: number }>(`${this.apiUrl}/meters/count`).pipe(
-      catchError(() => this.http.get<{ id: number; serial_number?: string }[]>(`${this.apiUrl}/meters?limit=100`).pipe(
-        map(data => ({ total: data.length }))
-      )),
+    // Meters endpoint retorna apenas lista, então vamos buscar um número limitado e calcular
+    const meters$ = this.http.get<{ id: number }[]>(`${this.apiUrl}/meters?limit=1000`).pipe(
+      map(data => ({ total: data.length })),
       catchError(() => of({ total: 0 }))
     );
 
