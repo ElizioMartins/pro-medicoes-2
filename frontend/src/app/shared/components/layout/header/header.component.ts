@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { ResponsiveService } from '@core/services/responsive.service';
@@ -313,12 +313,10 @@ import { User } from '@shared/models/user.model';
 export class HeaderComponent implements OnInit {
   mobileMenuOpen = false;
   currentUser: User | null = null;
-  
-  constructor(
-    public responsiveService: ResponsiveService,
-    private userService: UserService,
-    private router: Router
-  ) {}
+
+  public responsiveService = inject(ResponsiveService);
+  private userService = inject(UserService);
+  private router = inject(Router);
   
   ngOnInit(): void {
     this.currentUser = this.userService.getCurrentUser();

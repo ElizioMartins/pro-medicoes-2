@@ -48,7 +48,7 @@
       <div class="form-group" *ngIf="unit">
         <h3 class="text-lg font-semibold mb-2">Medidores</h3>
         <div class="text-sm text-gray-600 mb-2">
-          Quantidade configurada: {{ unit?.meters_count || 0 }} medidores
+          Quantidade configurada: {{ unit.meters_count || 0 }} medidores
         </div>
         <div formArrayName="meters">
           <div *ngFor="let meter of meters.controls; let i = index" [formGroupName]="i" class="meter-item border p-3 mb-2 rounded bg-gray-50">

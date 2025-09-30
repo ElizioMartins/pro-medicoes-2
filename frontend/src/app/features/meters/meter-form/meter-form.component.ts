@@ -12,7 +12,7 @@ import { MeasurementType } from "@shared/models/measurement-type.model";
 
 // Services
 import { MeterService } from '@core/services/meter.service';
-import { NotificationService } from '@core/services/notification.service';
+import { ToastService } from '@core/services/toast.service';
 import { MeasurementTypeService } from '@core/services/measurementtype.service';
 import { Component, OnInit, OnDestroy, signal, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -49,7 +49,7 @@ export class MeterFormComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private meterService = inject(MeterService);
-  private notificationService = inject(NotificationService);
+  private toastService = inject(ToastService);
   private measurementTypeService = inject(MeasurementTypeService);
 
   constructor() {
@@ -112,7 +112,7 @@ export class MeterFormComponent implements OnInit, OnDestroy {
         error: (error: unknown) => {
           console.error('Erro ao carregar tipos de medição:', error);
           this.error.set('Erro ao carregar tipos de medição.');
-          this.notificationService.showError('Erro ao carregar tipos de medição');
+          this.toastService.showError('Erro ao carregar tipos de medição');
         }
       });
   }
@@ -143,7 +143,7 @@ export class MeterFormComponent implements OnInit, OnDestroy {
         error: (error: unknown) => {
           console.error('Erro ao carregar medidor:', error);
           this.error.set('Erro ao carregar dados do medidor.');
-          this.notificationService.showError('Erro ao carregar medidor');
+          this.toastService.showError('Erro ao carregar medidor');
         }
       });
   }
@@ -172,12 +172,12 @@ export class MeterFormComponent implements OnInit, OnDestroy {
         )
         .subscribe({
           next: () => {
-            this.notificationService.showSuccess('Medidor atualizado com sucesso');
+            this.toastService.showSuccess('Medidor atualizado com sucesso');
             this.goBack();
           },
           error: (error) => {
             console.error('Erro ao atualizar medidor:', error);
-            this.notificationService.showError('Erro ao atualizar medidor');
+            this.toastService.showError('Erro ao atualizar medidor');
           }
         });
     } else {
@@ -194,12 +194,12 @@ export class MeterFormComponent implements OnInit, OnDestroy {
         )
         .subscribe({
           next: () => {
-            this.notificationService.showSuccess('Medidor criado com sucesso');
+            this.toastService.showSuccess('Medidor criado com sucesso');
             this.goBack();
           },
           error: (error) => {
             console.error('Erro ao criar medidor:', error);
-            this.notificationService.showError('Erro ao criar medidor');
+            this.toastService.showError('Erro ao criar medidor');
           }
         });
     }

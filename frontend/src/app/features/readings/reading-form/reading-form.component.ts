@@ -20,6 +20,7 @@ import { UnitService } from '@core/services/Unit.service';
 import { MeasurementTypeService } from '@core/services/measurementtype.service';
 import { Unit } from '@shared/models/unit.model';
 import { MeasurementType } from '@shared/models/measurement-type.model';
+import { ToastService } from '@core/services/toast.service';
 
 interface UnitListResponse {
   units: Unit[];
@@ -97,6 +98,7 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
   private detectionService = inject(DetectionService);
   private unitService = inject(UnitService);
   private measurementTypeService = inject(MeasurementTypeService);
+  private toastService = inject(ToastService);
 
   constructor() {
     this.readingForm = this.fb.group({
@@ -207,8 +209,12 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
     }
 
     if (errors.length > 0) {
-      const errorMessage = 'Erro de validação:\n\n' + errors.join('\n');
-      alert(errorMessage);
+      this.toastService.show({
+        title: 'Erro de Validação',
+        description: errors.join(' • '),
+        variant: 'destructive',
+        duration: 6000
+      });
     }
   }
 
@@ -591,7 +597,12 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
 
     // Validar se é nova leitura e não tem meterId
     if (!this.currentReadingIdFromRoute && !this.contextMeterId) {
-      alert('Erro: ID do medidor não encontrado. Retorne à lista de leituras e tente novamente.');
+      this.toastService.show({
+        title: 'Erro',
+        description: 'ID do medidor não encontrado. Retorne à lista de leituras e tente novamente.',
+        variant: 'destructive',
+        duration: 5000
+      });
       console.error('MeterId é obrigatório para criar nova leitura');
       return;
     }
@@ -692,13 +703,23 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
               errorMessage = err.message;
             }
             
-            alert(`Erro ao salvar leitura: ${errorMessage}`);
+            this.toastService.show({
+              title: 'Erro ao Salvar',
+              description: `Erro ao salvar leitura: ${errorMessage}`,
+              variant: 'destructive',
+              duration: 6000
+            });
           }
         });
     } catch (error) {
       console.error('[DEBUG] Erro na preparação do onSubmit:', error);
       this.isSaving = false;
-      alert('Erro inesperado ao preparar o salvamento da leitura');
+      this.toastService.show({
+        title: 'Erro Inesperado',
+        description: 'Erro inesperado ao preparar o salvamento da leitura',
+        variant: 'destructive',
+        duration: 5000
+      });
     }
   }
 
@@ -764,9 +785,19 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
             
             // Mostrar informação da detecção para o usuário
             const confidence = Math.round(photoResponse.detection.confidence * 100);
-            alert(`Foto salva com sucesso! Número detectado automaticamente: ${photoResponse.detection.number_detected} (confiança: ${confidence}%)`);
+            this.toastService.show({
+              title: 'Foto Salva com Sucesso!',
+              description: `Número detectado automaticamente: ${photoResponse.detection.number_detected} (confiança: ${confidence}%)`,
+              variant: 'success',
+              duration: 6000
+            });
           } else {
-            alert('Foto salva com sucesso!');
+            this.toastService.show({
+              title: 'Foto Salva!',
+              description: 'Foto salva com sucesso!',
+              variant: 'success',
+              duration: 4000
+            });
           }
           
           this.finalizeSaveProcess();
@@ -787,7 +818,12 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
           }
           
           // Mesmo com erro na foto, continuar o processo pois a leitura já foi salva
-          alert(`Leitura salva, mas houve erro ao salvar a foto: ${errorMessage}`);
+          this.toastService.show({
+            title: 'Leitura Salva',
+            description: `Leitura salva, mas houve erro ao salvar a foto: ${errorMessage}`,
+            variant: 'warning',
+            duration: 6000
+          });
           this.finalizeSaveProcess();
         }
       });
@@ -808,7 +844,12 @@ export class ReadingFormComponent implements OnInit, OnDestroy {
       // Se está criando uma nova leitura, limpa o formulário e permanece na tela
       this.resetFormForNewReading();
       // Mostrar mensagem de sucesso
-      alert('Leitura salva com sucesso! Você pode registrar uma nova leitura.');
+      this.toastService.show({
+        title: 'Leitura Salva com Sucesso!',
+        description: 'Você pode registrar uma nova leitura.',
+        variant: 'success',
+        duration: 5000
+      });
     }
   }
 

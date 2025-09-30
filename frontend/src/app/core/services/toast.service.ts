@@ -38,6 +38,23 @@ export class ToastService {
     }, newToast.duration);
   }
 
+  // Métodos de conveniência para melhor usabilidade
+  showSuccess(message: string, title = 'Sucesso'): void {
+    this.show({ title, description: message, variant: 'success' });
+  }
+
+  showError(message: string, title = 'Erro'): void {
+    this.show({ title, description: message, variant: 'destructive' });
+  }
+
+  showWarning(message: string, title = 'Atenção'): void {
+    this.show({ title, description: message, variant: 'warning' });
+  }
+
+  showInfo(message: string, title = 'Informação'): void {
+    this.show({ title, description: message, variant: 'default' });
+  }
+
   dismiss(id: string): void {
     // Atualiza o signal removendo o toast com o ID especificado
     this.toasts.update(current => current.filter(toast => toast.id !== id));

@@ -15,7 +15,7 @@ import { Condominium } from '@shared/models/condominium.model';
 // Services
 import { UnitService } from '@core/services/Unit.service';
 import { CondominiumService } from '@core/services/condominium.service';
-import { NotificationService } from '@core/services/notification.service';
+import { ToastService } from '@core/services/toast.service';
 
 @Component({
   selector: 'app-unit-list',
@@ -250,7 +250,7 @@ export class UnitListComponent implements OnInit, OnDestroy {
   // Injeção via inject()
   private unitService = inject(UnitService);
   private condominiumService = inject(CondominiumService);
-  private notificationService = inject(NotificationService);
+  private toastService = inject(ToastService);
   private router = inject(Router);
 
   // Computed signals
@@ -330,7 +330,7 @@ export class UnitListComponent implements OnInit, OnDestroy {
         error: (error) => {
           console.error('Erro ao carregar unidades:', error);
           this.error.set('Erro ao carregar unidades.');
-          this.notificationService.showError('Erro ao carregar unidades');
+          this.toastService.showError('Erro ao carregar unidades');
         }
       });
   }
@@ -376,11 +376,11 @@ export class UnitListComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.units.update(units => units.filter(u => u.id !== unit.id));
-          this.notificationService.showSuccess('Unidade excluída com sucesso');
+          this.toastService.showSuccess('Unidade excluída com sucesso');
         },
         error: (error) => {
           console.error('Erro ao excluir unidade:', error);
-          this.notificationService.showError('Erro ao excluir unidade');
+          this.toastService.showError('Erro ao excluir unidade');
         }
       });
   }

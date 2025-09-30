@@ -12,7 +12,7 @@ import { MeasurementType } from "@shared/models/measurement-type.model";
 
 // Services
 import { MeterService } from '@core/services/meter.service';
-import { NotificationService } from '@core/services/notification.service';
+import { ToastService } from '@core/services/toast.service';
 import { UnitService } from '@core/services/Unit.service';
 import { MeasurementTypeService } from '@core/services/measurementtype.service';
 import { Component, OnInit, OnDestroy, signal, inject } from '@angular/core';
@@ -45,7 +45,7 @@ export class MeterListComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private meterService = inject(MeterService);
-  private notificationService = inject(NotificationService);
+  private toastService = inject(ToastService);
   private unitService = inject(UnitService);
   private measurementTypeService = inject(MeasurementTypeService);
 
@@ -103,7 +103,7 @@ export class MeterListComponent implements OnInit, OnDestroy {
         error: (error) => {
           console.error('Erro ao carregar unidade:', error);
           this.error.set('Erro ao carregar dados da unidade.');
-          this.notificationService.showError('Erro ao carregar unidade');
+          this.toastService.showError('Erro ao carregar unidade');
         }
       });
   }
@@ -120,11 +120,11 @@ export class MeterListComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.meters.update(meters => meters.filter(m => m.id !== id));
-          this.notificationService.showSuccess('Medidor excluído com sucesso');
+          this.toastService.showSuccess('Medidor excluído com sucesso');
         },
         error: (error) => {
           console.error('Erro ao excluir medidor:', error);
-          this.notificationService.showError('Erro ao excluir medidor');
+          this.toastService.showError('Erro ao excluir medidor');
         }
       });
   }

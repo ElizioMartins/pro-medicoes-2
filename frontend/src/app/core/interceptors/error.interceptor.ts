@@ -3,7 +3,7 @@ import { inject } from '@angular/core';
 import { HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { NotificationService } from '../services/notification.service';
+import { ToastService } from '../services/toast.service';
 
 export interface ApiError {
   message: string;
@@ -12,7 +12,7 @@ export interface ApiError {
 }
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
-  const notificationService = inject(NotificationService);
+  const toastService = inject(ToastService);
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
       let apiError: ApiError;
@@ -28,7 +28,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           details: error.error?.details
         };
       }
-      notificationService.showError(apiError.message);
+      toastService.showError(apiError.message);
       return throwError(() => apiError);
     })
   );

@@ -24,7 +24,7 @@ import { MeterService } from '@core/services/meter.service';
 import { MeasurementTypeService } from '@core/services/measurementtype.service';
 import { ReadingService } from '@core/services/reading.service';
 import { DetectionService, DetectionResponse } from '@core/services/detection.service';
-import { NotificationService } from '@core/services/notification.service';
+import { ToastService } from '@core/services/toast.service';
 
 interface FlashReadingSession {
   condominium: Condominium;
@@ -479,7 +479,7 @@ export class ReadingFlashFormComponent implements OnInit, OnDestroy {
   private measurementTypeService = inject(MeasurementTypeService);
   private readingService = inject(ReadingService);
   private detectionService = inject(DetectionService);
-  private notificationService = inject(NotificationService);
+  private toastService = inject(ToastService);
 
   constructor() {
     this.setupForm = this.fb.group({
@@ -697,7 +697,7 @@ export class ReadingFlashFormComponent implements OnInit, OnDestroy {
           this.detectedValue = '';
           this.detectionConfidence = null;
           this.showResults = true;
-          this.notificationService.showError('Erro na detecção automática. Insira o valor manualmente.');
+          this.toastService.showError('Erro na detecção automática. Insira o valor manualmente.');
         }
       });
   }
@@ -764,13 +764,13 @@ export class ReadingFlashFormComponent implements OnInit, OnDestroy {
             this.uploadPhotoForReading(reading.id);
           } else {
             console.log('[FLASH-FORM] Sem foto para salvar, movendo para próxima...');
-            this.notificationService.showSuccess('Leitura salva com sucesso!');
+            this.toastService.showSuccess('Leitura salva com sucesso!');
             this.moveToNextReading();
           }
         },
         error: (error) => {
           console.error('[FLASH-FORM] Erro ao salvar leitura:', error);
-          this.notificationService.showError('Erro ao salvar leitura');
+          this.toastService.showError('Erro ao salvar leitura');
         }
       });
   }
@@ -778,7 +778,7 @@ export class ReadingFlashFormComponent implements OnInit, OnDestroy {
   private uploadPhotoForReading(readingId: number): void {
     if (!this.currentPhotoData) {
       console.log('[FLASH-FORM] Sem dados de foto para upload');
-      this.notificationService.showSuccess('Leitura salva com sucesso!');
+      this.toastService.showSuccess('Leitura salva com sucesso!');
       this.moveToNextReading();
       return;
     }
@@ -815,11 +815,11 @@ export class ReadingFlashFormComponent implements OnInit, OnDestroy {
             if (photoResponse.detection?.number_detected) {
               console.log('[FLASH-FORM] Detecção automática:', photoResponse.detection);
               const confidence = Math.round(photoResponse.detection.confidence * 100);
-              this.notificationService.showSuccess(
+              this.toastService.showSuccess(
                 `Leitura e foto salvas! Número detectado: ${photoResponse.detection.number_detected} (${confidence}%)`
               );
             } else {
-              this.notificationService.showSuccess('Leitura e foto salvas com sucesso!');
+              this.toastService.showSuccess('Leitura e foto salvas com sucesso!');
             }
             
             this.moveToNextReading();
@@ -838,14 +838,14 @@ export class ReadingFlashFormComponent implements OnInit, OnDestroy {
             }
             
             // Mesmo com erro na foto, continuar pois a leitura já foi salva
-            this.notificationService.showSuccess(`Leitura salva! (Erro na foto: ${errorMessage})`);
+            this.toastService.showSuccess(`Leitura salva! (Erro na foto: ${errorMessage})`);
             this.moveToNextReading();
           }
         });
         
     } catch (error) {
       console.error('[FLASH-FORM] Erro ao criar blobs das fotos:', error);
-      this.notificationService.showSuccess('Leitura salva! (Erro ao processar foto)');
+      this.toastService.showSuccess('Leitura salva! (Erro ao processar foto)');
       this.moveToNextReading();
     }
   }

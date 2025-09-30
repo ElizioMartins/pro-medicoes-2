@@ -21,7 +21,7 @@ import { CondominiumService } from '../../core/services/condominium.service';
 import { MeasurementTypeService } from '../../core/services/measurementtype.service';
 import { UnitService } from '../../core/services/Unit.service';
 import { MeterService } from '../../core/services/meter.service';
-import { NotificationService } from '../../core/services/notification.service';
+import { ToastService } from '../../core/services/toast.service';
 
 interface ReadingFilters {
   condominiumId?: number;
@@ -69,7 +69,7 @@ export class ReadingsComponent implements OnInit, OnDestroy {
   private unitService = inject(UnitService);
   private measurementTypeService = inject(MeasurementTypeService);
   private meterService = inject(MeterService);
-  private notificationService = inject(NotificationService);
+  private toastService = inject(ToastService);
 
   ngOnInit(): void {
     this.handleRouteParams(); // Processar primeiro os route params
@@ -326,7 +326,7 @@ export class ReadingsComponent implements OnInit, OnDestroy {
         error: (error: unknown) => {
           console.error('Erro ao carregar leituras:', error);
           this.error.set('Erro ao carregar leituras. Tente novamente.');
-          this.notificationService.showError('Erro ao carregar leituras');
+          this.toastService.showError('Erro ao carregar leituras');
         }
       });
   }
@@ -454,12 +454,12 @@ export class ReadingsComponent implements OnInit, OnDestroy {
         )
         .subscribe({
           next: () => {
-            this.notificationService.showSuccess('Leitura excluída com sucesso');
+            this.toastService.showSuccess('Leitura excluída com sucesso');
             this.loadReadings(); // Recarregar a lista
           },
           error: (error: unknown) => {
             console.error('Erro ao excluir leitura:', error);
-            this.notificationService.showError('Erro ao excluir leitura');
+            this.toastService.showError('Erro ao excluir leitura');
           }
         });
     }
