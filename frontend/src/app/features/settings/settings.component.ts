@@ -1,14 +1,11 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { CardComponent } from '@shared/components/ui/card/card.component';
-import { ButtonComponent } from '@shared/components/ui/button/button.component';
-import { RouterLink } from '@angular/router';
 import { MeasurementTypesComponent } from '@features/measurement-types/measurement-types.component';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [CommonModule, CardComponent, ButtonComponent, RouterLink, MeasurementTypesComponent],
+  imports: [CommonModule, MeasurementTypesComponent],
   template: `
     <div class="p-4">
       <h1 class="page-title">Configurações</h1>
